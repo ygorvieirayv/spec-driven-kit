@@ -174,5 +174,5 @@ repositório. A constituição e o `project-context` já estarão no lugar; o pi
 
 ## Licença
 
-Defina a licença do projeto conforme sua intenção de uso (ex.: MIT para um kit público). Adicione um arquivo
-`LICENSE` na raiz.
+Distribuído sob a licença **MIT** — veja [`LICENSE`](./LICENSE). Uso, cópia e modificação livres, mantendo o
+aviso de copyright.
