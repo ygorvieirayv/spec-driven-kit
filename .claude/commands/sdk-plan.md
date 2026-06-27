@@ -32,6 +32,8 @@ Carregue: a spec da feature (`docs/specs/<feature>/spec.md`), `.specify/memory/e
    um ADR (curto no plano + completo em `docs/decisions/` quando for decisão de arquitetura).
 4. **Consulte a barra de engenharia** (`engineering-standards.md`): infra, integração, performance,
    segurança, testes, observabilidade. Verifique o que se aplica a esta feature.
+   **E consulte a biblioteca de lições** (`.specify/memory/lessons.md`) por **tag** relevante (grep — não
+   carregue o arquivo inteiro): aplique as prevenções já conhecidas ao plano (ex.: tem cache? veja `#cache`).
 5. **Quebre em tasks** na tabela do template: ID, descrição, arquivo(s), AC que satisfaz, verificação,
    estado. Ordene por dependência.
 6. **Estratégia de teste:** escala com o modo (PROTOTYPE: caminho feliz da lógica de risco; PRODUCTION: TDD

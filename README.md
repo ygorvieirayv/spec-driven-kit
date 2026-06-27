@@ -29,7 +29,8 @@
 
 O kit é construído como **slash commands + markdown** — não é uma CLI pesada. O Claude Code lê os comandos de
 `.claude/commands/*.md`. Cada passo do fluxo é um comando `sdk-*`. As bases de conhecimento (constituição,
-padrões de engenharia, guia de decisões) são markdown carregado em memória.
+padrões de engenharia, guia de decisões, lições) são markdown em `.specify/memory/`, **lido sob demanda** por
+cada comando — só o resumo de base fica sempre presente, no `CLAUDE.md` (ver "Economia de token" abaixo).
 
 ```
 ideia vaga
@@ -58,6 +59,7 @@ ideia vaga
 | `/sdk-tasks` | Quebra/atualiza a lista de tasks rastreáveis. |
 | `/sdk-implement` | Implementa seguindo o plano; TDD na lógica crítica em modo PRODUCTION. |
 | `/sdk-review` | Revisa o diff contra spec + plano + padrões; severidade Crítico/Alto/Médio/Baixo. |
+| `/sdk-lesson` | Registra uma lição (erro resolvido) de forma generalizada e reutilizável na biblioteca de lições. |
 
 ### Subagentes (opcionais, usados pelos comandos)
 
@@ -65,6 +67,7 @@ ideia vaga
 |--------|----------|
 | `sdk-domain-researcher` | Pesquisa de domínio/compliance na descoberta — com fontes e marcas `[VERIFICAR]`. Não dá veredito legal. |
 | `sdk-reviewer` | Revisão de **contexto fresco** (sem o viés de quem escreveu o código), usada pelo `/sdk-review`. |
+| `sdk-lesson-curator` | Generaliza um incidente em lição reutilizável (sem dados do projeto) e deduplica contra as existentes; usado pelo `/sdk-lesson`. |
 
 ---
 
@@ -102,24 +105,64 @@ Os princípios da constituição valem nos dois modos; o que muda é o **nível 
 
 ---
 
+## Economia de token (higiene de contexto)
+
+Sessões longas de IA custam token — e o maior desperdício é arrastar contexto inútil. O kit foi desenhado
+para gastar pouco:
+
+- **Artefato no disco = memória.** Spec, plano, tasks, decisões e lições ficam em arquivos. Entre fases você
+  pode `/clear` e recarregar **só** o arquivo da feature atual — não o histórico inteiro do chat.
+- **Carga sob demanda.** As bases de `.specify/memory/` não são carregadas a cada mensagem; cada comando lê
+  só o que precisa. O que fica sempre presente é o `CLAUDE.md`, propositalmente curto.
+- **Consulta de lições por tag.** A `lessons.md` é lida por `grep`/tag, nunca inteira — escala sem encarecer.
+- **Subagentes isolam contexto.** `sdk-domain-researcher`, `sdk-reviewer` e `sdk-lesson-curator` fazem o
+  trabalho pesado num contexto próprio; só o resultado volta para a conversa principal.
+- **Disjuntor anti-loop.** Se o agente falha 2–3 vezes na mesma coisa, ele **para** e devolve o problema a
+  você, em vez de insistir no escuro queimando token.
+- **Uma feature por vez** e, se quiser, um modelo mais barato para etapas mecânicas (tasks, scaffolding).
+
+## Biblioteca de lições
+
+Toda vez que um erro é enfrentado e resolvido, o `/sdk-lesson` registra a **lição generalizada** em
+`.specify/memory/lessons.md` — no formato sintoma → causa → correção → **prevenção**, **sem** acoplar ao
+projeto (nada de nome de produto ou caminho de arquivo). A ideia: aprender uma vez e não repetir o erro, nem
+aqui nem nos próximos projetos.
+
+- O `/sdk-plan` e o `/sdk-review` **consultam** as lições (por tag) para aplicar prevenções conhecidas.
+- O subagente `sdk-lesson-curator` generaliza o incidente e deduplica contra o que já existe.
+- Já vem **semeada** com lições comuns (cache sem invalidação, segredo no bundle, chamada sem timeout, N+1,
+  webhook sem idempotência, "green falso", escopo inflado, migração sem rollback, PII em logs…).
+
+**Uso multi-projeto (transversal).** Para compartilhar a mesma biblioteca entre vários projetos, transforme-a
+num repositório próprio e inclua como **git submodule**:
+
+```bash
+git submodule add <url-do-repo-de-licoes> .specify/memory/lessons
+```
+
+Assim cada postmortem novo (em qualquer projeto) contribui de volta, e a biblioteca cresce como um acervo
+único, reutilizável e independente de projeto.
+
 ## Estrutura do repositório
 
 ```
 spec-driven-kit/
 ├── README.md                          # este arquivo
 ├── INSTALL.md                         # como instalar o kit num projeto
+├── CLAUDE.md                          # regras de base sempre carregadas (curto, p/ economia de token)
 │
 ├── .specify/                          # compatível com o Spec Kit oficial
-│   ├── memory/                        # contexto sempre carregado pelo agente
-│   │   ├── constitution.md            # princípios universais e neutros
+│   ├── memory/                        # bases lidas SOB DEMANDA pelos comandos
+│   │   ├── constitution.md            # princípios universais e neutros (8)
 │   │   ├── engineering-standards.md   # barra técnica (infra, perf, segurança, testes…)
 │   │   ├── decision-guide.md          # ★ catálogo de trade-offs (alimenta /sdk-decide)
+│   │   ├── lessons.md                 # ★ biblioteca de lições generalizadas (erros → prevenção)
 │   │   └── project-context.md         # GERADO na descoberta (país, leis, decisões)
 │   └── templates/                     # moldes de context / spec / plan / tasks
 │
 ├── .claude/
 │   ├── commands/                      # os slash commands sdk-*
-│   └── agents/                        # subagentes (researcher, reviewer)
+│   └── agents/                        # subagentes (researcher, reviewer, lesson-curator)
 │
 ├── docs/
 │   ├── specs/                         # specs aprovadas (uma pasta por feature)

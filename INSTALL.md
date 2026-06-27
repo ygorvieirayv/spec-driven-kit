@@ -33,10 +33,11 @@ O `/sdk-bootstrap` cuida do resto: estrutura, `.gitignore`, stack, descoberta, d
 
 Copie as três peças do kit para a raiz do seu projeto, **sem** sobrescrever seu código:
 
-1. **`.specify/`** — memória (constituição, padrões, guia de decisões, templates).
-2. **`.claude/`** — `commands/` (os `sdk-*`) e `agents/` (researcher e reviewer).
-3. **`docs/`** — pastas de saída (`specs/`, `plans/`, `decisions/`) e `epics.md`.
-4. *(Opcional)* **`scripts/`** — scaffolding de feature em bash/PowerShell.
+1. **`.specify/`** — memória (constituição, padrões, guia de decisões, lições, templates).
+2. **`.claude/`** — `commands/` (os `sdk-*`) e `agents/` (researcher, reviewer, lesson-curator).
+3. **`CLAUDE.md`** — regras de base sempre carregadas (na raiz do projeto).
+4. **`docs/`** — pastas de saída (`specs/`, `plans/`, `decisions/`) e `epics.md`.
+5. *(Opcional)* **`scripts/`** — scaffolding de feature em bash/PowerShell.
 
 ```bash
 # a partir da raiz do seu projeto existente
@@ -44,6 +45,7 @@ SDK=/caminho/para/spec-driven-kit
 
 cp -r "$SDK/.specify"        ./
 cp -r "$SDK/.claude"         ./
+cp    "$SDK/CLAUDE.md"       ./
 cp -r "$SDK/docs"            ./
 cp -r "$SDK/scripts"         ./   # opcional
 
@@ -79,10 +81,13 @@ Para puxar melhorias do kit sem perder seus artefatos:
 
 - **Seguro de sobrescrever** (são o "motor" do kit): `.claude/commands/`, `.claude/agents/`,
   `.specify/templates/`, `.specify/memory/decision-guide.md`, `.specify/memory/engineering-standards.md`,
-  `.specify/memory/constitution.md` *(a menos que você tenha editado a seção "Princípios específicos deste
-  projeto")*.
+  `CLAUDE.md`, `.specify/memory/constitution.md` *(a menos que você tenha editado a seção "Princípios
+  específicos deste projeto")*.
 - **Nunca sobrescreva** (são **seus**): `.specify/memory/project-context.md`, `docs/specs/`, `docs/plans/`,
   `docs/decisions/`, `docs/epics.md`.
+- **`.specify/memory/lessons.md`** — caso à parte: as **sementes** vêm do kit, mas o arquivo **acumula** as
+  suas lições. Faça **merge**, não sobrescreva. (Se usar a biblioteca como submodule, ela é versionada à
+  parte e não há conflito.)
 
 ---
 

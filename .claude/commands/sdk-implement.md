@@ -32,7 +32,13 @@ Para cada AC de lógica crítica:
 ## Regras (valem nos dois modos)
 - **Mudanças cirúrgicas:** toque só no necessário; respeite o estilo do código existente.
 - **Sem segredos** no código/git/bundle; valide input público; PII fora de logs.
+- **Disjuntor anti-loop:** se a mesma coisa falhar **2–3 vezes sem progresso**, **pare**. Não insista no
+  escuro queimando token. Resuma o que tentou, o que observou e onde travou, e devolva ao usuário com opções.
+- Antes de codar lógica de risco, dê uma olhada nas **lições** (`lessons.md`) por tag — evite repetir um erro
+  já catalogado.
 - Rode os comandos do projeto (test/lint/build) e **mostre que passam**.
+- Ao terminar, **explique em linguagem simples** o que mudou e por quê (o usuário não aceita o que não
+  entende). Se um erro relevante surgiu e foi resolvido no caminho, sugira `/sdk-lesson`.
 - Atualize o estado da task para `done` somente quando a verificação **passar**.
 
 ## Saída

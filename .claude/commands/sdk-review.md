@@ -25,6 +25,9 @@ fora e retorna os achados. Se preferir revisar inline, siga o mesmo roteiro abai
 3. **Barra de engenharia:** segredos fora do código/git/bundle, validação de input público, PII fora de
    logs, timeouts, autorização no servidor, testes cobrindo os AC, etc.
 4. **Constituição:** mudança cirúrgica? Simples? Verificável? Sem regra de domínio inventada?
+5. **Lições conhecidas:** consulte `.specify/memory/lessons.md` por tag relevante (grep) e verifique se o
+   diff cai em algum padrão já catalogado (ex.: `#cache`, `#segredos`, `#integração`). Se um erro novo
+   aparecer aqui, sugira registrá-lo com `/sdk-lesson` depois de corrigido.
 
 ## Severidade
 - **Crítico** — segurança, perda de dados, vazamento de segredo/PII, AC essencial quebrado. **Bloqueia.**

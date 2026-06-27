@@ -1,8 +1,8 @@
 # Padrões de Engenharia
 
-> **O que é isto:** a barra técnica do projeto. Carregado em memória junto com a constituição. Enquanto a
-> constituição cuida do **caráter** (como o agente pensa), este arquivo cuida da **competência** (o que uma
-> entrega técnica precisa respeitar).
+> **O que é isto:** a barra técnica do projeto. Lido sob demanda pelos comandos de plano/revisão/implementação
+> (não a cada mensagem). Enquanto a constituição cuida do **caráter** (como o agente pensa), este arquivo cuida
+> da **competência** (o que uma entrega técnica precisa respeitar).
 >
 > **Importante:** este arquivo é **neutro**. Ele diz o que **VERIFICAR** e **PESQUISAR**, não dá respostas
 > fixas (que dependem do stack e do projeto). Respostas concretas viram ADRs em `docs/decisions/` ou entram
