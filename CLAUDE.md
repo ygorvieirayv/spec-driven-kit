@@ -33,5 +33,7 @@ Explique, em **linguagem simples**, o que mudou e por quê — o usuário não d
 entende. Mostre a verificação que comprova (teste/checagem que passou).
 
 ## Comandos
-`/sdk-bootstrap` · `/sdk-decide` · `/sdk-spec` · `/sdk-plan` · `/sdk-tasks` · `/sdk-implement` ·
-`/sdk-review` · `/sdk-lesson`. Veja o `README.md`.
+- **Núcleo:** `/sdk-bootstrap` → `/sdk-roadmap` → `/sdk-spec` → `/sdk-plan` → `/sdk-tasks` →
+  `/sdk-analyze` → `/sdk-implement` → `/sdk-review`.
+- **Apoio:** `/sdk-decide` (escolha com trade-offs) · `/sdk-clarify` (tirar ambiguidade da spec) ·
+  `/sdk-lesson` (registrar lição). Veja o `README.md`.

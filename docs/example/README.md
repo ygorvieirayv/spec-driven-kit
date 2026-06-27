@@ -96,6 +96,25 @@ antecedência", tabela de decisões apontando para os ADRs, e pendências `[VERI
 
 ---
 
+## Passo 2.5 — `/sdk-roadmap` (a ordem certa)
+
+Antes de sair detalhando, o agente monta a ordem por dependências em `docs/epics.md`:
+
+```
+| Ordem | Feature | Depende de | Pronta p/ começar? |
+| 1 | Catálogo de bolos | — (fundacional) | 🟢 sim |
+| 2 | Encomenda de bolo | Catálogo, preço | 🔴 não (falta catálogo) |
+| 3 | Pagamento Pix | Encomenda | 🔴 não |
+```
+
+> 🤖 "Faz sentido começar pelo **catálogo**: a encomenda precisa saber quais bolos e preços existem. Correr
+> pro pagamento agora seria construir no ar. Quer detalhar o **Catálogo** primeiro?"
+> 👩 "Ah, verdade. Vamos pelo catálogo."
+
+(Para encurtar o exemplo, seguimos mostrando a feature **Encomenda de bolo** — já com o catálogo pronto.)
+
+---
+
 ## Passo 3 — `/sdk-spec` (a feature "Encomenda de bolo")
 
 Conversa de esclarecimento até não sobrar ambiguidade. Trecho do resultado em
@@ -130,6 +149,13 @@ O plano consulta `engineering-standards.md` **e a biblioteca de lições por tag
 
 > Consulta a `lessons.md` por `#validação` lembrou: **validar no servidor, não só na UI** (lição L-005).
 > O plano já incorpora isso.
+
+**Antes de codar, `/sdk-analyze`** confere que cada AC tem task e verificação, que nenhuma task ficou sem AC e
+que as dependências estão prontas:
+
+```
+Veredito: consistente — pode implementar. (3 AC, 3 tasks, todas com verificação; sem [VERIFICAR] crítico.)
+```
 
 ---
 

@@ -29,9 +29,21 @@ fora e retorna os achados. Se preferir revisar inline, siga o mesmo roteiro abai
    diff cai em algum padrão já catalogado (ex.: `#cache`, `#segredos`, `#integração`). Se um erro novo
    aparecer aqui, sugira registrá-lo com `/sdk-lesson` depois de corrigido.
 
+## QA — risco e rastreabilidade de testes
+Além de achar bugs, faça uma leitura de QA (no espírito de um "test architect", mas simples):
+
+- **Rastreabilidade:** monte um mapa **AC → teste**. Todo AC tem ao menos um teste que o cobre? Liste os AC
+  **sem** teste — eles são buracos de verificação (tendem a Médio/Alto).
+- **Avaliação de risco:** aponte as 1–3 áreas com **maior chance de quebrar × maior impacto** (ex.: dinheiro,
+  dados do usuário, segurança). Diga onde valeria um teste extra ou um par de olhos humano.
+- **Teste que não testa:** desconfie de teste que nunca falha (ver lição `#testes`). Confirme que ele pega a
+  regressão que deveria pegar.
+
+Mantenha leve: o objetivo é direcionar atenção para o que é arriscado, não burocratizar.
+
 ## Severidade
 - **Crítico** — segurança, perda de dados, vazamento de segredo/PII, AC essencial quebrado. **Bloqueia.**
-- **Alto** — bug provável, desvio relevante da spec/plano.
+- **Alto** — bug provável, desvio relevante da spec/plano, AC sem nenhum teste.
 - **Médio** — qualidade, manutenção, cobertura de teste insuficiente.
 - **Baixo** — estilo, melhorias opcionais.
 

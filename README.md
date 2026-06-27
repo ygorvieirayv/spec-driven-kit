@@ -36,29 +36,45 @@ cada comando — só o resumo de base fica sempre presente, no `CLAUDE.md` (ver 
 ideia vaga
    │
    ▼  /sdk-bootstrap   ── onboarding guiado: stack → descoberta de domínio →
-   │                      decisões de arquitetura → regras de negócio → epics
-   ▼  /sdk-decide      ── (quando precisar) decide UMA escolha com trade-offs
+   │                      decisões de arquitetura → regras de negócio → epics + ordem
+   ▼  /sdk-roadmap     ── ordem certa de construir (por dependências); o que está pronto p/ começar
    │
-   ▼  /sdk-spec        ── spec de uma feature (QUÊ e PORQUÊ)
+   │   ── por feature (na ordem certa) ──────────────────────────────
+   ▼  /sdk-spec        ── spec de uma feature (QUÊ e PORQUÊ) [trava: dependências prontas?]
+   ▼  /sdk-clarify     ── (se vago) tira a ambiguidade da spec
    ▼  /sdk-plan        ── plano técnico (COMO) + tasks
    ▼  /sdk-tasks       ── lista de tasks rastreáveis
+   ▼  /sdk-analyze     ── confere consistência spec ↔ plano ↔ tasks ↔ AC (antes de codar)
    ▼  /sdk-implement   ── implementação (TDD em PRODUCTION)
-   ▼  /sdk-review      ── revisão contra spec + padrões (contexto fresco)
+   ▼  /sdk-review      ── revisão do código + QA (risco e rastreabilidade de testes)
+   │   ──────────────────────────────────────────────────────────────
    │
-   ▼  sistema bem especificado e implementado
+   ▼  (volta ao /sdk-roadmap para a próxima feature pronta)
+
+apoio a qualquer momento:  /sdk-decide (escolha com trade-offs) · /sdk-lesson (registrar lição)
 ```
 
 ### Os comandos
 
+**Núcleo do fluxo:**
+
 | Comando | O que faz |
 |---------|-----------|
 | `/sdk-bootstrap` | Onboarding guiado completo: do produto ao escopo do MVP, com 5 checkpoints de aprovação. |
-| `/sdk-decide` | ★ Assistente de decisão: explica trade-offs de uma escolha e oferece construir qualquer caminho. |
-| `/sdk-spec` | Cria a spec de uma feature por conversa (QUÊ/PORQUÊ). |
-| `/sdk-plan` | Cria o plano técnico (COMO), consultando os padrões de engenharia. |
+| `/sdk-roadmap` | ★ Descobre a **ordem certa** de construir as features (por dependências) e o que está "pronto para começar". |
+| `/sdk-spec` | Cria a spec de uma feature por conversa (QUÊ/PORQUÊ). Trava se as dependências não estiverem prontas. |
+| `/sdk-plan` | Cria o plano técnico (COMO), consultando os padrões de engenharia e as lições. |
 | `/sdk-tasks` | Quebra/atualiza a lista de tasks rastreáveis. |
+| `/sdk-analyze` | Confere a **consistência** spec ↔ plano ↔ tasks ↔ AC (read-only), antes de codar. |
 | `/sdk-implement` | Implementa seguindo o plano; TDD na lógica crítica em modo PRODUCTION. |
-| `/sdk-review` | Revisa o diff contra spec + plano + padrões; severidade Crítico/Alto/Médio/Baixo. |
+| `/sdk-review` | Revisa o código contra spec + plano + padrões; inclui QA (risco e rastreabilidade de testes). |
+
+**Apoio (use quando precisar):**
+
+| Comando | O que faz |
+|---------|-----------|
+| `/sdk-decide` | ★ Assistente de decisão: explica trade-offs de uma escolha e oferece construir qualquer caminho. |
+| `/sdk-clarify` | Passo dedicado de tirar ambiguidade de uma spec (entre `/sdk-spec` e `/sdk-plan`). |
 | `/sdk-lesson` | Registra uma lição (erro resolvido) de forma generalizada e reutilizável na biblioteca de lições. |
 
 ### Subagentes (opcionais, usados pelos comandos)
@@ -84,10 +100,12 @@ ideia vaga
    - fazer a **descoberta de domínio** (país, leis, pagamentos…) com fontes;
    - conduzir as **decisões de arquitetura** com trade-offs;
    - propor as **regras de negócio** (constituição do projeto);
-   - montar o **escopo do MVP** (epics).
+   - montar o **escopo do MVP** (epics) e a **ordem de construção** (por dependências).
 4. A cada checkpoint 🛑, revise e aprove.
-5. Quando estiver pronto, detalhe a primeira área com **`/sdk-spec`** → **`/sdk-plan`** →
-   **`/sdk-implement`** → **`/sdk-review`**.
+5. Rode **`/sdk-roadmap`** para ver qual feature está **pronta para começar** (🟢) — comece por ela.
+6. Para essa feature, siga: **`/sdk-spec`** → (se vago, **`/sdk-clarify`**) → **`/sdk-plan`** →
+   **`/sdk-tasks`** → **`/sdk-analyze`** → **`/sdk-implement`** → **`/sdk-review`**.
+7. Terminou? Volte ao **`/sdk-roadmap`** para a próxima feature desbloqueada.
 
 **Atalho opcional (Fase 4):** `scripts/new-feature.sh "minha-feature"` (ou `.ps1` no Windows) cria as pastas
 de spec/plano e uma branch dedicada a partir dos moldes.
@@ -108,6 +126,21 @@ O kit escala o **rigor** conforme o modo (definido no `project-context.md`):
 Os princípios da constituição valem nos dois modos; o que muda é o **nível de rigor**, nunca a integridade.
 
 ---
+
+## Ordem de construção (dependências)
+
+Um erro comum é correr para uma parte "lá na frente" antes das que ela depende. Exemplo: não adianta integrar
+o **checkout** sem ter os **produtos**, uma **fonte de preço** e o **valor do frete** (que pode vir de uma API
+da transportadora). O kit trata isso:
+
+- O `/sdk-bootstrap` já monta uma **ordem de construção** em `docs/epics.md`, mapeando o que depende de quê.
+- O `/sdk-roadmap` recalcula essa ordem quando quiser e diz **o que está pronto para começar** (🟢), o que é
+  **fundacional** (🟡) e o que está **bloqueado** (🔴, dizendo qual dependência falta).
+- O `/sdk-spec` tem uma **trava**: antes de detalhar uma feature, ele confere se as dependências existem — e,
+  se não, sugere construir antes a feature da qual ela depende.
+
+Regra de bolso: **comece pelo fundacional e siga a ordem 🟢.** Rode `/sdk-roadmap` ao terminar cada feature
+para ver o que foi desbloqueado.
 
 ## Economia de token (higiene de contexto)
 
@@ -199,11 +232,14 @@ repositório. A constituição e o `project-context` já estarão no lugar; o pi
 | Spec Driven Kit | Spec Kit oficial |
 |-----------------|------------------|
 | `/sdk-bootstrap` (etapas B–F) | `specify init` + `/speckit.constitution` **+ extra nosso**: descoberta de domínio e decisões guiadas |
-| `/sdk-spec` | `/speckit.specify` (a parte guiada lembra `/speckit.clarify`) |
+| `/sdk-roadmap` | (sem equivalente direto — extra nosso: ordem por dependências) |
+| `/sdk-spec` | `/speckit.specify` |
+| `/sdk-clarify` | `/speckit.clarify` |
 | `/sdk-plan` | `/speckit.plan` |
 | `/sdk-tasks` | `/speckit.tasks` |
-| `/sdk-review` | `/speckit.analyze` (porém via revisão, não read-only automático) |
+| `/sdk-analyze` | `/speckit.analyze` (read-only de consistência) |
 | `/sdk-implement` | `/speckit.implement` |
+| `/sdk-review` | (review de código + QA — complementa o `analyze`) |
 
 ---
 

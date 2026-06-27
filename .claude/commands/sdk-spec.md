@@ -24,6 +24,16 @@ daqui), `.specify/templates/spec-template.md` e `docs/epics.md` (para situar a f
 
 ---
 
+## Pré-checagem de dependências (antes de detalhar)
+Antes de gastar tempo nesta feature, confirme que ela **pode** ser construída agora:
+- Veja a ordem em `docs/epics.md` ("Ordem de construção") ou rode `/sdk-roadmap`.
+- Esta feature depende de algo que **ainda não existe**? (dados, outra feature, uma entrada externa como o
+  valor do frete vindo da API da transportadora).
+- Se faltam dependências, **avise em linguagem simples** e sugira detalhar primeiro a feature da qual esta
+  depende. Não corra para uma feature "lá na frente" (ex.: checkout sem ter produtos, preço e frete).
+- Só siga para o roteiro abaixo quando as dependências estiverem prontas (ou o usuário decidir conscientemente
+  seguir mesmo assim).
+
 ## Roteiro
 
 1. **Situe a feature** no produto (qual epic de `docs/epics.md`). Confirme o nome/slug da feature.
@@ -45,4 +55,5 @@ ou AC vago. Se surgir uma decisão de arquitetura nova, sugira `/sdk-decide`.
 ## Saída
 - Grave `docs/specs/<feature>/spec.md` (status: rascunho).
 - Resuma os AC e as questões em aberto.
-- 🛑 **Peça aprovação** do usuário. Só depois sugira `/sdk-plan`. Não comece o plano sem o "ok".
+- 🛑 **Peça aprovação** do usuário. Se ainda houver pontos vagos, sugira `/sdk-clarify` antes do plano; caso
+  contrário, sugira `/sdk-plan`. Não comece o plano sem o "ok".

@@ -79,18 +79,22 @@ deploy, cache, estrutura — ver `decision-guide.md`), conduza a lógica do **/s
   concretos e verificáveis. Não coloque aqui regras que pertencem a uma feature.
 - 🛑 **Checkpoint 4** — usuário aprova os princípios.
 
-### F. Brief + epics
+### F. Brief + epics + ordem de construção
 - Resuma o entendimento e **quebre o produto em áreas** (epics).
 - Pergunte o que é **essencial no MVP** e o que fica para depois.
-- Grave em `docs/epics.md` usando o molde.
-- 🛑 **Checkpoint 5** — usuário aprova o recorte do MVP.
+- **Mapeie as dependências** entre as áreas e monte a **ordem de construção** (lógica do `/sdk-roadmap`):
+  o que é fundacional, o que depende de quê, o que está pronto para começar. Explique em linguagem simples
+  por que essa ordem importa (não correr para o checkout sem ter produtos, preço e frete).
+- Grave em `docs/epics.md` (áreas, recorte do MVP **e** a seção "Ordem de construção (dependências)").
+- 🛑 **Checkpoint 5** — usuário aprova o recorte do MVP e a ordem.
 
 ---
 
 ## Saída final
 - Resumo amigável do que foi definido (produto, modo, stack, decisões, MVP).
 - Lista de **pendências de verificação** (`[VERIFICAR]`) ainda abertas.
-- Convite: "Pronto para detalhar a primeira área: **[X]**. Quer começar com `/sdk-spec`?"
+- Convite: "A primeira área **pronta para começar** (pela ordem de dependências) é **[X]**. Quer detalhá-la
+  com `/sdk-spec`? (Ou rode `/sdk-roadmap` para rever a ordem.)"
 - **Não** inicie spec nem código sem o usuário escolher.
 
 > Ao terminar, faça um commit dos artefatos gerados (memória + epics + decisões) com mensagem clara, se o
