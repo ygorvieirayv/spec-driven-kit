@@ -1,0 +1,33 @@
+# Segredos — NUNCA commitar (ver engineering-standards.md → "Sempre")
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+secrets/
+.secrets
+
+# Dependências / build (genérico — ajuste ao stack do projeto)
+node_modules/
+dist/
+build/
+.next/
+.cache/
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+target/
+vendor/
+
+# Logs e temporários
+*.log
+logs/
+tmp/
+.DS_Store
+Thumbs.db
+
+# Editores / IDE
+.idea/
+.vscode/
+*.swp
