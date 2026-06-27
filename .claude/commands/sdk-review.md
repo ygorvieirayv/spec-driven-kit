@@ -39,3 +39,9 @@ fora e retorna os achados. Se preferir revisar inline, siga o mesmo roteiro abai
 - Lista de achados **agrupada por severidade**, cada um com arquivo:linha e sugestão de correção.
 - Veredito: **aprovado** / **aprovado com ressalvas** / **bloqueado** (se houver Crítico).
 - Não conserte em silêncio durante a revisão — reporte; a correção é um passo à parte.
+
+## Fecho de ciclo (alimentar a biblioteca de lições)
+Se algum achado revelou um erro **generalizável** — um padrão que poderia acontecer em qualquer projeto, não
+um detalhe pontual deste código —, **proponha registrá-lo com `/sdk-lesson`** assim que for corrigido. É
+assim que a biblioteca aprende com o erro **uma vez só**. Não force: se o achado é trivial/específico, siga
+em frente. Um bom gatilho: achado **Crítico** ou **Alto** que casa com (ou amplia) uma tag de `lessons.md`.

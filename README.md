@@ -92,6 +92,10 @@ ideia vaga
 **Atalho opcional (Fase 4):** `scripts/new-feature.sh "minha-feature"` (ou `.ps1` no Windows) cria as pastas
 de spec/plano e uma branch dedicada a partir dos moldes.
 
+> 💡 **Quer ver o fluxo inteiro antes de começar?** Há um walkthrough opcional e fictício em
+> [`docs/example/`](./docs/example/README.md) mostrando um projeto do "tenho uma ideia" até a primeira
+> feature revisada. É só leitura — não muda nada no kit.
+
 ---
 
 ## Modos: PROTOTYPE × PRODUCTION
@@ -168,6 +172,7 @@ spec-driven-kit/
 │   ├── specs/                         # specs aprovadas (uma pasta por feature)
 │   ├── plans/                         # planos e tasks
 │   ├── decisions/                     # ADRs (decisões de arquitetura)
+│   ├── example/                       # walkthrough opcional e ilustrativo (não muda o kit)
 │   └── epics.md                       # escopo do MVP
 │
 └── scripts/                           # (opcional) scaffolding bash + PowerShell
