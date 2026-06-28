@@ -36,14 +36,14 @@ Carregue: `docs/epics.md` (áreas e MVP), e o estado das features em `docs/specs
    - features das quais é continuação (ex.: "carrinho depende do catálogo");
    - **entradas externas** (ex.: "o frete vem de uma API da transportadora").
    Se não der para inferir do material, **pergunte em linguagem simples** (uma de cada vez).
-3. **Classifique cada feature:**
+3. **Classifique cada sub-feature:**
    - 🟢 **Pronta para começar** — todas as dependências já existem/estão prontas.
    - 🟡 **Fundacional** — não depende de nada; é por onde se começa.
    - 🔴 **Bloqueada** — falta alguma dependência (diga **qual**).
 4. **Monte a ordem** (do fundacional para o dependente). Detecte e avise se houver **dependência circular**
    (A precisa de B e B precisa de A) — isso precisa ser quebrado antes de seguir.
-5. **Recomende a próxima feature** a detalhar, **explicando o porquê** em linguagem simples. Se o usuário
-   quiser pular para uma feature 🔴, avise o que falta e qual feature deveria vir antes.
+5. **Recomende a próxima sub-feature** a detalhar, **explicando o porquê** em linguagem simples. Se o usuário
+   quiser pular para uma sub-feature 🔴, avise o que falta e qual deveria vir antes.
 
 ## Saída
 - Uma lista ordenada do que construir, com o estado (🟢/🟡/🔴) de cada item.

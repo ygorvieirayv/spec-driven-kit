@@ -22,7 +22,7 @@
 - **Custo** = quanto pesa no bolso por mês (ordem de grandeza).
 - **Escala/Profissional** = quão bem aguenta crescer e quão "produção séria" é.
 
-Legenda: alta / média / baixa. "+€X/mês" indica custo adicional aproximado.
+Legenda: alta / média / baixa. "+$X/mês" indica custo adicional aproximado.
 
 ---
 
@@ -34,7 +34,7 @@ Legenda: alta / média / baixa. "+€X/mês" indica custo adicional aproximado.
 | Caminho | Facilidade | Desempenho | Custo | Escala/Profissional |
 |---------|-----------|-----------|-------|---------------------|
 | A — Tudo numa VPS (um só Docker) | alta | menor sob carga | menor (1 servidor) | ok para validar |
-| B — Separar (app + CDN p/ estáticos + worker p/ tarefas + DB gerenciado) | menor | alto | +€/mês por peça | produção séria, escalável |
+| B — Separar (app + CDN p/ estáticos + worker p/ tarefas + DB gerenciado) | menor | alto | +$/mês por peça | produção séria, escalável |
 
 **Recomendação:** PROTOTYPE → **A** (monto tudo junto, sobe rápido, barato). PRODUCTION / vai crescer → **B**
 (site abre mais rápido, melhor nota de velocidade, mais profissional).
@@ -58,7 +58,7 @@ gerenciado por terceiros (eles cuidam de backup e atualização), ou um banco de
 | Caminho | Facilidade | Desempenho | Custo | Escala/Profissional |
 |---------|-----------|-----------|-------|---------------------|
 | A — SQLite/Postgres no mesmo container | alta | ok p/ baixo volume | menor | limitado |
-| B — DB gerenciado (Supabase / Neon / RDS) | média | alto | +€/mês (free tiers comuns) | escala bem, backup incluso |
+| B — DB gerenciado (Supabase / Neon / RDS) | média | alto | +$/mês (free tiers comuns) | escala bem, backup incluso |
 | C — Self-hosted dedicado | baixa | alto (você afina) | infra + sua manutenção | escala, mas você é o DBA |
 
 **Recomendação:** PROTOTYPE → **A** (ou **B** no free tier). PRODUCTION → **B** (backup, alta disponibilidade
@@ -75,7 +75,7 @@ e recuperação de senha "de fábrica", ou montar você mesmo (mais controle, me
 
 | Caminho | Facilidade | Desempenho | Custo | Escala/Profissional |
 |---------|-----------|-----------|-------|---------------------|
-| A — Solução pronta (ex.: Clerk, Auth0) | alta | alto | grátis até X usuários, depois +€/mês | muito profissional, rápido |
+| A — Solução pronta (ex.: Clerk, Auth0) | alta | alto | grátis até X usuários, depois +$/mês | muito profissional, rápido |
 | B — Self-hosted (ex.: Better Auth, Auth.js) | média | alto | só infra | profissional, você mantém |
 
 **Recomendação:** PROTOTYPE → **A** (login pronto em minutos). PRODUCTION → depende: **A** se velocidade de
@@ -180,7 +180,7 @@ quando custo em escala dói, ou há necessidade específica de controle/região.
 | Caminho | Facilidade | Desempenho | Custo | Escala/Profissional |
 |---------|-----------|-----------|-------|---------------------|
 | A — Sem cache | alta | dados sempre frescos, mais lento | incluído | simples |
-| B — Redis / edge cache | menor | alto | +€/mês (serviço de cache) | escalável, exige disciplina |
+| B — Redis / edge cache | menor | alto | +$/mês (serviço de cache) | escalável, exige disciplina |
 
 **Recomendação:** começar **sem cache** até ter um gargalo medido. Adicionar **B** quando houver alvo de
 desempenho e um **plano explícito de invalidação** (quando e como o dado expira). Nunca cachear "no escuro".
@@ -217,7 +217,7 @@ Use este molde ao adicionar uma decisão não listada:
 | Caminho | Facilidade | Desempenho | Custo | Escala/Profissional |
 |---------|-----------|-----------|-------|---------------------|
 | A — <simples>  | alta  | menor | menor   | ok p/ validar |
-| B — <robusto>  | menor | alto  | +€X/mês | produção séria |
+| B — <robusto>  | menor | alto  | +$X/mês | produção séria |
 
 **Recomendação:** PROTOTYPE → A · PRODUCTION (se vai crescer) → B.
 **Sempre oferecer:** "posso construir qualquer um — qual preferes?"
