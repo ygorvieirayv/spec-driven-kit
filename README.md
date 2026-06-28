@@ -91,6 +91,8 @@ apoio a qualquer momento:  /sdk-decide (escolha com trade-offs) · /sdk-lesson (
 
 > Pré-requisito: ter o **Claude Code** instalado e este repositório aberto na pasta do seu projeto. Veja o
 > [`INSTALL.md`](./INSTALL.md) para instalar o kit num projeto novo ou existente.
+>
+> 👉 Com pressa? O guia rápido de bolso está em [`COMO-USAR.md`](./COMO-USAR.md).
 
 1. **Abra o Claude Code** na pasta do projeto.
 2. Rode **`/sdk-bootstrap`** e descreva, em uma ou duas frases, o que o produto faz e para quem.
