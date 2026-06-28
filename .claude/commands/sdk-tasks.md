@@ -28,4 +28,4 @@ verificada**).
 ## Saída
 - Grave/atualize `docs/plans/<feature>/tasks.md`.
 - Mostre a tabela e aponte a próxima task `ready`.
-- Sugira `/sdk-implement` para executar a próxima task.
+- Sugira `/sdk-analyze` (conferir consistência antes de codar) e, em seguida, `/sdk-implement`.

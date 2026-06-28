@@ -172,11 +172,16 @@ aqui nem nos próximos projetos.
 - Já vem **semeada** com lições comuns (cache sem invalidação, segredo no bundle, chamada sem timeout, N+1,
   webhook sem idempotência, "green falso", escopo inflado, migração sem rollback, PII em logs…).
 
-**Uso multi-projeto (transversal).** Para compartilhar a mesma biblioteca entre vários projetos, transforme-a
-num repositório próprio e inclua como **git submodule**:
+**Uso multi-projeto (transversal).** Para compartilhar a mesma biblioteca entre vários projetos, extraia a
+`lessons.md` para um **repositório próprio** e referencie-o em cada projeto. Os comandos sempre leem o caminho
+`.specify/memory/lessons.md`, então mantenha esse caminho válido de uma destas formas:
 
 ```bash
-git submodule add <url-do-repo-de-licoes> .specify/memory/lessons
+# opção A — submodule na pasta e um symlink apontando para o arquivo compartilhado
+git submodule add <url-do-repo-de-licoes> .specify/memory/lessons-shared
+ln -s lessons-shared/lessons.md .specify/memory/lessons.md
+
+# opção B — simplesmente sincronizar/copiar o arquivo entre os projetos
 ```
 
 Assim cada postmortem novo (em qualquer projeto) contribui de volta, e a biblioteca cresce como um acervo
@@ -188,6 +193,7 @@ Assim cada postmortem novo (em qualquer projeto) contribui de volta, e a bibliot
 spec-driven-kit/
 ├── README.md                          # este arquivo
 ├── INSTALL.md                         # como instalar o kit num projeto
+├── COMO-USAR.md                       # guia rápido de bolso (uso no dia a dia)
 ├── CLAUDE.md                          # regras de base sempre carregadas (curto, p/ economia de token)
 │
 ├── .specify/                          # compatível com o Spec Kit oficial

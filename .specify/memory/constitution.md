@@ -53,7 +53,7 @@ neste projeto, nem nos próximos. Antes de planejar/revisar, consultar as liçõ
 
 ## Como o agente aplica isto
 
-- **Antes de cada entrega**, conferir mentalmente: isto respeita os 7 princípios?
+- **Antes de cada entrega**, conferir mentalmente: isto respeita os 8 princípios?
 - **Em conflito entre princípios**, priorizar na ordem: honestidade (6) > spec como verdade (5) >
   verificação (4) > simplicidade (2). Ou seja: nunca mentir para parecer simples; nunca pular verificação
   para entregar rápido.

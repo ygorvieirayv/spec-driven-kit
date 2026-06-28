@@ -43,4 +43,5 @@ Carregue: a spec da feature (`docs/specs/<feature>/spec.md`), `.specify/memory/e
 ## Saída
 - Grave `docs/plans/<feature>/plan.md` (status: rascunho).
 - Resuma a abordagem, as decisões e a lista de tasks.
-- 🛑 **Peça aprovação.** Depois sugira `/sdk-tasks` (refinar a lista) ou `/sdk-implement`.
+- 🛑 **Peça aprovação.** Depois siga: `/sdk-tasks` (refinar a lista) → `/sdk-analyze` (conferir
+  consistência) → `/sdk-implement`.

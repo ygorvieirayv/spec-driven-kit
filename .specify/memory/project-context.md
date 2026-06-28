@@ -5,7 +5,7 @@
 > preenchido por conversa e pesquisa, com fontes citadas e marcas `[VERIFICAR]` no que precisa de validação
 > humana.
 >
-> Este é o "conhecimento do projeto" que o agente carrega em memória — diferente da constituição (que é o
+> Este é o "conhecimento do projeto" que o agente lê sob demanda — diferente da constituição (que é o
 > "caráter", neutro e universal).
 
 ---

@@ -14,10 +14,10 @@
 > **Regra de ouro ao gravar:** nada que identifique o projeto. Descreva o **padrão**, não o incidente.
 > Em vez de "o checkout da Loja X mostrou preço velho", escreva "cache sem invalidação serve dado velho".
 
-> **Uso multi-projeto:** para compartilhar estas lições entre vários projetos, transforme este arquivo (ou
-> uma pasta `lessons/`) num **repositório próprio** e inclua-o como **git submodule** em cada projeto:
-> `git submodule add <url-do-repo-de-licoes> .specify/memory/lessons`. Cada postmortem novo contribui de
-> volta, e a biblioteca cresce transversalmente. Veja o README, seção "Biblioteca de lições".
+> **Uso multi-projeto:** para compartilhar estas lições entre vários projetos, extraia este arquivo para um
+> **repositório próprio** e referencie-o em cada projeto, mantendo válido o caminho `.specify/memory/lessons.md`
+> (via submodule numa pasta + symlink, ou sincronizando o arquivo). Cada postmortem novo contribui de volta, e
+> a biblioteca cresce transversalmente. Veja o README, seção "Biblioteca de lições".
 
 ---
 
