@@ -1,6 +1,6 @@
 ---
 description: Onboarding guiado completo — do zero ao escopo do MVP por conversa (stack, descoberta de domínio, decisões, constituição, epics).
-argument-hint: "[descrição rápida do produto, opcional]"
+argument-hint: "[descrição ou esboço do produto — uma frase ou um despejo de ideias, opcional]"
 ---
 
 # /sdk-bootstrap — Onboarding guiado
@@ -39,7 +39,19 @@ Prepare a base e avise em 1 frase o que fez:
 > Diga: "Preparei a estrutura do projeto e o `.gitignore` (com `.env` protegido). Vamos ao produto."
 
 ### B. Projeto + stack
-Comece pelo **produto**, não pela tecnologia: "Em uma ou duas frases, o que ele faz e para quem?"
+Comece pelo **produto**, não pela tecnologia. Faça **uma pergunta aberta e acolhedora**, que aceite tanto uma
+frase quanto um despejo de ideias:
+> "Me conta, com suas palavras, **o que você quer construir e para quem**. Pode ser **uma frase** ou um
+> **despejo de tudo que já imaginou** (telas, recursos, regras) — eu organizo depois."
+
+- **Se vier um esboço rico** (vários recursos de uma vez), **não trate como spec final**. Reflita de volta o
+  que entendeu e **separe em três baldes**, confirmando com o usuário:
+  - **features** → viram epics/sub-features na etapa F e entram na ordem por dependências;
+  - **decisões** (ex.: "checkout em 1 etapa × multi-etapas", onde hospedar) → guarde para a etapa D
+    (`/sdk-decide`);
+  - **regras de negócio** (ex.: "quem é admin vê tudo") → guarde para a etapa E (constituição).
+  Não re-pergunte o que o usuário já disse; só preencha lacunas.
+- **Se vier só uma frase**, siga normalmente — os detalhes emergem na conversa.
 - Defina o **modo** com o usuário: **PROTOTYPE** (rápido, descartável) ou **PRODUCTION** (mantido a sério).
   Explique a diferença em 1 frase cada.
 - **Repo existente:** leia o stack (arquivos de manifesto, configs), confirme com o usuário e preencha os

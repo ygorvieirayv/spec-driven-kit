@@ -95,7 +95,8 @@ apoio a qualquer momento:  /sdk-decide (escolha com trade-offs) · /sdk-lesson (
 > 👉 Com pressa? O guia rápido de bolso está em [`COMO-USAR.md`](./COMO-USAR.md).
 
 1. **Abra o Claude Code** na pasta do projeto.
-2. Rode **`/sdk-bootstrap`** e descreva, em uma ou duas frases, o que o produto faz e para quem.
+2. Rode **`/sdk-bootstrap`** e descreva o que quer construir — pode ser **uma frase** ou um **esboço com vários
+   recursos** (telas, regras, ideias soltas). O agente organiza o despejo em epics, decisões e regras.
 3. Responda às perguntas (uma de cada vez). O agente vai:
    - preparar a estrutura e o `.gitignore`;
    - confirmar/recomendar o **stack** e o **modo** (PROTOTYPE ou PRODUCTION);

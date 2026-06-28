@@ -12,7 +12,8 @@ sozinhos. Você nunca preenche nada à mão.
 ## 1. Uma vez por projeto
 
 1. Abra o **Claude Code** na pasta do projeto.
-2. Rode **`/sdk-bootstrap`** e diga, em 1–2 frases, o que o produto faz e para quem.
+2. Rode **`/sdk-bootstrap`** e diga o que quer construir — **uma frase** ou um **despejo de tudo que imaginou**
+   (telas, recursos, regras). Tanto faz: o agente organiza depois.
 3. Responda às perguntas (uma de cada vez). Não sabe? Diga **"não sei"** — ele explica e sugere um caminho seguro.
 4. Nos checkpoints 🛑, leia e aprove (ou peça pra mudar).
 
