@@ -43,6 +43,9 @@ Terminou? **Volte ao `/sdk-roadmap`** para a próxima feature desbloqueada.
 > feature acontece só quando chega a vez dela — não se planeja tudo de uma vez de propósito (a feature 1
 > ensina coisas que mudam a 2).
 
+> 🛠️ **Mudando algo que já existe?** Diga isso ao `/sdk-spec` — em vez de reespecificar tudo, ele registra só
+> o que **muda** (adiciona / modifica / remove) e o que **não pode quebrar**. (É o "modo brownfield".)
+
 ---
 
 ## 3. Comandos de apoio (quando precisar)

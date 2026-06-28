@@ -7,12 +7,24 @@
 
 - **Status:** rascunho | em revisão | aprovada
 - **Modo:** PROTOTYPE | PRODUCTION
+- **Tipo:** greenfield (algo novo) | brownfield (muda algo que já existe)
 - **Autor / data:** <...>
 
 ---
 
 ## Contexto e objetivo
 <Por que esta feature existe. Que problema resolve, para quem. O resultado esperado em 1–3 frases.>
+
+## Mudança em sistema existente (delta) — *só se brownfield*
+> Preencha **apenas** quando esta spec altera comportamento que **já existe** (estilo "delta spec"). Descreva
+> o que muda em relação a hoje, para não reespecificar o sistema inteiro. Apague esta seção se for greenfield.
+
+- **Comportamento atual:** <como funciona hoje>
+- **ADICIONADO:** <o que passa a existir>
+- **MODIFICADO:** <o que muda — de "como é" para "como fica">
+- **REMOVIDO:** <o que deixa de existir>
+- **Impacto / migração:** <dados a migrar, compatibilidade, o que pode quebrar, como reverter>
+- **Regressão:** <o que precisa continuar funcionando igual — vira teste de não-regressão>
 
 ## Histórias / cenários de uso
 - Como <tipo de usuário>, quero <ação> para <benefício>.

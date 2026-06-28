@@ -30,6 +30,9 @@ Carregue (somente leitura): a spec (`docs/specs/<feature>/spec.md`), o plano e a
    fonte de dado essencial)?
 7. **Escopo:** há algo no plano/tasks que **não** está na spec (escopo inflado), ou algo da spec **fora** do
    plano (lacuna)?
+8. **Brownfield (se Tipo = brownfield):** a seção de delta (ADICIONADO/MODIFICADO/REMOVIDO) está preenchida?
+   O que **não pode quebrar** virou **teste de não-regressão** nas tasks? Há plano de migração/rollback para
+   o que muda em dados existentes?
 
 ## Severidade
 - **Crítico** — vai quebrar ou implementar a coisa errada (AC sem task, ADR contrariado, dependência ausente).

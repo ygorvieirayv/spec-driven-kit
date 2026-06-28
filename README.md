@@ -129,17 +129,33 @@ Os princípios da constituição valem nos dois modos; o que muda é o **nível 
 
 ---
 
+## Projeto novo ou existente (greenfield × brownfield)
+
+Cada spec declara seu **Tipo**:
+
+- **Greenfield** — algo **novo**. Você especifica do zero, normalmente.
+- **Brownfield** — **muda algo que já existe**. Em vez de reespecificar o sistema inteiro, o `/sdk-spec`
+  descreve o **comportamento atual** e uma **"delta spec"** (o que é **ADICIONADO / MODIFICADO / REMOVIDO**),
+  mais o impacto/migração e o que **não pode quebrar** (vira teste de não-regressão). É a abordagem incremental
+  inspirada no [OpenSpec](https://github.com/Fission-AI/OpenSpec), boa para evoluir sistemas em produção sem
+  reescrever tudo.
+
+---
+
 ## Ordem de construção (dependências)
 
 Um erro comum é correr para uma parte "lá na frente" antes das que ela depende. Exemplo: não adianta integrar
 o **checkout** sem ter os **produtos**, uma **fonte de preço** e o **valor do frete** (que pode vir de uma API
 da transportadora). O kit trata isso:
 
-- O `/sdk-bootstrap` já monta uma **ordem de construção** em `docs/epics.md`, mapeando o que depende de quê.
+- O `/sdk-bootstrap` e o `/sdk-roadmap` **decompõem cada epic em sub-features** (só os títulos — a "jornada"
+  da área) e montam a **ordem de construção** em `docs/epics.md`, mapeando o que depende de quê. Você vê o
+  mapa completo do projeto sem precisar detalhar tudo (o detalhe de cada sub-feature vem só na hora, no
+  `/sdk-spec`).
 - O `/sdk-roadmap` recalcula essa ordem quando quiser e diz **o que está pronto para começar** (🟢), o que é
   **fundacional** (🟡) e o que está **bloqueado** (🔴, dizendo qual dependência falta).
-- O `/sdk-spec` tem uma **trava**: antes de detalhar uma feature, ele confere se as dependências existem — e,
-  se não, sugere construir antes a feature da qual ela depende.
+- O `/sdk-spec` tem uma **trava**: antes de detalhar uma sub-feature, ele confere se as dependências existem —
+  e, se não, sugere construir antes aquela da qual ela depende.
 
 Regra de bolso: **comece pelo fundacional e siga a ordem 🟢.** Rode `/sdk-roadmap` ao terminar cada feature
 para ver o que foi desbloqueado.

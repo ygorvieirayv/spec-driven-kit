@@ -82,9 +82,11 @@ deploy, cache, estrutura — ver `decision-guide.md`), conduza a lógica do **/s
 ### F. Brief + epics + ordem de construção
 - Resuma o entendimento e **quebre o produto em áreas** (epics).
 - Pergunte o que é **essencial no MVP** e o que fica para depois.
-- **Mapeie as dependências** entre as áreas e monte a **ordem de construção** (lógica do `/sdk-roadmap`):
-  o que é fundacional, o que depende de quê, o que está pronto para começar. Explique em linguagem simples
-  por que essa ordem importa (não correr para o checkout sem ter produtos, preço e frete).
+- **Decomponha cada epic em sub-features** (só os títulos — a "jornada" daquela área), **mapeie as
+  dependências** entre as sub-features e monte a **ordem de construção** (lógica do `/sdk-roadmap`): o que é
+  fundacional, o que depende de quê, o que está pronto para começar. Explique em linguagem simples por que
+  essa ordem importa (não correr para o checkout sem ter produtos, preço e frete). O detalhe de cada
+  sub-feature fica para o `/sdk-spec`, uma por vez — aqui é só o mapa.
 - Grave em `docs/epics.md` (áreas, recorte do MVP **e** a seção "Ordem de construção (dependências)").
 - 🛑 **Checkpoint 5** — usuário aprova o recorte do MVP e a ordem.
 

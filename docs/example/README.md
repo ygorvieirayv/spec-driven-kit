@@ -101,10 +101,10 @@ antecedência", tabela de decisões apontando para os ADRs, e pendências `[VERI
 Antes de sair detalhando, o agente monta a ordem por dependências em `docs/epics.md`:
 
 ```
-| Ordem | Feature | Depende de | Pronta p/ começar? |
-| 1 | Catálogo de bolos | — (fundacional) | 🟢 sim |
-| 2 | Encomenda de bolo | Catálogo, preço | 🔴 não (falta catálogo) |
-| 3 | Pagamento Pix | Encomenda | 🔴 não |
+| Ordem | Sub-feature | Epic | Depende de | Pronta p/ começar? |
+| 1 | Catálogo de bolos | Produtos | — (fundacional) | 🟢 sim |
+| 2 | Encomenda de bolo | Encomenda | Catálogo, preço | 🔴 não (falta catálogo) |
+| 3 | Pagamento Pix | Pagamento | Encomenda | 🔴 não |
 ```
 
 > 🤖 "Faz sentido começar pelo **catálogo**: a encomenda precisa saber quais bolos e preços existem. Correr

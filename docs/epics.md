@@ -27,15 +27,16 @@
 - _(...)_
 
 ## Ordem de construção (dependências)
-> Gerada/atualizada pelo `/sdk-roadmap`. Diz em que ordem construir, com base no que cada feature **precisa
-> que já exista**. Estados: 🟢 pronta para começar · 🟡 fundacional (não depende de nada) · 🔴 bloqueada
-> (falta dependência). Atualize ao terminar cada feature (algo novo pode ter desbloqueado).
+> Gerada/atualizada pelo `/sdk-roadmap`. Cada epic é decomposto em **sub-features** (só os títulos — o detalhe
+> vem depois, no `/sdk-spec`, uma por vez). A ordem se baseia no que cada sub-feature **precisa que já exista**.
+> Estados: 🟢 pronta para começar · 🟡 fundacional (não depende de nada) · 🔴 bloqueada (falta dependência).
+> Atualize ao terminar cada sub-feature (algo novo pode ter desbloqueado).
 
-| Ordem | Feature | Depende de | Estado | Pronta p/ começar? |
-|-------|---------|-----------|--------|--------------------|
-| 1 | _(ex.: Catálogo de produtos)_ | — (fundacional) | a fazer | 🟡/🟢 |
-| 2 | _(ex.: Preço e estoque)_ | Catálogo | a fazer | 🔴 (falta catálogo) |
-| 3 | _(ex.: Checkout)_ | Produtos, Preço, Frete | a fazer | 🔴 (faltam 3) |
+| Ordem | Sub-feature | Epic | Depende de | Estado | Pronta p/ começar? |
+|-------|-------------|------|-----------|--------|--------------------|
+| 1 | _(ex.: Catálogo de produtos)_ | Produtos | — (fundacional) | a fazer | 🟡/🟢 |
+| 2 | _(ex.: Preço e estoque)_ | Produtos | Catálogo | a fazer | 🔴 (falta catálogo) |
+| 3 | _(ex.: Checkout)_ | Checkout | Produtos, Preço, Frete | a fazer | 🔴 (faltam 3) |
 
 ## Próximo passo
 > Qual área detalhar primeiro com `/sdk-spec`. Deve ser a próxima 🟢 da ordem acima. O agente só avança

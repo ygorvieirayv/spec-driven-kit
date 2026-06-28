@@ -25,8 +25,13 @@ Carregue: `docs/epics.md` (áreas e MVP), e o estado das features em `docs/specs
 
 ## Roteiro
 
-1. **Liste as features/áreas** do `docs/epics.md` (e as que já têm spec). 
-2. **Mapeie as dependências de cada uma.** Para cada feature, descubra o que ela precisa que já exista:
+1. **Decomponha cada epic em sub-features (a "jornada").** Para cada área/epic do `docs/epics.md`, liste as
+   partes que a compõem — só os **títulos**, sem escrever spec. Isso dá o mapa completo do projeto (estilo
+   "índice de capítulos e seções") sem cair em planejar tudo em detalhe (cascata). O detalhe de cada
+   sub-feature continua sendo feito **só na hora** (`/sdk-spec`), uma por vez.
+   > Exemplo: o epic **"Checkout"** decompõe em: *carrinho · cálculo de frete · meio de pagamento ·
+   > confirmação do pedido*. Cada uma dessas é uma sub-feature que entra na ordem abaixo.
+2. **Mapeie as dependências de cada sub-feature.** Para cada uma, descubra o que ela precisa que já exista:
    - dados de que depende (ex.: "precisa dos produtos e dos preços");
    - features das quais é continuação (ex.: "carrinho depende do catálogo");
    - **entradas externas** (ex.: "o frete vem de uma API da transportadora").
@@ -43,16 +48,17 @@ Carregue: `docs/epics.md` (áreas e MVP), e o estado das features em `docs/specs
 ## Saída
 - Uma lista ordenada do que construir, com o estado (🟢/🟡/🔴) de cada item.
 - A recomendação do **próximo passo** com a justificativa.
-- Grave/atualize a seção **"Ordem de construção (dependências)"** em `docs/epics.md`:
+- Grave/atualize a seção **"Ordem de construção (dependências)"** em `docs/epics.md`, com a coluna **Epic**
+  ligando cada sub-feature à sua área:
 
 ```
 ## Ordem de construção (dependências)
-| Ordem | Feature | Depende de | Estado | Pronta p/ começar? |
-|-------|---------|-----------|--------|--------------------|
-| 1 | Catálogo de produtos | — (fundacional) | a fazer | 🟢 sim |
-| 2 | Preço e estoque | Catálogo | a fazer | 🔴 não (falta catálogo) |
-| 3 | Cálculo de frete (API transportadora) | Endereço do cliente | a fazer | 🔴 não |
-| 4 | Checkout | Produtos, Preço, Frete | a fazer | 🔴 não (faltam 3) |
+| Ordem | Sub-feature | Epic | Depende de | Estado | Pronta p/ começar? |
+|-------|-------------|------|-----------|--------|--------------------|
+| 1 | Catálogo de produtos | Produtos | — (fundacional) | a fazer | 🟢 sim |
+| 2 | Preço e estoque | Produtos | Catálogo | a fazer | 🔴 não (falta catálogo) |
+| 3 | Cálculo de frete (API transportadora) | Checkout | Endereço do cliente | a fazer | 🔴 não |
+| 4 | Pagamento + confirmação | Checkout | Produtos, Preço, Frete | a fazer | 🔴 não (faltam 3) |
 ```
 
 - Sugira: "a próxima pronta é **[X]** — quer detalhar com `/sdk-spec`?"

@@ -34,6 +34,15 @@ Antes de gastar tempo nesta feature, confirme que ela **pode** ser construída a
 - Só siga para o roteiro abaixo quando as dependências estiverem prontas (ou o usuário decidir conscientemente
   seguir mesmo assim).
 
+## Greenfield ou brownfield? (decida cedo)
+Descubra se esta feature é **algo novo** (greenfield) ou **muda algo que já existe** (brownfield):
+- **Greenfield:** especifique normalmente (roteiro abaixo); apague a seção de delta do template.
+- **Brownfield:** antes de especificar o novo, **descreva o comportamento atual** (leia o código/specs se
+  preciso) e preencha a seção **"Mudança em sistema existente (delta)"** do template — o que é ADICIONADO,
+  MODIFICADO, REMOVIDO em relação a hoje. Assim você descreve **só o que muda**, sem reespecificar o sistema
+  inteiro (estilo "delta spec"). Marque o **Tipo: brownfield** no topo da spec e atenção ao que **não pode
+  quebrar** (vira teste de não-regressão).
+
 ## Roteiro
 
 1. **Situe a feature** no produto (qual epic de `docs/epics.md`). Confirme o nome/slug da feature.
