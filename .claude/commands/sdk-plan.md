@@ -29,7 +29,9 @@ Carregue: a spec da feature (`docs/specs/<feature>/spec.md`), `.specify/memory/e
 1. **Releia a spec** e confirme que entende todos os AC. Se algum AC estiver vago, volte para `/sdk-spec`.
 2. **Abordagem técnica:** descreva em alto nível como construir — componentes, fluxo de dados, integrações.
 3. **Decisões técnicas:** para cada trade-off real, **não decida sozinho** — abra `/sdk-decide`, e registre
-   um ADR (curto no plano + completo em `docs/decisions/` quando for decisão de arquitetura).
+   um ADR (curto no plano + completo em `docs/decisions/` quando for decisão de arquitetura). Confira os
+   **"Gatilhos"** do `decision-guide.md`: se esta feature dispara um sinal (ex.: upload/serve imagem → CDN;
+   tarefa pesada → fila; precisa de SEO → renderização), levante a decisão correspondente com o custo na mesa.
 4. **Consulte a barra de engenharia** (`engineering-standards.md`): infra, integração, performance,
    segurança, testes, observabilidade. Verifique o que se aplica a esta feature.
    **E consulte a biblioteca de lições** (`.specify/memory/lessons.md`) por **tag** relevante (grep — não

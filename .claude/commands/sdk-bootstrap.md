@@ -74,8 +74,10 @@ frase quanto um despejo de ideias:
   Nunca trate compliance como garantido.
 
 ### D. Decisões de arquitetura
-Para cada decisão **relevante a este projeto** (hospedagem, banco, auth, assets, jobs, pagamentos, render,
-deploy, cache, estrutura — ver `decision-guide.md`), conduza a lógica do **/sdk-decide**:
+Identifique as decisões **relevantes a este projeto** usando a tabela de **"Gatilhos"** do `decision-guide.md`
+(ex.: faz upload/serve imagem → levante a #4 CDN, mesmo com pequeno custo; processa mídia/IA → #5 fila;
+recebe pagamento → #6; espera crescer → #1/#2/#9). Não pule uma decisão só porque o usuário não a mencionou —
+se o sinal existe, proponha. Para cada decisão, conduza a lógica do **/sdk-decide**:
 1. Explique em linguagem simples o que está em jogo.
 2. Mostre os caminhos numa tabela (Facilidade · Desempenho · Custo · Escala/Profissional).
 3. Recomende ancorado no **modo** e no que o usuário disse.

@@ -26,6 +26,25 @@ Legenda: alta / média / baixa. "+$X/mês" indica custo adicional aproximado.
 
 ---
 
+## Gatilhos — quando levantar cada decisão (não deixe passar)
+
+Use estes **sinais do projeto** para garantir que a decisão certa seja proposta — no `/sdk-bootstrap` (etapa D)
+ou no `/sdk-plan`. Ao detectar um sinal, **proponha a decisão com trade-offs (incluindo o custo)** e ofereça
+construir qualquer caminho. Nunca resolva "por baixo dos panos".
+
+| Sinal no projeto/feature | Decisão a levantar |
+|---|---|
+| Faz **upload** / **serve imagens**, vídeos ou muitos estáticos | **#4 Imagens e estáticos** (app × CDN, mesmo com pequeno custo) |
+| **Processa** mídia/IA/e-mail em massa (tarefa demorada) | **#5 Tarefas pesadas** (inline × fila + worker) |
+| Site/conteúdo **público** que precisa aparecer no Google | **#7 Renderização** (SSR/SSG × SPA) |
+| Espera **crescer** / muito tráfego / picos | **#1 Hospedagem**, **#2 Banco**, **#9 Cache** |
+| Tem **login** de usuários | **#3 Autenticação** |
+| **Recebe pagamento** | **#6 Pagamentos** |
+| Quer **subir rápido** sem cuidar de servidor | **#8 Deploy** (PaaS × VPS) |
+| Partes com escalas muito diferentes / times grandes | **#10 Estrutura** (monolito × serviços) |
+
+---
+
 ## 1. Hospedagem  *(decisão-âncora)*
 
 **Em simples:** onde o seu sistema vai morar. Pode ficar tudo junto numa única máquina, ou cada peça
