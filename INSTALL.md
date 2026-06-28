@@ -13,17 +13,26 @@ dependências.
 Use este repositório como ponto de partida.
 
 ```bash
-# clone e renomeie para o seu projeto
+# 1) Clone para a pasta do seu projeto
+#    (o repo precisa estar acessível; se ainda estiver privado, o clone pede login no GitHub)
 git clone https://github.com/ygorvieirayv/spec-driven-kit.git meu-projeto
 cd meu-projeto
 
-# comece o histórico do seu projeto do zero
-rm -rf .git
+# 2) Comece o histórico do SEU projeto do zero
+rm -rf .git          # Windows (PowerShell): Remove-Item -Recurse -Force .git
 git init
 
-# abra o Claude Code e rode o onboarding guiado
+# 3) primeiro commit do seu projeto (quando quiser)
+git add -A && git commit -m "chore: inicia projeto a partir do Spec Driven Kit"
+
+# 4) abra o Claude Code e rode o onboarding guiado
 #   /sdk-bootstrap
 ```
+
+> **Limpe o que é do kit (não do seu produto).** Após o clone, troque o `README.md` pelo do seu projeto e,
+> se quiser, remova `INSTALL.md` e `docs/example/` (são documentação do kit). Vale **manter**: `.specify/`,
+> `.claude/`, `CLAUDE.md`, `COMO-USAR.md`, `docs/specs|plans|decisions`, `scripts/`. O `LICENSE` é sua
+> escolha (o do kit é MIT).
 
 O `/sdk-bootstrap` cuida do resto: estrutura, `.gitignore`, stack, descoberta, decisões e MVP.
 
@@ -31,7 +40,7 @@ O `/sdk-bootstrap` cuida do resto: estrutura, `.gitignore`, stack, descoberta, d
 
 ## Opção 2 — Adicionar o kit a um projeto existente
 
-Copie as três peças do kit para a raiz do seu projeto, **sem** sobrescrever seu código:
+Copie as peças do kit para a raiz do seu projeto, **sem** sobrescrever seu código:
 
 1. **`.specify/`** — memória (constituição, padrões, guia de decisões, lições, templates).
 2. **`.claude/`** — `commands/` (os `sdk-*`) e `agents/` (researcher, reviewer, lesson-curator).
@@ -46,6 +55,7 @@ SDK=/caminho/para/spec-driven-kit
 cp -r "$SDK/.specify"        ./
 cp -r "$SDK/.claude"         ./
 cp    "$SDK/CLAUDE.md"       ./
+cp    "$SDK/COMO-USAR.md"    ./   # guia rápido (opcional, mas útil)
 cp -r "$SDK/docs"            ./
 cp -r "$SDK/scripts"         ./   # opcional
 
@@ -66,9 +76,10 @@ confirma com você, em vez de recriar.
 Confira que o Claude Code enxerga os comandos:
 
 ```bash
-ls .claude/commands     # deve listar sdk-bootstrap.md, sdk-decide.md, ...
-ls .claude/agents       # sdk-domain-researcher.md, sdk-reviewer.md
-ls .specify/memory      # constitution.md, engineering-standards.md, decision-guide.md
+ls .claude/commands     # sdk-bootstrap, sdk-roadmap, sdk-spec, sdk-clarify, sdk-plan, sdk-tasks,
+                        # sdk-analyze, sdk-implement, sdk-review, sdk-decide, sdk-lesson (.md)
+ls .claude/agents       # sdk-domain-researcher.md, sdk-reviewer.md, sdk-lesson-curator.md
+ls .specify/memory      # constitution.md, engineering-standards.md, decision-guide.md, lessons.md
 ```
 
 No Claude Code, digite `/` e veja se os comandos `sdk-*` aparecem. Pronto: rode **`/sdk-bootstrap`**.
@@ -81,8 +92,8 @@ Para puxar melhorias do kit sem perder seus artefatos:
 
 - **Seguro de sobrescrever** (são o "motor" do kit): `.claude/commands/`, `.claude/agents/`,
   `.specify/templates/`, `.specify/memory/decision-guide.md`, `.specify/memory/engineering-standards.md`,
-  `CLAUDE.md`, `.specify/memory/constitution.md` *(a menos que você tenha editado a seção "Princípios
-  específicos deste projeto")*.
+  `CLAUDE.md`, `COMO-USAR.md`, `.specify/memory/constitution.md` *(a menos que você tenha editado a seção
+  "Princípios específicos deste projeto")*.
 - **Nunca sobrescreva** (são **seus**): `.specify/memory/project-context.md`, `docs/specs/`, `docs/plans/`,
   `docs/decisions/`, `docs/epics.md`.
 - **`.specify/memory/lessons.md`** — caso à parte: as **sementes** vêm do kit, mas o arquivo **acumula** as
@@ -93,5 +104,5 @@ Para puxar melhorias do kit sem perder seus artefatos:
 
 ## Desinstalar
 
-Remova `.specify/`, `.claude/commands/sdk-*.md`, `.claude/agents/sdk-*.md` e (se quiser) `docs/` e
-`scripts/`. Seu código de aplicação não é tocado pelo kit.
+Remova `.specify/`, `.claude/commands/sdk-*.md`, `.claude/agents/sdk-*.md`, `CLAUDE.md`, `COMO-USAR.md` e
+(se quiser) `docs/` e `scripts/`. Seu código de aplicação não é tocado pelo kit.
