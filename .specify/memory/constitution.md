@@ -57,10 +57,24 @@ neste projeto, nem nos próximos. Antes de planejar/revisar, consultar as liçõ
 - **Em conflito entre princípios**, priorizar na ordem: honestidade (6) > spec como verdade (5) >
   verificação (4) > simplicidade (2). Ou seja: nunca mentir para parecer simples; nunca pular verificação
   para entregar rápido.
-- **Dois modos de rigor** (definidos no `project-context.md`):
-  - **PROTOTYPE** — rápido e descartável. Menos cerimônia, testes só no essencial, decisões reversíveis.
-  - **PRODUCTION** — mantido a sério. Verificação rigorosa, TDD na lógica crítica, decisões registradas.
-  Os princípios valem nos dois modos; o que muda é o **nível de rigor**, não a integridade.
+- **Dois modos de rigor** (a escolha de qual usar fica no `project-context.md`): **PROTOTYPE** (rápido,
+  descartável) e **PRODUCTION** (mantido a sério). Os princípios valem nos dois — o que muda é o **nível de
+  rigor**, nunca a integridade. A matriz abaixo é a referência operacional que `/sdk-tasks`, `/sdk-analyze`,
+  `/sdk-implement` e `/sdk-review` seguem, para não depender de interpretação no momento.
+
+## Matriz de rigor por modo
+
+| O que muda | PROTOTYPE | PRODUCTION |
+|---|---|---|
+| Barra "Sempre" da engenharia (segredos, PII, validação de entrada, AuthN/AuthZ no servidor) | **Inegociável — igual nos dois modos** | **Inegociável — igual nos dois modos** |
+| Lista de tasks | Pode ficar **inline** na tabela "Tasks" do `plan.md` — `/sdk-tasks` é opcional | `tasks.md` próprio, com estado rastreado por task |
+| ADR (`/sdk-decide`) | Só para decisões caras de reverter (ex.: trocar de banco depois de ter dados) | Toda decisão de arquitetura/infra com trade-off real |
+| Teste (critério de "lógica crítica" definido no `/sdk-implement`) | Caminho feliz da lógica crítica + smoke test do fluxo principal | TDD (RED→GREEN→REFACTOR) na lógica crítica + edge cases |
+| `/sdk-analyze` | Roda as mesmas checagens; o que ainda não existe (NFR específico, brownfield) vira N/A, não bloqueio | Roda todas as checagens, incluindo NFRs herdados e brownfield quando aplicável |
+| `/sdk-review` — checklist de segurança/performance | **Roda sempre, sem exceção** — achado fora da barra "Sempre" pode virar dívida anotada em vez de bloqueio | **Roda sempre** — qualquer Crítico/Alto bloqueia |
+
+> A coluna PROTOTYPE nunca abre exceção na linha "Sempre". É aqui que "modo rápido" para de ser desculpa
+> para vazar segredo, pular validação de entrada ou deixar uma rota sem autorização.
 
 ---
 

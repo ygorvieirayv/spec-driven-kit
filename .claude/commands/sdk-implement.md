@@ -17,6 +17,16 @@ Carregue: a spec (`docs/specs/<feature>/spec.md`), o plano e as tasks (`docs/pla
 
 ## Fluxo por task
 
+### O que é "lógica crítica" / "maior risco" (vale nos dois modos)
+Trate como crítico qualquer trecho que:
+- mexe com **dinheiro** (preço, pagamento, saldo, cupom, estorno);
+- decide **quem pode acessar ou fazer o quê** (autenticação/autorização);
+- lê, grava ou apaga **dados pessoais** ou dado que **não pode ser perdido**;
+- já causou um bug real antes (ver `lessons.md` por tag) ou é algo de que outra feature depende.
+
+Isso entra no TDD completo em PRODUCTION e ganha pelo menos um teste de caminho feliz em PROTOTYPE. O resto
+(estilo visual, copy, ordenação não-crítica) pode ficar mais leve nos dois modos — não vire TDD por hábito.
+
 ### Modo PRODUCTION — TDD na lógica crítica
 Para cada AC de lógica crítica:
 1. **RED** — escreva o teste que expressa o AC e veja-o **falhar** (confirme que falha pela razão certa).

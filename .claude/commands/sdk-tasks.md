@@ -5,14 +5,20 @@ argument-hint: "[nome da feature]"
 
 # /sdk-tasks — Tasks rastreáveis
 
-Gere ou atualize a lista de tasks de uma feature a partir do plano. Grave em
-`docs/plans/<feature>/tasks.md` usando o `tasks-template.md`.
+Gere ou atualize a lista de tasks de uma feature a partir do plano. Em **PRODUCTION**, grave em
+`docs/plans/<feature>/tasks.md` usando o `tasks-template.md`. Em **PROTOTYPE**, a tabela "Tasks" que já está
+dentro do `plan.md` pode bastar (ver matriz de rigor em `constitution.md`) — não duplique em arquivo
+separado só por hábito.
 
-Carregue: o plano (`docs/plans/<feature>/plan.md`), a spec (`docs/specs/<feature>/spec.md`) e
+Carregue: o plano (`docs/plans/<feature>/plan.md`), a spec (`docs/specs/<feature>/spec.md`), o
+`project-context.md` (para confirmar o modo) e, se for gerar arquivo separado,
 `.specify/templates/tasks-template.md`.
 
 ## O que fazer
 
+0. **Confira o modo.** Se PROTOTYPE e a tabela inline do `plan.md` já cobre o que falta, atualize-a ali
+   mesmo e pare por aqui. Se PRODUCTION — ou o usuário quer rastreio mais forte mesmo em PROTOTYPE — siga os
+   passos abaixo.
 1. **Derive as tasks** do plano. Cada task precisa de: ID, descrição, dependências, **AC que satisfaz**,
    arquivo(s) afetado(s), forma de **verificação** e **estado**.
 2. **Ordene por dependência** (uma task só fica `ready` quando suas dependências estão `done`).
@@ -26,6 +32,6 @@ Carregue: o plano (`docs/plans/<feature>/plan.md`), a spec (`docs/specs/<feature
 verificada**).
 
 ## Saída
-- Grave/atualize `docs/plans/<feature>/tasks.md`.
+- Grave/atualize `docs/plans/<feature>/tasks.md` (ou a tabela inline do `plan.md`, se ficou em PROTOTYPE).
 - Mostre a tabela e aponte a próxima task `ready`.
 - Sugira `/sdk-analyze` (conferir consistência antes de codar) e, em seguida, `/sdk-implement`.

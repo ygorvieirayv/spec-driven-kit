@@ -22,8 +22,22 @@ fora e retorna os achados. Se preferir revisar inline, siga o mesmo roteiro abai
 ## O que checar
 1. **Spec ↔ código:** cada AC foi atendido? Há comportamento fora do escopo declarado?
 2. **Plano ↔ código:** seguiu a abordagem e as decisões (ADRs)? Desvios justificados?
-3. **Barra de engenharia:** segredos fora do código/git/bundle, validação de input público, PII fora de
-   logs, timeouts, autorização no servidor, testes cobrindo os AC, etc.
+3. **Barra de engenharia — percorra item a item** (não troque pela leitura corrida; o detalhe de cada item
+   está em `.specify/memory/engineering-standards.md`). Roda **igual nos dois modos** — o que muda com o
+   modo é só o quanto um achado fora da barra "Sempre" bloqueia ou vira dívida anotada (ver matriz de rigor
+   da `constitution.md`):
+   - [ ] Segredos fora do código/git/bundle/logs (inclui o bundle que vai pro navegador)
+   - [ ] Toda entrada pública validada **no servidor** (não só na UI)
+   - [ ] PII fora de logs, mensagens de erro e telemetria
+   - [ ] AuthN (quem é) e AuthZ (pode fazer isto?) checadas no servidor em toda rota protegida
+   - [ ] Timeouts em toda chamada de rede; retry só em operação idempotente
+   - [ ] Rate limiting em endpoint público/autenticação, se aplicável
+   - [ ] Sem N+1 óbvio; paginação em listagem que pode crescer
+   - [ ] Trabalho pesado (mídia, e-mail, IA) fora do caminho do request
+   - [ ] Cache, se houver, tem plano de invalidação
+   - [ ] Testes cobrindo os AC (ver QA abaixo)
+
+   O que não se aplica, marque **N/A com 1 linha do porquê** — nunca pule em silêncio.
 4. **Constituição:** mudança cirúrgica? Simples? Verificável? Sem regra de domínio inventada?
 5. **Lições conhecidas:** consulte `.specify/memory/lessons.md` por tag relevante (grep) e verifique se o
    diff cai em algum padrão já catalogado (ex.: `#cache`, `#segredos`, `#integração`). Se um erro novo

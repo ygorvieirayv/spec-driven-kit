@@ -12,12 +12,16 @@ Verifique se os artefatos de uma feature **batem entre si** antes de gastar temp
 > código; o **review** olha o **código** já feito. Use analyze **antes** de implementar; review **depois**.
 
 Carregue (somente leitura): a spec (`docs/specs/<feature>/spec.md`), o plano e as tasks
-(`docs/plans/<feature>/`), o `project-context.md` e o `docs/epics.md`.
+(`docs/plans/<feature>/` — `tasks.md` se existir, senão a tabela "Tasks" inline do `plan.md`), o
+`project-context.md` (modo) e o `docs/epics.md`.
 
 ## O que conferir
+> As checagens abaixo rodam **iguais nos dois modos** — o que muda por modo é o que ainda existe pra checar
+> (ex.: PROTOTYPE pode não ter ADR) e o quanto um achado bloqueia (ver matriz de rigor da `constitution.md`).
+> Nunca pule uma checagem só por "ser PROTOTYPE".
 
 1. **Cobertura de AC:** todo critério de aceitação (AC) da spec tem ≥1 task **e** ≥1 forma de verificação?
-   (AC sem task = vai ficar de fora.)
+   (Vale tanto para `tasks.md` quanto para a tabela inline do `plan.md`.) (AC sem task = vai ficar de fora.)
 2. **Tasks válidas:** toda task referencia um AC que **existe** na spec? (Task sem AC = trabalho sem motivo.)
 3. **Dependências coerentes:** a ordem das tasks respeita as dependências (sem ciclo)? As dependências
    externas/de outras features citadas na spec **existem/estão prontas**? (Se não, aponte e sugira
@@ -25,7 +29,7 @@ Carregue (somente leitura): a spec (`docs/specs/<feature>/spec.md`), o plano e a
 4. **Decisões alinhadas:** o plano respeita as decisões de arquitetura do `project-context.md`/`docs/decisions`?
    Nada no plano contradiz um ADR?
 5. **NFRs herdados:** os requisitos não-funcionais da spec batem com os globais do `project-context.md`
-   (ou explicam por que mudam)?
+   (ou explicam por que mudam)? Em PROTOTYPE sem NFR definido ainda, marque N/A — não é bloqueio.
 6. **Pendências críticas:** sobrou algum `[VERIFICAR]` que **bloqueia** a implementação (ex.: compliance,
    fonte de dado essencial)?
 7. **Escopo:** há algo no plano/tasks que **não** está na spec (escopo inflado), ou algo da spec **fora** do

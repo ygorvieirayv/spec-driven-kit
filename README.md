@@ -127,6 +127,9 @@ O kit escala o **rigor** conforme o modo (definido no `project-context.md`):
 - **PRODUCTION** — mantido a sério. Verificação rigorosa, TDD na lógica crítica, decisões registradas (ADRs).
 
 Os princípios da constituição valem nos dois modos; o que muda é o **nível de rigor**, nunca a integridade.
+A `constitution.md` tem a **matriz de rigor por modo** — o que cada comando (`/sdk-tasks`, `/sdk-analyze`,
+`/sdk-implement`, `/sdk-review`) trata diferente em PROTOTYPE × PRODUCTION, e o que **nunca** muda (segredos,
+PII, validação de entrada, autorização — esses valem igual nos dois modos, sempre).
 
 ---
 
