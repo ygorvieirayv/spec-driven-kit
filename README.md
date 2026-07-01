@@ -22,6 +22,8 @@
 - Quem tem uma ideia e quer sair dela para um sistema **bem especificado** sem se afogar em decisões técnicas.
 - Quem quer entender os **trade-offs** de cada escolha (e o custo) antes de construir.
 - Quem usa o **Claude Code** e quer um fluxo de specs guiado por slash commands.
+- Quem usa outra ferramenta de IA agente que lê `AGENTS.md` (ex.: Codex CLI) — via o adaptador em
+  `.specify/templates/agents-md-template.md` (ver `INSTALL.md`, Opção 3).
 
 ---
 
@@ -224,6 +226,7 @@ spec-driven-kit/
 │   │   ├── lessons.md                 # ★ biblioteca de lições generalizadas (erros → prevenção)
 │   │   └── project-context.md         # GERADO na descoberta (país, leis, decisões)
 │   └── templates/                     # moldes de context / spec / plan / tasks
+│       └── agents-md-template.md      # ★ adaptador p/ ferramentas sem slash commands (ex.: Codex CLI)
 │
 ├── .claude/
 │   ├── commands/                      # os slash commands sdk-*

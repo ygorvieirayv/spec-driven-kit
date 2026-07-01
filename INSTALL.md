@@ -71,6 +71,26 @@ confirma com você, em vez de recriar.
 
 ---
 
+## Opção 3 — Usando outra ferramenta (sem slash commands nativos)
+
+O kit foi feito para o Claude Code, mas os comandos são só **markdown em `.claude/commands/`** — nada
+impede outra ferramenta de IA agente (ex.: Codex CLI) de ler e seguir esses arquivos, desde que ela saiba
+onde procurar. Para isso existe um **adaptador**: um `AGENTS.md` que ensina a ferramenta a interpretar uma
+flag de texto (`--sdk-bootstrap`, `--sdk-spec`, ...) como "leia o comando correspondente e siga-o".
+
+```bash
+# a partir da raiz do seu projeto (depois de instalar via Opção 1 ou 2)
+cp .specify/templates/agents-md-template.md ./AGENTS.md
+```
+
+Preencha os placeholders `<...>` do `AGENTS.md` copiado (nome do produto, estrutura, comandos) conforme o
+que o bootstrap gerar em `project-context.md`. O restante do fluxo é idêntico — em vez de `/sdk-plan`, você
+digita `--sdk-plan` (ou o equivalente que sua ferramenta aceitar como texto livre).
+
+> **Se você usa Claude Code, ignore esta opção** — os comandos já existem como `/sdk-*` nativamente.
+
+---
+
 ## Verificando a instalação
 
 Confira que o Claude Code enxerga os comandos:
@@ -95,7 +115,8 @@ Para puxar melhorias do kit sem perder seus artefatos:
   `CLAUDE.md`, `COMO-USAR.md`, `.specify/memory/constitution.md` *(a menos que você tenha editado a seção
   "Princípios específicos deste projeto")*.
 - **Nunca sobrescreva** (são **seus**): `.specify/memory/project-context.md`, `docs/specs/`, `docs/plans/`,
-  `docs/decisions/`, `docs/epics.md`.
+  `docs/decisions/`, `docs/epics.md`, e o `AGENTS.md` na raiz **se você usou a Opção 3** (ele foi preenchido
+  com dados do seu projeto — só o molde em `.specify/templates/agents-md-template.md` é seguro de atualizar).
 - **`.specify/memory/lessons.md`** — caso à parte: as **sementes** vêm do kit, mas o arquivo **acumula** as
   suas lições. Faça **merge**, não sobrescreva. (Se usar a biblioteca como submodule, ela é versionada à
   parte e não há conflito.)
