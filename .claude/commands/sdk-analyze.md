@@ -47,4 +47,8 @@ Carregue (somente leitura): a spec (`docs/specs/<feature>/spec.md`), o plano e a
 - Lista de inconsistências **por severidade**, cada uma dizendo **onde** (arquivo/linha ou AC/Task) e **o que
   fazer** (mas sem aplicar).
 - Veredito em linguagem simples: **consistente** / **ajustar antes de implementar** / **bloqueado**.
+- **Registre o veredito no plano** (**conversa aprova, arquivo registra**): atualize a linha `**Analyze:**`
+  do cabeçalho de `docs/plans/<feature>/plan.md` com `<consistente | ajustar | bloqueado> — <data>`. É o
+  marcador que o `/sdk-next` lê para não recomendar a análise de novo à toa. O comando continua read-only
+  quanto ao **conteúdo** dos artefatos — este registro é só metadado de estado.
 - Se houver Crítico, recomende voltar ao `/sdk-spec`, `/sdk-plan`, `/sdk-tasks` ou `/sdk-roadmap` conforme o caso.

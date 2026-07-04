@@ -44,7 +44,8 @@ Carregue: a spec da feature (`docs/specs/<feature>/spec.md`), `.specify/memory/e
 
 ## Saída
 - Grave `docs/plans/<feature>/plan.md` (`Status: rascunho`) e atualize a linha da feature no ledger
-  (`docs/epics.md`, "Ordem de construção") para `em plano`.
+  (`docs/epics.md`, "Ordem de construção") para `em plano`. Se o plano **mudou** depois de uma análise,
+  volte a linha `**Analyze:**` para `pendente` — análise velha não vale para plano novo.
 - Resuma a abordagem, as decisões e a lista de tasks.
 - 🛑 **Peça aprovação.** Aprovado? Atualize a linha `Status:` do plano para `aprovado` (**conversa aprova,
   arquivo registra**). Depois siga: `/sdk-tasks` (refinar a lista) → `/sdk-analyze` (conferir

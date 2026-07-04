@@ -1,7 +1,11 @@
 <#
-  new-feature.ps1 — cria o esqueleto de uma feature (pasta de spec/plano + branch).
+  new-feature.ps1 - cria o esqueleto de uma feature (pasta de spec/plano + branch).
   Uso:  ./scripts/new-feature.ps1 "nome-da-feature"
-  Opcional do Spec Driven Kit (Fase 4). O núcleo do kit funciona sem isto.
+  Opcional do Spec Driven Kit (Fase 4). O nucleo do kit funciona sem isto.
+
+  IMPORTANTE: este arquivo e ASCII puro de proposito. O Windows PowerShell 5.1 le
+  .ps1 sem BOM como ANSI, o que corrompe acentos e pode quebrar o parser. Ao editar,
+  nao introduza caracteres acentuados nem travessoes.
 #>
 
 param(
@@ -11,14 +15,14 @@ param(
 
 $ErrorActionPreference = "Stop"
 
-# slug: minúsculas, espaços -> hífen, remove o que não for [a-z0-9-]
+# slug: minusculas, espacos -> hifen, remove o que nao for [a-z0-9-]
 $slug = $Name.ToLower()
 $slug = ($slug -replace '\s+', '-')
 $slug = ($slug -replace '[^a-z0-9-]', '')
 $slug = ($slug -replace '-+', '-').Trim('-')
 
 if ([string]::IsNullOrWhiteSpace($slug)) {
-  Write-Error "Nome inválido após normalização: '$Name'"
+  Write-Error "Nome invalido apos normalizacao: '$Name'"
   exit 1
 }
 
@@ -29,7 +33,7 @@ $templates = Join-Path $root ".specify/templates"
 
 New-Item -ItemType Directory -Force -Path $specDir, $planDir | Out-Null
 
-# Copia os moldes se ainda não existirem (não sobrescreve).
+# Copia os moldes se ainda nao existirem (nao sobrescreve).
 $specFile  = Join-Path $specDir "spec.md"
 $planFile  = Join-Path $planDir "plan.md"
 $tasksFile = Join-Path $planDir "tasks.md"
@@ -48,7 +52,7 @@ if ($LASTEXITCODE -eq 0) {
   $branch = "feature/$slug"
   git -C $root show-ref --verify --quiet "refs/heads/$branch"
   if ($LASTEXITCODE -eq 0) {
-    Write-Host "Branch '$branch' já existe — alternando."
+    Write-Host "Branch '$branch' ja existe - alternando."
     git -C $root checkout $branch
   } else {
     git -C $root checkout -b $branch

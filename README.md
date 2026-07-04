@@ -298,7 +298,9 @@ repositório. A constituição e o `project-context` já estarão no lugar; o pi
   recomendação por modo. Sempre: "posso construir qualquer um dos dois".
 - **Honestidade epistêmica.** Não inventar regras de negócio/lei — pesquisar, citar fontes, sinalizar
   incerteza. Compliance é confirmado por humano.
-- **Artefato é a fonte da verdade.** Código serve à spec; se divergem, a spec vence.
+- **Artefato é a fonte da verdade.** Código serve à spec; se divergem, a spec vence **dentro da feature**
+  (acima dela valem `project-context.md` e ADRs — hierarquia no `CLAUDE.md`; em brownfield, o código é a
+  verdade do comportamento atual).
 
 ---
 

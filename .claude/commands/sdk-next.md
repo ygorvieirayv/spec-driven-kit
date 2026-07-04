@@ -20,8 +20,8 @@ simples.
    "Pronta p/ começar?").
 3. `git branch --show-current` e `git status --porcelain` — o que está em curso (**sinal**, não verdade).
 4. **Só da feature ativa:** a linha `Status:` de `docs/specs/<feature>/spec.md` e de
-   `docs/plans/<feature>/plan.md`, a linha `**Review:**` do plano, e os estados das tasks (`tasks.md` ou a
-   tabela inline do plano).
+   `docs/plans/<feature>/plan.md`, as linhas `**Analyze:**` e `**Review:**` do plano, e os estados das
+   tasks (`tasks.md` ou a tabela inline do plano).
 
 Não carregue spec/plano inteiros, nem `decision-guide`, `engineering-standards` ou `lessons` — isso é papel
 dos comandos de cada etapa.
@@ -35,8 +35,8 @@ dos comandos de cada etapa.
 | Spec `rascunho` / `em revisão` | Terminar a spec: `/sdk-spec` (ou `/sdk-clarify`, se o que falta é tirar ambiguidade) |
 | Spec `aprovada`, sem plano | Risco médio/alto → `/sdk-plan` · risco trivial/baixo → a régua permite encurtar (ver abaixo) |
 | Plano `rascunho` | Terminar/aprovar o plano: `/sdk-plan` |
-| Plano `aprovado`, tasks ainda não conferidas | `/sdk-analyze` (médio/alto) ou direto `/sdk-implement` (baixo) |
-| Tasks `ready`/`in-progress` restando | `/sdk-implement` (próxima task `ready`) |
+| Plano `aprovado`, linha `**Analyze:**` ainda `pendente` | `/sdk-analyze` (médio/alto) ou direto `/sdk-implement` (baixo, régua dispensa) |
+| Analyze `consistente` (ou dispensado pela régua), tasks `ready`/`in-progress` restando | `/sdk-implement` (próxima task `ready`) |
 | Todas as tasks `done`, sem linha `**Review:**` no plano | `/sdk-review` (idealmente em contexto fresco) |
 | Review aprovado / feature `concluída` | `/sdk-roadmap` — ver o que a conclusão desbloqueou, e seguir para a próxima 🟢 |
 
