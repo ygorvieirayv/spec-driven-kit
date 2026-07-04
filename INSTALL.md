@@ -96,10 +96,12 @@ digita `--sdk-plan` (ou o equivalente que sua ferramenta aceitar como texto livr
 Confira que o Claude Code enxerga os comandos:
 
 ```bash
-ls .claude/commands     # sdk-next, sdk-bootstrap, sdk-roadmap, sdk-spec, sdk-clarify, sdk-plan,
-                        # sdk-tasks, sdk-analyze, sdk-implement, sdk-review, sdk-decide, sdk-lesson (.md)
+ls .claude/commands     # sdk-next, sdk-bootstrap, sdk-roadmap, sdk-spec, sdk-clarify, sdk-plan, sdk-tasks,
+                        # sdk-analyze, sdk-implement, sdk-review, sdk-decide, sdk-lesson, sdk-doctor (.md)
 ls .claude/agents       # sdk-domain-researcher.md, sdk-reviewer.md, sdk-lesson-curator.md
-ls .specify/memory      # constitution.md, engineering-standards.md, decision-guide.md, lessons.md
+ls .specify/memory      # constitution.md, engineering-standards.md, decision-guide.md, lessons.md,
+                        # state-markers.md
+ls scripts              # new-feature.sh/.ps1, sdk-check.sh/.ps1 (validação de estado)
 ```
 
 No Claude Code, digite `/` e veja se os comandos `sdk-*` aparecem. Pronto: rode **`/sdk-bootstrap`**.
@@ -112,8 +114,9 @@ Para puxar melhorias do kit sem perder seus artefatos:
 
 - **Seguro de sobrescrever** (são o "motor" do kit): `.claude/commands/`, `.claude/agents/`,
   `.specify/templates/`, `.specify/memory/decision-guide.md`, `.specify/memory/engineering-standards.md`,
-  `CLAUDE.md`, `COMO-USAR.md`, `.specify/memory/constitution.md` *(a menos que você tenha editado a seção
-  "Princípios específicos deste projeto")*.
+  `.specify/memory/state-markers.md`, `scripts/sdk-check.*`, `CLAUDE.md`, `COMO-USAR.md`,
+  `.specify/memory/constitution.md` *(a menos que você tenha editado a seção "Princípios específicos deste
+  projeto")*.
 - **Nunca sobrescreva** (são **seus**): `.specify/memory/project-context.md`, `docs/specs/`, `docs/plans/`,
   `docs/decisions/`, `docs/epics.md`, e o `AGENTS.md` na raiz **se você usou a Opção 3** (ele foi preenchido
   com dados do seu projeto — só o molde em `.specify/templates/agents-md-template.md` é seguro de atualizar).

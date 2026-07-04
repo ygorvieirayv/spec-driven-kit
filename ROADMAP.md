@@ -31,9 +31,9 @@ fixo de estado não é estado.
 | F2 | Hierarquia de fonte da verdade no `CLAUDE.md` (com exceção brownfield) | edição | P0 ✅ |
 | F3 | Régua de cerimônia por **risco da mudança** (trivial/baixo/médio/alto) na constituição + spec curta | edição | P0 ✅ |
 | F4 | `/sdk-next` — porta de entrada: onde estou → próximo passo + porquê | comando novo | P0 ✅ |
-| F5 | `/sdk-doctor` — diagnóstico global read-only + reconciliação item a item com aprovação | comando novo | P1 |
-| F6 | `scripts/sdk-check.sh` / `.ps1` — validação determinística dos artefatos (zero token) | script novo | P1 |
-| F7 | README, COMO-USAR, INSTALL e `docs/example/` atualizados para o fluxo com next/doctor | docs | P0 ✅ (example → P1) |
+| F5 | `/sdk-doctor` — diagnóstico global read-only + reconciliação item a item com aprovação | comando novo | P1 ✅ |
+| F6 | `scripts/sdk-check.sh` / `.ps1` — validação determinística dos artefatos (zero token) + contrato de marcadores (`state-markers.md`) | script novo | P1 ✅ |
+| F7 | README, COMO-USAR, INSTALL e `docs/example/` atualizados para o fluxo com next/doctor | docs | P0/P1 ✅ |
 | F8 | Instalador seguro · decisões de produto no decision-guide · starter packs · CI do kit · versionamento | produto | P2 |
 
 Total de comandos: 11 → **13**. Nada além disso — as demais ideias viram comportamento dos comandos que já
@@ -145,8 +145,9 @@ Shell puro (bash + PowerShell), zero token, exit ≠ 0 em falha (serve para CI):
 3. **F3** — régua na constituição + definição única de lógica crítica + nota de spec curta no template.
 4. **F4** — `/sdk-next` + README/COMO-USAR apontando-o como entrada ("perdido? rode `/sdk-next`").
 
-### P1 — visibilidade e recuperação
-5. **F6** — `sdk-check.sh` / `.ps1`.
+### P1 — visibilidade e recuperação ✅ *(entregue)*
+5. **F6** — `sdk-check.sh` / `.ps1` + o **contrato dos marcadores** em `.specify/memory/state-markers.md`
+   (a fonte normativa que o script valida — ver "Decisão de formatos").
 6. **F5** — `/sdk-doctor`.
 7. **F7** — walkthrough do `docs/example/` com next/doctor; INSTALL ("Verificando a instalação" inclui os
    novos comandos).
@@ -158,6 +159,29 @@ Shell puro (bash + PowerShell), zero token, exit ≠ 0 em falha (serve para CI):
 10. Starter packs (SaaS, e-commerce, app interno).
 11. CI do próprio kit rodando `sdk-check` nos templates e no example.
 12. `CHANGELOG.md` + versionamento dos templates.
+
+## Decisão de formatos (estado = linhas markdown; sem TOML/JSONL por ora)
+
+> Decisão tomada em jul/2026, após análise comparativa de formatos (Markdown × TOML × YAML × JSON/JSONL ×
+> TSV) com medição de tokens, e consenso entre duas revisões independentes.
+
+**Decidido:** o estado do kit vive em **linhas markdown padronizadas** ("front matter de pobre") — os
+marcadores de `.specify/memory/state-markers.md` — validadas por regex via `scripts/sdk-check`. Markdown
+segue sendo o corpo de tudo que é narrativa e julgamento.
+
+**Por quê:**
+- O consumidor dos metadados é **LLM + grep + regex** — todos indiferentes ao formato; linha markdown é a
+  opção mais tolerante a erro de geração (bullet não "quebra parse"; TOML com aspa faltando, sim).
+- A medição de tokens mostrou **TOML mais caro** que a própria tabela markdown (≈192–197 × 148–165 na
+  amostra) e **JSONL também** (≈161–164) — os formatos "estruturados" não pagam nem o próprio custo aqui.
+- Um índice gerado (`features.jsonl`) seria uma **segunda cópia do estado** — exatamente a classe de drift
+  que o `/sdk-doctor` existe para caçar. O ledger na escala-alvo (dezenas de features) custa ~200 tokens.
+- O "schema" que o TOML daria, o **contrato + `sdk-check`** entregam sem migração nenhuma.
+
+**Gatilhos objetivos para reavaliar** (qualquer um): ledger passar de ~100 features · parsing por regex se
+provar frágil na prática · surgir uma CLI externa consumindo o estado · os checks ficarem impraticáveis em
+regex. Se um dia houver front matter formal, a escolha é **YAML** (`---`), não TOML — é a convenção do
+ecossistema (Claude Code, GitHub, geradores de docs).
 
 ## Rejeitado (e por quê)
 

@@ -55,6 +55,7 @@ ideia vaga
 
 apoio a qualquer momento:  /sdk-decide (escolha com trade-offs) · /sdk-lesson (registrar lição)
 perdido / voltando?        /sdk-next — lê o estado do projeto e diz o próximo passo (não executa nada)
+algo não bate?             /sdk-doctor — diagnostica drift (read-only) e reconcilia só o que você aprovar
 ```
 
 > **Nem toda mudança precisa do ciclo inteiro.** A **régua de cerimônia** da `constitution.md` dita quais
@@ -90,6 +91,7 @@ perdido / voltando?        /sdk-next — lê o estado do projeto e diz o próxim
 | `/sdk-decide` | ★ Assistente de decisão: explica trade-offs de uma escolha e oferece construir qualquer caminho. |
 | `/sdk-clarify` | Passo dedicado de tirar ambiguidade de uma spec (entre `/sdk-spec` e `/sdk-plan`). |
 | `/sdk-lesson` | Registra uma lição (erro resolvido) de forma generalizada e reutilizável na biblioteca de lições. |
+| `/sdk-doctor` | ★ Diagnóstico global de **drift** (ledger × artefatos × código), read-only por camadas; reconcilia só o que você aprovar, um item por vez. |
 
 ### Subagentes (opcionais, usados pelos comandos)
 
@@ -238,6 +240,7 @@ spec-driven-kit/
 │   │   ├── engineering-standards.md   # barra técnica (infra, perf, segurança, testes…)
 │   │   ├── decision-guide.md          # ★ catálogo de trade-offs (alimenta /sdk-decide)
 │   │   ├── lessons.md                 # ★ biblioteca de lições generalizadas (erros → prevenção)
+│   │   ├── state-markers.md           # ★ contrato dos marcadores de estado (valida o /sdk-check e /sdk-doctor)
 │   │   └── project-context.md         # GERADO na descoberta (país, leis, decisões)
 │   └── templates/                     # moldes de context / spec / plan / tasks
 │       └── agents-md-template.md      # ★ adaptador p/ ferramentas sem slash commands (ex.: Codex CLI)
@@ -251,9 +254,9 @@ spec-driven-kit/
 │   ├── plans/                         # planos e tasks
 │   ├── decisions/                     # ADRs (decisões de arquitetura)
 │   ├── example/                       # walkthrough opcional e ilustrativo (não muda o kit)
-│   └── epics.md                       # escopo do MVP
+│   └── epics.md                       # escopo do MVP + ledger de estado (coluna Estado)
 │
-└── scripts/                           # (opcional) scaffolding bash + PowerShell
+└── scripts/                           # (opcional) scaffolding + sdk-check (validação de estado), bash + PowerShell
 ```
 
 > **Compatibilidade:** `.specify/memory/constitution.md` e `.specify/templates/` seguem os caminhos do Spec
@@ -286,6 +289,7 @@ repositório. A constituição e o `project-context` já estarão no lugar; o pi
 | `/sdk-analyze` | `/speckit.analyze` (read-only de consistência) |
 | `/sdk-implement` | `/speckit.implement` |
 | `/sdk-review` | (review de código + QA — complementa o `analyze`) |
+| `/sdk-doctor` | (sem equivalente direto — extra nosso: diagnóstico global de drift + reconciliação aprovada) |
 
 ---
 
