@@ -98,13 +98,14 @@ antecedência", tabela de decisões apontando para os ADRs, e pendências `[VERI
 
 ## Passo 2.5 — `/sdk-roadmap` (a ordem certa)
 
-Antes de sair detalhando, o agente monta a ordem por dependências em `docs/epics.md`:
+Antes de sair detalhando, o agente monta a ordem por dependências em `docs/epics.md`. A coluna **Estado** é
+o **ledger** do projeto (é o que o `/sdk-next` lê depois):
 
 ```
-| Ordem | Sub-feature | Epic | Depende de | Pronta p/ começar? |
-| 1 | Catálogo de bolos | Produtos | — (fundacional) | 🟢 sim |
-| 2 | Encomenda de bolo | Encomenda | Catálogo, preço | 🔴 não (falta catálogo) |
-| 3 | Pagamento Pix | Pagamento | Encomenda | 🔴 não |
+| Ordem | Sub-feature | Epic | Depende de | Estado | Pronta p/ começar? |
+| 1 | Catálogo de bolos | Produtos | — (fundacional) | a fazer | 🟢 sim |
+| 2 | Encomenda de bolo | Encomenda | Catálogo, preço | a fazer | 🔴 não (falta catálogo) |
+| 3 | Pagamento Pix | Pagamento | Encomenda | a fazer | 🔴 não |
 ```
 
 > 🤖 "Faz sentido começar pelo **catálogo**: a encomenda precisa saber quais bolos e preços existem. Correr
@@ -129,7 +130,9 @@ Conversa de esclarecimento até não sobrar ambiguidade. Trecho do resultado em
 ## Fora de escopo
 - Cupons de desconto; entrega agendada por hora.
 ```
-— 🛑 *Marta aprova a spec.*
+— 🛑 *Marta aprova a spec.* O agente grava `- **Status:** aprovada` no topo da spec e muda a linha da
+feature no ledger (`docs/epics.md`) para `em spec` → depois `em plano` etc. **Conversa aprova, arquivo
+registra** — assim, se a Marta fechar tudo e voltar amanhã, o `/sdk-next` sabe exatamente onde ela parou.
 
 ---
 
@@ -157,6 +160,14 @@ que as dependências estão prontas:
 Veredito: consistente — pode implementar. (3 AC, 3 tasks, todas com verificação; sem [VERIFICAR] crítico.)
 ```
 
+Ele grava `- **Analyze:** consistente — <data>` no plano — assim o `/sdk-next` não vai pedir a análise de
+novo à toa numa próxima sessão.
+
+> 💡 **Voltando depois de uma pausa?** A Marta digita **`/sdk-next`**. Ele lê o ledger e os marcadores e
+> responde: *"Você está na **Encomenda de bolo**; o plano está aprovado e a análise deu consistente. Próximo
+> passo: **`/sdk-implement`** (a regra dos 3 dias é lógica crítica, então vai com teste primeiro)."* Ela não
+> precisou lembrar de nada.
+
 ---
 
 ## Passo 5 — `/sdk-implement` (TDD, porque a regra dos 3 dias é crítica)
@@ -181,7 +192,32 @@ Veredito: aprovado com ressalvas — corrigir o ALTO antes do merge.
 ```
 
 **Fecho de ciclo:** o achado ALTO casa com a lição L-005 (input público sem validação no servidor). Como já
-existe, o agente **reforça** a lição em vez de duplicar — e segue.
+existe, o agente **reforça** a lição em vez de duplicar — e segue. Corrigido o ALTO, o `/sdk-review` grava
+`- **Review:** aprovado — <data>` no plano e muda o ledger da feature para `concluída`.
+
+---
+
+## Passo 6.5 — `/sdk-doctor` (quando algo "não bate")
+
+Semanas depois, a Marta mexeu num arquivo à mão e não lembra se ficou tudo coerente. Ela roda
+**`/sdk-doctor`**. Ele começa pelo `scripts/sdk-check` (grátis, sem gastar tokens) e depois olha os
+artefatos por camadas, **sem mudar nada**:
+
+```
+sdk-check: 1 erro.
+[ALTO] docs/epics.md — "Encomenda de bolo" está "concluída", mas o plano não tem "Review: aprovado".
+Veredito: drift pontual. Nada foi alterado.
+
+Reconciliação — como você quer resolver?
+A) Corrigir o ledger: a feature não foi de fato revisada e aprovada → volta para "em review". (Recomendado)
+B) Se ela foi revisada fora do kit, gravar o veredito no plano conscientemente.
+C) Registrar como débito e seguir.
+```
+
+> 👩 "Ah, eu tinha voltado pra mexer nela. Opção A."
+
+O agente aplica **só** a opção A, mostra o diff, re-roda o `sdk-check` (agora limpo) e para. Nada é
+consertado "no escuro" — cada mudança precisa do "ok" dela, um item por vez.
 
 ---
 
@@ -210,6 +246,8 @@ Essa lição agora vale para **qualquer projeto futuro** — não só o da Marta
 - O agente **conduz** e a pessoa **aprova** — ninguém preenche formulário.
 - Cada decisão veio com **trade-offs** e "posso construir qualquer um".
 - Os **artefatos no disco** (ADR, spec, plano, lição) são a fonte da verdade — dá pra `/clear` e voltar.
+- O **estado fica gravado nos arquivos** (Status, Analyze, Review, ledger): o `/sdk-next` retoma de onde parou
+  e o `/sdk-doctor` recupera o projeto se algo divergir — sem depender do histórico do chat.
 - A **biblioteca de lições** transforma um erro pontual em prevenção reutilizável.
 
 Pronto para o seu projeto de verdade? Rode **`/sdk-bootstrap`**.

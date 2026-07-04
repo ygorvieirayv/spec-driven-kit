@@ -60,6 +60,9 @@ Terminou? **Volte ao `/sdk-roadmap`** para a próxima feature desbloqueada.
   velocidade) e diz: *"posso construir qualquer um — qual prefere?"*
 - **`/sdk-lesson`** — algo deu errado e foi resolvido. Ele guarda a lição pra **nunca repetir o erro** (nesse
   projeto e nos próximos).
+- **`/sdk-doctor`** — "será que meu projeto se perdeu?". Ele confere se os arquivos batem entre si (spec,
+  plano, tarefas, o mapa) e com o código, **sem mudar nada**. Se achar algo torto, te mostra as opções e só
+  conserta o que você aprovar, um de cada vez. Bom pra retomar depois de dias parado.
 
 ---
 
@@ -81,6 +84,7 @@ por feature 🟢:     /sdk-spec → (/sdk-clarify se vago) → /sdk-plan → /sd
 perdido / voltando:   /sdk-next   (diz onde você está e o próximo passo)
 travou numa escolha:  /sdk-decide
 errou e consertou:    /sdk-lesson
+algo não bate:        /sdk-doctor (confere tudo, sem mudar nada; conserta só o que você aprovar)
 conversa longa:       /clear   (e segue em frente — /sdk-next retoma)
 ```
 

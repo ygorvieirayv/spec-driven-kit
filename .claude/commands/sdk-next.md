@@ -39,12 +39,13 @@ dos comandos de cada etapa.
 | Analyze `consistente` (ou dispensado pela régua), tasks `ready`/`in-progress` restando | `/sdk-implement` (próxima task `ready`) |
 | Todas as tasks `done`, sem linha `**Review:**` no plano | `/sdk-review` (idealmente em contexto fresco) |
 | Review aprovado / feature `concluída` | `/sdk-roadmap` — ver o que a conclusão desbloqueou, e seguir para a próxima 🟢 |
+| Marcadores contraditórios entre si (ledger × artefatos × git) | `/sdk-doctor` — diagnóstico global read-only + reconciliação aprovada |
 
 - **Estime o risco** aplicando a definição de lógica crítica e a **régua de cerimônia** da
   `constitution.md` ao que a feature toca. Na dúvida entre dois níveis, use o de cima — e diga isso.
 - **Git como sinal de divergência:** se há mudanças de código na branch mas o ledger/artefatos dizem outra
   coisa (ex.: feature "em spec" com código já mexido), **aponte a divergência** ao usuário em vez de fingir
-  que não existe — a hierarquia de fonte da verdade do `CLAUDE.md` decide quem vence.
+  que não existe — e sugira `/sdk-doctor`; a hierarquia de fonte da verdade do `CLAUDE.md` decide quem vence.
 - **Não substitui o `/sdk-roadmap`:** o roadmap decide **qual feature** vem agora (dependências); o next
   decide **qual etapa** da feature atual. Quando a dúvida for "qual feature?", mande para o roadmap.
 

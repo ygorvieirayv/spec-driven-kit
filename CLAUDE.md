@@ -46,4 +46,9 @@ entende. Mostre a verificação que comprova (teste/checagem que passou).
   `/sdk-analyze` → `/sdk-implement` → `/sdk-review`. A **régua de cerimônia** da `constitution.md` diz
   quais passos entram conforme o risco da mudança (trivial não precisa do ciclo inteiro).
 - **Apoio:** `/sdk-decide` (escolha com trade-offs) · `/sdk-clarify` (tirar ambiguidade da spec) ·
-  `/sdk-lesson` (registrar lição). Veja o `README.md`.
+  `/sdk-lesson` (registrar lição) · `/sdk-doctor` (diagnóstico global de drift + reconciliação aprovada).
+  Veja o `README.md`.
+
+> **Contrato do estado:** onde cada marcador (`Status:`, `Analyze:`, `Review:`, coluna Estado do ledger)
+> mora, seu vocabulário e quem o escreve está em `.specify/memory/state-markers.md`. `scripts/sdk-check`
+> valida por regex (zero token); o `/sdk-doctor` roda esse check antes de qualquer leitura por LLM.
