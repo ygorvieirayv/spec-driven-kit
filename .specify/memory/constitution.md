@@ -30,9 +30,12 @@ checagem manual, comando que roda). "Acho que funciona" não é pronto. Pronto �
 e aqui está como".
 
 ### 5. A especificação é a fonte da verdade
-O código serve à spec, não o contrário. Quando código e spec divergem, a **spec vence** — ou o código se
-corrige, ou a spec é atualizada conscientemente. Decisões importantes ficam registradas em artefatos
-(specs, planos, ADRs), não só na cabeça de alguém ou no histórico do chat.
+O código serve à spec, não o contrário. Quando código e spec divergem, a **spec vence dentro da sua
+feature** — ou o código se corrige, ou a spec é atualizada conscientemente. Acima da spec valem o
+`project-context.md` e os ADRs (a hierarquia completa está no `CLAUDE.md`); em brownfield, o código
+existente é a verdade do comportamento **atual**, e a delta spec, a da mudança desejada. Decisões
+importantes ficam registradas em artefatos (specs, planos, ADRs), não só na cabeça de alguém ou no
+histórico do chat.
 
 ### 6. Honestidade epistêmica
 Não inventar fatos, APIs, leis ou regras. Quando não souber, dizer "não sei" e **pesquisar**, citando a
@@ -69,7 +72,7 @@ neste projeto, nem nos próximos. Antes de planejar/revisar, consultar as liçõ
 | Barra "Sempre" da engenharia (segredos, PII, validação de entrada, AuthN/AuthZ no servidor) | **Inegociável — igual nos dois modos** | **Inegociável — igual nos dois modos** |
 | Lista de tasks | Pode ficar **inline** na tabela "Tasks" do `plan.md` — `/sdk-tasks` é opcional | `tasks.md` próprio, com estado rastreado por task |
 | ADR (`/sdk-decide`) | Só para decisões caras de reverter (ex.: trocar de banco depois de ter dados) | Toda decisão de arquitetura/infra com trade-off real |
-| Teste (critério de "lógica crítica" definido no `/sdk-implement`) | Caminho feliz da lógica crítica + smoke test do fluxo principal | TDD (RED→GREEN→REFACTOR) na lógica crítica + edge cases |
+| Teste (critério de "lógica crítica" definido na seção abaixo) | Caminho feliz da lógica crítica + smoke test do fluxo principal | TDD (RED→GREEN→REFACTOR) na lógica crítica + edge cases |
 | `/sdk-analyze` | Roda as mesmas checagens; o que ainda não existe (NFR específico, brownfield) vira N/A, não bloqueio | Roda todas as checagens, incluindo NFRs herdados e brownfield quando aplicável |
 | `/sdk-review` — checklist de segurança/performance | **Roda sempre, sem exceção** — achado fora da barra "Sempre" pode virar dívida anotada em vez de bloqueio | **Roda sempre** — qualquer Crítico/Alto bloqueia |
 

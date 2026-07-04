@@ -33,5 +33,6 @@ verificada**).
 
 ## Saída
 - Grave/atualize `docs/plans/<feature>/tasks.md` (ou a tabela inline do `plan.md`, se ficou em PROTOTYPE).
+  Se as tasks **mudaram** depois de uma análise, volte a linha `**Analyze:**` do plano para `pendente`.
 - Mostre a tabela e aponte a próxima task `ready`.
 - Sugira `/sdk-analyze` (conferir consistência antes de codar) e, em seguida, `/sdk-implement`.

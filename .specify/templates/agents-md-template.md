@@ -17,6 +17,18 @@ necessários no disco.
 Trate specs, planos, tarefas, decisões e lições (`docs/`, `.specify/memory/`) como **fonte da verdade**. A
 conversa ajuda a descobrir informação; os arquivos persistidos guardam o conhecimento do projeto.
 
+**Em conflito entre artefatos, vale a ordem** (o de cima vence): `project-context.md` → ADRs
+(`docs/decisions/`) → spec da feature → plano → tasks → README. Exceção brownfield: o código existente é a
+verdade do comportamento **atual**; a delta spec, a da **mudança desejada** — divergência se aponta ao
+usuário, nunca se resolve em silêncio.
+
+**Conversa aprova, arquivo registra:** todo checkpoint aprovado vira escrita de estado — a linha `Status:`
+do artefato (spec `aprovada`, plano `aprovado`, linhas `**Analyze:**`/`**Review:**` do plano) e a coluna
+**Estado** do ledger em `docs/epics.md` (vocabulário fixo: `a fazer · em spec · em plano · em construção ·
+em review · concluída`). Estado que não está gravado não existe. A **régua de cerimônia** da
+`constitution.md` diz quais passos do fluxo entram conforme o **risco da mudança** (trivial não precisa do
+ciclo inteiro; lógica crítica exige o ciclo completo).
+
 ## Fluxo Spec Driven Kit (via flags, não slash commands)
 Esta ferramenta não reconhece slash commands customizados como `/sdk-plan`. Por isso, quando o usuário
 escrever uma flag textual `--sdk-alguma-coisa` em qualquer prompt, interprete como: **"leia
