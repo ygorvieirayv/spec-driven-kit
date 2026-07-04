@@ -14,15 +14,15 @@ Carregue: a spec (`docs/specs/<feature>/spec.md`), o plano e as tasks (`docs/pla
 ## Antes de começar
 - **Branch dedicada** para a feature (não trabalhe direto na branch principal). Crie se não existir.
 - Pegue a próxima task `ready` (ou a indicada). Marque-a `in-progress`.
+- Atualize a linha da feature no ledger (`docs/epics.md`, "Ordem de construção") para `em construção`, se
+  ainda não estiver.
 
 ## Fluxo por task
 
 ### O que é "lógica crítica" / "maior risco" (vale nos dois modos)
-Trate como crítico qualquer trecho que:
-- mexe com **dinheiro** (preço, pagamento, saldo, cupom, estorno);
-- decide **quem pode acessar ou fazer o quê** (autenticação/autorização);
-- lê, grava ou apaga **dados pessoais** ou dado que **não pode ser perdido**;
-- já causou um bug real antes (ver `lessons.md` por tag) ou é algo de que outra feature depende.
+A **definição única** está na `constitution.md`, seção "O que é lógica crítica / mudança de alto risco" —
+dinheiro, acesso/autorização, dados pessoais ou irrecuperáveis (migração/deleção), integração da qual o
+fluxo depende, erro já catalogado nas lições. Não invente uma segunda lista aqui.
 
 Isso entra no TDD completo em PRODUCTION e ganha pelo menos um teste de caminho feliz em PROTOTYPE. O resto
 (estilo visual, copy, ordenação não-crítica) pode ficar mais leve nos dois modos — não vire TDD por hábito.

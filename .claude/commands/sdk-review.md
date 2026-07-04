@@ -19,6 +19,8 @@ fora e retorna os achados. Se preferir revisar inline, siga o mesmo roteiro abai
 - O plano: `docs/plans/<feature>/plan.md`.
 - A barra: `.specify/memory/engineering-standards.md` e a `constitution.md`.
 
+Ao começar, atualize a linha da feature no ledger (`docs/epics.md`, "Ordem de construção") para `em review`.
+
 ## O que checar
 1. **Spec ↔ código:** cada AC foi atendido? Há comportamento fora do escopo declarado?
 2. **Plano ↔ código:** seguiu a abordagem e as decisões (ADRs)? Desvios justificados?
@@ -64,6 +66,10 @@ Mantenha leve: o objetivo é direcionar atenção para o que é arriscado, não 
 ## Saída
 - Lista de achados **agrupada por severidade**, cada um com arquivo:linha e sugestão de correção.
 - Veredito: **aprovado** / **aprovado com ressalvas** / **bloqueado** (se houver Crítico).
+- **Registre o veredito no plano** (**conversa aprova, arquivo registra**): atualize a linha `**Review:**`
+  do cabeçalho de `docs/plans/<feature>/plan.md` com `<veredito> — <data>`. Se **aprovado**, atualize a
+  linha da feature no ledger (`docs/epics.md`) para `concluída`; senão, ela continua `em review` até a
+  correção passar por nova revisão.
 - Não conserte em silêncio durante a revisão — reporte; a correção é um passo à parte.
 
 ## Fecho de ciclo (alimentar a biblioteca de lições)

@@ -7,6 +7,7 @@
 - **Spec de referência:** `docs/specs/<feature>/spec.md`
 - **Status:** rascunho | aprovado
 - **Modo:** PROTOTYPE | PRODUCTION
+- **Review:** — _(preenchido pelo `/sdk-review`: veredito e data)_
 
 ---
 

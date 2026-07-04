@@ -27,13 +27,13 @@ fixo de estado não é estado.
 
 | # | Entrega | Tipo | Fase |
 |---|---------|------|------|
-| F1 | Estado vivo: comandos gravam aprovação/estágio nos artefatos e no ledger (`epics.md`) | edição de comandos/templates | P0 |
-| F2 | Hierarquia de fonte da verdade no `CLAUDE.md` (com exceção brownfield) | edição | P0 |
-| F3 | Régua de cerimônia por **risco da mudança** (trivial/baixo/médio/alto) na constituição + spec curta | edição | P0 |
-| F4 | `/sdk-next` — porta de entrada: onde estou → próximo passo + porquê | comando novo | P0 |
+| F1 | Estado vivo: comandos gravam aprovação/estágio nos artefatos e no ledger (`epics.md`) | edição de comandos/templates | P0 ✅ |
+| F2 | Hierarquia de fonte da verdade no `CLAUDE.md` (com exceção brownfield) | edição | P0 ✅ |
+| F3 | Régua de cerimônia por **risco da mudança** (trivial/baixo/médio/alto) na constituição + spec curta | edição | P0 ✅ |
+| F4 | `/sdk-next` — porta de entrada: onde estou → próximo passo + porquê | comando novo | P0 ✅ |
 | F5 | `/sdk-doctor` — diagnóstico global read-only + reconciliação item a item com aprovação | comando novo | P1 |
 | F6 | `scripts/sdk-check.sh` / `.ps1` — validação determinística dos artefatos (zero token) | script novo | P1 |
-| F7 | README, COMO-USAR, INSTALL e `docs/example/` atualizados para o fluxo com next/doctor | docs | P0/P1 |
+| F7 | README, COMO-USAR, INSTALL e `docs/example/` atualizados para o fluxo com next/doctor | docs | P0 ✅ (example → P1) |
 | F8 | Instalador seguro · decisões de produto no decision-guide · starter packs · CI do kit · versionamento | produto | P2 |
 
 Total de comandos: 11 → **13**. Nada além disso — as demais ideias viram comportamento dos comandos que já
@@ -137,7 +137,7 @@ Shell puro (bash + PowerShell), zero token, exit ≠ 0 em falha (serve para CI):
 
 ## Fases
 
-### P0 — estado + porta de entrada
+### P0 — estado + porta de entrada ✅ *(entregue)*
 1. **F1** — comandos gravam estado (`sdk-spec`, `sdk-plan`, `sdk-tasks`, `sdk-implement`, `sdk-review`,
    `sdk-roadmap` + templates + `epics.md`). Critério de pronto: nenhum 🛑 aprovado sem escrita de
    Status/ledger.

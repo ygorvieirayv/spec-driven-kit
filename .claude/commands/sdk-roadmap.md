@@ -63,5 +63,10 @@ Carregue: `docs/epics.md` (áreas e MVP), e o estado das features em `docs/specs
 
 - Sugira: "a próxima pronta é **[X]** — quer detalhar com `/sdk-spec`?"
 
+> **A coluna Estado é o ledger do projeto** (é o que o `/sdk-next` lê). Vocabulário fixo:
+> `a fazer · em spec · em plano · em construção · em review · concluída`. Cada comando de etapa atualiza a
+> linha da própria feature; o roadmap reordena e recalcula dependências **sem rebaixar** um Estado já
+> gravado por outro comando.
+
 > Rode este comando **depois do `/sdk-bootstrap`** e sempre que **terminar uma feature**, para saber o que
 > ficou desbloqueado.

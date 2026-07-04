@@ -54,9 +54,21 @@ ideia vaga
    ▼  (volta ao /sdk-roadmap para a próxima feature pronta)
 
 apoio a qualquer momento:  /sdk-decide (escolha com trade-offs) · /sdk-lesson (registrar lição)
+perdido / voltando?        /sdk-next — lê o estado do projeto e diz o próximo passo (não executa nada)
 ```
 
+> **Nem toda mudança precisa do ciclo inteiro.** A **régua de cerimônia** da `constitution.md` dita quais
+> passos entram conforme o **risco da mudança**: trivial (copy/visual) → implementar + review leve; baixo →
+> spec curta + implement + review; médio → ciclo padrão; alto (dinheiro, auth, dados pessoais…) → ciclo
+> completo com `/sdk-clarify` e TDD. O `/sdk-next` aplica essa régua ao recomendar.
+
 ### Os comandos
+
+**Porta de entrada:**
+
+| Comando | O que faz |
+|---------|-----------|
+| `/sdk-next` | ★ Lê o estado do projeto (ledger de `docs/epics.md`, `Status:` dos artefatos, git) e recomenda **o próximo passo + o porquê**. Read-only; não executa nada sozinho. |
 
 **Núcleo do fluxo:**
 
@@ -111,6 +123,8 @@ apoio a qualquer momento:  /sdk-decide (escolha com trade-offs) · /sdk-lesson (
 6. Para essa feature, siga: **`/sdk-spec`** → (se vago, **`/sdk-clarify`**) → **`/sdk-plan`** →
    **`/sdk-tasks`** → **`/sdk-analyze`** → **`/sdk-implement`** → **`/sdk-review`**.
 7. Terminou? Volte ao **`/sdk-roadmap`** para a próxima feature desbloqueada.
+8. **Perdeu o fio** (pausa de dias, `/clear`, sessão nova)? Rode **`/sdk-next`** — ele lê o estado gravado
+   nos arquivos e diz exatamente onde você parou e o que rodar agora.
 
 **Atalho opcional (Fase 4):** `scripts/new-feature.sh "minha-feature"` (ou `.ps1` no Windows) cria as pastas
 de spec/plano e uma branch dedicada a partir dos moldes.
@@ -263,6 +277,7 @@ repositório. A constituição e o `project-context` já estarão no lugar; o pi
 | Spec Driven Kit | Spec Kit oficial |
 |-----------------|------------------|
 | `/sdk-bootstrap` (etapas B–F) | `specify init` + `/speckit.constitution` **+ extra nosso**: descoberta de domínio e decisões guiadas |
+| `/sdk-next` | (sem equivalente direto — extra nosso: lê o estado e recomenda o próximo passo) |
 | `/sdk-roadmap` | (sem equivalente direto — extra nosso: ordem por dependências) |
 | `/sdk-spec` | `/speckit.specify` |
 | `/sdk-clarify` | `/speckit.clarify` |

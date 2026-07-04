@@ -96,8 +96,8 @@ digita `--sdk-plan` (ou o equivalente que sua ferramenta aceitar como texto livr
 Confira que o Claude Code enxerga os comandos:
 
 ```bash
-ls .claude/commands     # sdk-bootstrap, sdk-roadmap, sdk-spec, sdk-clarify, sdk-plan, sdk-tasks,
-                        # sdk-analyze, sdk-implement, sdk-review, sdk-decide, sdk-lesson (.md)
+ls .claude/commands     # sdk-next, sdk-bootstrap, sdk-roadmap, sdk-spec, sdk-clarify, sdk-plan,
+                        # sdk-tasks, sdk-analyze, sdk-implement, sdk-review, sdk-decide, sdk-lesson (.md)
 ls .claude/agents       # sdk-domain-researcher.md, sdk-reviewer.md, sdk-lesson-curator.md
 ls .specify/memory      # constitution.md, engineering-standards.md, decision-guide.md, lessons.md
 ```
