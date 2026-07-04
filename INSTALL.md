@@ -30,7 +30,7 @@ git add -A && git commit -m "chore: inicia projeto a partir do Spec Driven Kit"
 ```
 
 > **Limpe o que é do kit (não do seu produto).** Após o clone, troque o `README.md` pelo do seu projeto e,
-> se quiser, remova `INSTALL.md` e `docs/example/` (são documentação do kit). Vale **manter**: `.specify/`,
+> se quiser, remova `INSTALL.md`, `ROADMAP.md` e `docs/example/` (são documentação do kit). Vale **manter**: `.specify/`,
 > `.claude/`, `CLAUDE.md`, `COMO-USAR.md`, `docs/specs|plans|decisions`, `scripts/`. O `LICENSE` é sua
 > escolha (o do kit é MIT).
 
