@@ -200,11 +200,12 @@ existe, o agente **reforça** a lição em vez de duplicar — e segue. Corrigid
 ## Passo 6.5 — `/sdk-doctor` (quando algo "não bate")
 
 Semanas depois, a Marta mexeu num arquivo à mão e não lembra se ficou tudo coerente. Ela roda
-**`/sdk-doctor`**. Ele começa pelo `scripts/sdk-check` (grátis, sem gastar tokens) e depois olha os
-artefatos por camadas, **sem mudar nada**:
+**`/sdk-doctor`**. Ele começa pelo `scripts/sdk-check` (grátis, valida o contrato dos marcadores) e, como
+esse passa limpo, sobe para a camada T1, que **cruza** ledger × artefatos — tudo **sem mudar nada**:
 
 ```
-sdk-check: 1 erro.
+T0 sdk-check: limpo (marcadores dentro do contrato).
+T1 (ledger × artefatos):
 [ALTO] docs/epics.md — "Encomenda de bolo" está "concluída", mas o plano não tem "Review: aprovado".
 Veredito: drift pontual. Nada foi alterado.
 

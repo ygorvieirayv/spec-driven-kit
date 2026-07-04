@@ -37,8 +37,9 @@ dos comandos de cada etapa.
 | Plano `rascunho` | Terminar/aprovar o plano: `/sdk-plan` |
 | Plano `aprovado`, linha `**Analyze:**` ainda `pendente` | `/sdk-analyze` (médio/alto) ou direto `/sdk-implement` (baixo, régua dispensa) |
 | Analyze `consistente` (ou dispensado pela régua), tasks `ready`/`in-progress` restando | `/sdk-implement` (próxima task `ready`) |
-| Todas as tasks `done`, sem linha `**Review:**` no plano | `/sdk-review` (idealmente em contexto fresco) |
-| Review aprovado / feature `concluída` | `/sdk-roadmap` — ver o que a conclusão desbloqueou, e seguir para a próxima 🟢 |
+| Todas as tasks `done` e `**Review:**` ainda `—`/pendente (ou sem veredito aprovado) | `/sdk-review` (idealmente em contexto fresco) |
+| `**Review:** aprovado` / feature `concluída` | `/sdk-roadmap` — ver o que a conclusão desbloqueou, e seguir para a próxima 🟢 |
+| `**Review:** bloqueado` ou `aprovado com ressalvas` | corrigir o apontado e rodar `/sdk-review` de novo (não avance para a próxima feature com ressalva em aberto) |
 | Marcadores contraditórios entre si (ledger × artefatos × git) | `/sdk-doctor` — diagnóstico global read-only + reconciliação aprovada |
 
 - **Estime o risco** aplicando a definição de lógica crítica e a **régua de cerimônia** da
