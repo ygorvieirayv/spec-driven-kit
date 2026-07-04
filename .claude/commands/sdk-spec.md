@@ -34,6 +34,17 @@ Antes de gastar tempo nesta feature, confirme que ela **pode** ser construída a
 - Só siga para o roteiro abaixo quando as dependências estiverem prontas (ou o usuário decidir conscientemente
   seguir mesmo assim).
 
+## Calibre a cerimônia (régua de risco — antes de tudo)
+Estime o risco da mudança pela **régua de cerimônia** da `constitution.md` (e pela definição única de
+lógica crítica que está lá):
+- **Trivial** (copy, ajuste visual, rename): diga que **nem precisa de spec** — implementar + review leve
+  resolve. Não crie artefato por hábito.
+- **Baixo** (comportamento isolado, sem dado sensível): ofereça a **spec curta** — só Contexto/objetivo,
+  AC e Fora de escopo (ver nota no template).
+- **Médio/Alto**: roteiro completo abaixo. Em **alto risco** (lógica crítica), recomende também
+  `/sdk-clarify` depois do rascunho.
+Na dúvida entre dois níveis, use o de cima — e diga isso ao usuário.
+
 ## Greenfield ou brownfield? (decida cedo)
 Descubra se esta feature é **algo novo** (greenfield) ou **muda algo que já existe** (brownfield):
 - **Greenfield:** especifique normalmente (roteiro abaixo); apague a seção de delta do template.
@@ -62,7 +73,10 @@ Descubra se esta feature é **algo novo** (greenfield) ou **muda algo que já ex
 ou AC vago. Se surgir uma decisão de arquitetura nova, sugira `/sdk-decide`.
 
 ## Saída
-- Grave `docs/specs/<feature>/spec.md` (status: rascunho).
+- Grave `docs/specs/<feature>/spec.md` (`Status: rascunho`) e atualize a linha da feature no ledger
+  (`docs/epics.md`, "Ordem de construção") para `em spec`.
 - Resuma os AC e as questões em aberto.
 - 🛑 **Peça aprovação** do usuário. Se ainda houver pontos vagos, sugira `/sdk-clarify` antes do plano; caso
   contrário, sugira `/sdk-plan`. Não comece o plano sem o "ok".
+- **Aprovado? Registre no arquivo** — atualize a linha `Status:` da spec para `aprovada`. Regra do kit:
+  **conversa aprova, arquivo registra**; estado que não está gravado não existe para os outros comandos.

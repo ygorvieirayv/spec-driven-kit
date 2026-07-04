@@ -43,7 +43,9 @@ Carregue: a spec da feature (`docs/specs/<feature>/spec.md`), `.specify/memory/e
 7. **Riscos e rollback:** o que pode dar errado e como reverter.
 
 ## Saída
-- Grave `docs/plans/<feature>/plan.md` (status: rascunho).
+- Grave `docs/plans/<feature>/plan.md` (`Status: rascunho`) e atualize a linha da feature no ledger
+  (`docs/epics.md`, "Ordem de construção") para `em plano`.
 - Resuma a abordagem, as decisões e a lista de tasks.
-- 🛑 **Peça aprovação.** Depois siga: `/sdk-tasks` (refinar a lista) → `/sdk-analyze` (conferir
+- 🛑 **Peça aprovação.** Aprovado? Atualize a linha `Status:` do plano para `aprovado` (**conversa aprova,
+  arquivo registra**). Depois siga: `/sdk-tasks` (refinar a lista) → `/sdk-analyze` (conferir
   consistência) → `/sdk-implement`.

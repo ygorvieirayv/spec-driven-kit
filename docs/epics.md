@@ -31,6 +31,10 @@
 > vem depois, no `/sdk-spec`, uma por vez). A ordem se baseia no que cada sub-feature **precisa que já exista**.
 > Estados: 🟢 pronta para começar · 🟡 fundacional (não depende de nada) · 🔴 bloqueada (falta dependência).
 > Atualize ao terminar cada sub-feature (algo novo pode ter desbloqueado).
+>
+> A coluna **Estado** é o **ledger** do projeto (é o que o `/sdk-next` lê) e usa vocabulário fixo:
+> `a fazer · em spec · em plano · em construção · em review · concluída`. Quem a atualiza é o comando de
+> cada etapa (`/sdk-spec`, `/sdk-plan`, `/sdk-implement`, `/sdk-review`), sempre na linha da própria feature.
 
 | Ordem | Sub-feature | Epic | Depende de | Estado | Pronta p/ começar? |
 |-------|-------------|------|-----------|--------|--------------------|

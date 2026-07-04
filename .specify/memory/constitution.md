@@ -76,6 +76,37 @@ neste projeto, nem nos próximos. Antes de planejar/revisar, consultar as liçõ
 > A coluna PROTOTYPE nunca abre exceção na linha "Sempre". É aqui que "modo rápido" para de ser desculpa
 > para vazar segredo, pular validação de entrada ou deixar uma rota sem autorização.
 
+## O que é lógica crítica / mudança de alto risco (definição única)
+
+Trate como **crítico** qualquer trecho ou mudança que:
+
+- mexe com **dinheiro** (preço, pagamento, saldo, cupom, estorno);
+- decide **quem pode acessar ou fazer o quê** (autenticação/autorização);
+- lê, grava ou apaga **dados pessoais** ou dado que **não pode ser perdido** (inclui migração de schema e
+  deleção de dados);
+- integra com **serviço externo** do qual o fluxo principal depende;
+- já causou um **bug real** antes (ver `lessons.md` por tag) ou é algo de que **outra feature depende**.
+
+Esta é a definição que a régua abaixo, o `/sdk-implement` (TDD em PRODUCTION), o `/sdk-review` e o
+`/sdk-next` referenciam — não existe uma segunda lista em outro arquivo.
+
+## Régua de cerimônia por risco da mudança
+
+> O **modo** (PROTOTYPE × PRODUCTION) dita o rigor **dentro** de cada passo (matriz acima). A régua abaixo
+> dita **quais passos entram**, conforme o risco da **mudança** — nem toda tarefa precisa do ciclo completo.
+> Em dúvida entre dois níveis, use o de cima. A barra "Sempre" da engenharia não se negocia em nível nenhum.
+
+| Risco | Exemplos | Fluxo mínimo |
+|-------|----------|--------------|
+| **Trivial** | copy, ajuste visual pequeno, rename simples | implementar → review leve |
+| **Baixo** | tela simples, CRUD sem dado sensível, comportamento isolado | **spec curta** → `/sdk-implement` → `/sdk-review` |
+| **Médio** | regra de negócio nova, integração simples, mudança em fluxo existente | `/sdk-spec` → `/sdk-plan` → `/sdk-tasks` → `/sdk-analyze` → `/sdk-implement` → `/sdk-review` |
+| **Alto** | qualquer item da definição de lógica crítica acima | ciclo completo + `/sdk-clarify` + TDD na lógica crítica |
+
+**Spec curta** = só Contexto/objetivo + Critérios de aceitação + Fora de escopo (ver nota no
+`spec-template.md`). A régua não é licença para rebaixar risco: se a mudança toca **um** item da lista de
+lógica crítica, ela é Alta, por menor que pareça.
+
 ---
 
 ## Princípios específicos deste projeto

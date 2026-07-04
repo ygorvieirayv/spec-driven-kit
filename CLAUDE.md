@@ -8,6 +8,14 @@
 Um toolkit de specs guiado por IA. O fluxo vive em `.claude/commands/sdk-*.md`. Os artefatos (specs, planos,
 decisões, lições) são a **fonte da verdade** e ficam no disco — não na memória da conversa.
 
+## Fonte da verdade (em conflito, o de cima vence)
+1. `.specify/memory/project-context.md` → 2. `docs/decisions/` (ADRs) → 3. `docs/specs/<feature>/spec.md` →
+4. `docs/plans/<feature>/plan.md` → 5. tasks → 6. `README.md` e docs explicativos.
+- **Exceção brownfield:** o código existente é a verdade do comportamento **atual**; a spec (delta) é a
+  verdade da **mudança desejada**. Divergência nunca se resolve em silêncio — aponte ao usuário.
+- **Conversa aprova, arquivo registra:** todo checkpoint 🛑 aprovado vira escrita de estado (`Status:` no
+  artefato e/ou a linha da feature no ledger `docs/epics.md`). Estado que não está gravado não existe.
+
 ## Princípios (resumo — detalhe em `.specify/memory/constitution.md`)
 1. Pensar antes de codar · 2. Simples/YAGNI · 3. Mudanças cirúrgicas · 4. Critério de sucesso + verificação ·
 5. Spec é a verdade · 6. Honestidade epistêmica (não inventar; citar; `[VERIFICAR]`) · 7. Regras de domínio
@@ -33,7 +41,9 @@ Explique, em **linguagem simples**, o que mudou e por quê — o usuário não d
 entende. Mostre a verificação que comprova (teste/checagem que passou).
 
 ## Comandos
+- **Perdido? `/sdk-next`** — lê o estado (ledger + artefatos + git) e diz o próximo passo. Não executa nada.
 - **Núcleo:** `/sdk-bootstrap` → `/sdk-roadmap` → `/sdk-spec` → `/sdk-plan` → `/sdk-tasks` →
-  `/sdk-analyze` → `/sdk-implement` → `/sdk-review`.
+  `/sdk-analyze` → `/sdk-implement` → `/sdk-review`. A **régua de cerimônia** da `constitution.md` diz
+  quais passos entram conforme o risco da mudança (trivial não precisa do ciclo inteiro).
 - **Apoio:** `/sdk-decide` (escolha com trade-offs) · `/sdk-clarify` (tirar ambiguidade da spec) ·
   `/sdk-lesson` (registrar lição). Veja o `README.md`.

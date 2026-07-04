@@ -30,7 +30,7 @@ git add -A && git commit -m "chore: inicia projeto a partir do Spec Driven Kit"
 ```
 
 > **Limpe o que é do kit (não do seu produto).** Após o clone, troque o `README.md` pelo do seu projeto e,
-> se quiser, remova `INSTALL.md` e `docs/example/` (são documentação do kit). Vale **manter**: `.specify/`,
+> se quiser, remova `INSTALL.md`, `ROADMAP.md` e `docs/example/` (são documentação do kit). Vale **manter**: `.specify/`,
 > `.claude/`, `CLAUDE.md`, `COMO-USAR.md`, `docs/specs|plans|decisions`, `scripts/`. O `LICENSE` é sua
 > escolha (o do kit é MIT).
 
@@ -96,8 +96,8 @@ digita `--sdk-plan` (ou o equivalente que sua ferramenta aceitar como texto livr
 Confira que o Claude Code enxerga os comandos:
 
 ```bash
-ls .claude/commands     # sdk-bootstrap, sdk-roadmap, sdk-spec, sdk-clarify, sdk-plan, sdk-tasks,
-                        # sdk-analyze, sdk-implement, sdk-review, sdk-decide, sdk-lesson (.md)
+ls .claude/commands     # sdk-next, sdk-bootstrap, sdk-roadmap, sdk-spec, sdk-clarify, sdk-plan,
+                        # sdk-tasks, sdk-analyze, sdk-implement, sdk-review, sdk-decide, sdk-lesson (.md)
 ls .claude/agents       # sdk-domain-researcher.md, sdk-reviewer.md, sdk-lesson-curator.md
 ls .specify/memory      # constitution.md, engineering-standards.md, decision-guide.md, lessons.md
 ```

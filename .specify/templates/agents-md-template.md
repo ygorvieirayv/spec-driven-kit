@@ -43,7 +43,8 @@ Ordem usual:
 9. `--sdk-review` — revisar bugs, riscos e testes.
 
 Apoio: `--sdk-decide` (escolha com trade-offs) e `--sdk-lesson` (registrar erro resolvido como aprendizado
-reutilizável).
+reutilizável). Perdido ou voltando de pausa: `--sdk-next` — lê o estado gravado (ledger em `docs/epics.md`,
+linhas `Status:` dos artefatos, git) e recomenda o próximo passo sem executar nada.
 
 Planeje e implemente **uma feature por vez**. Em mudanças brownfield, registre só o que adiciona, altera ou
 remove, e o que **não pode quebrar**.

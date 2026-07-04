@@ -7,6 +7,11 @@
 Você **conversa**, o assistente **pergunta e propõe**, você **aprova**. Os arquivos vão sendo criados
 sozinhos. Você nunca preenche nada à mão.
 
+## Perdido? Rode `/sdk-next`
+Voltou de uma pausa, limpou a conversa (`/clear`), não lembra em que etapa parou? Rode **`/sdk-next`**: ele
+lê os arquivos do projeto e responde **onde você está** e **qual comando rodar agora**, com o porquê. Ele só
+recomenda — nada acontece sem você aprovar. É o único comando que você precisa decorar.
+
 ---
 
 ## 1. Uma vez por projeto
@@ -73,9 +78,10 @@ por feature 🟢:     /sdk-spec → (/sdk-clarify se vago) → /sdk-plan → /sd
                     → /sdk-analyze → /sdk-implement → /sdk-review
                     → volta ao /sdk-roadmap (próxima feature)
 
+perdido / voltando:   /sdk-next   (diz onde você está e o próximo passo)
 travou numa escolha:  /sdk-decide
 errou e consertou:    /sdk-lesson
-conversa longa:       /clear   (e segue em frente)
+conversa longa:       /clear   (e segue em frente — /sdk-next retoma)
 ```
 
 Você sempre só **responde** e **aprova** — o assistente faz o resto.

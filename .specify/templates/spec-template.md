@@ -4,6 +4,10 @@
 > no COMO (o COMO vai no plano). Remova ambiguidade perguntando antes de gravar. NFRs herdam do
 > `project-context.md` — só repita aqui o que muda para esta feature. Grave em
 > `docs/specs/<feature>/spec.md`.
+>
+> **Spec curta (risco baixo):** pela régua de cerimônia da `constitution.md`, mudança de baixo risco pode
+> preencher só **Contexto e objetivo**, **Critérios de aceitação** e **Fora de escopo** — apague as demais
+> seções em vez de deixá-las vazias. Se a mudança toca lógica crítica, não é baixo risco: spec completa.
 
 - **Status:** rascunho | em revisão | aprovada
 - **Modo:** PROTOTYPE | PRODUCTION
