@@ -1,5 +1,7 @@
 # Spec Driven Kit
 
+[![CI](https://github.com/ygorvieirayv/spec-driven-kit/actions/workflows/ci.yml/badge.svg)](https://github.com/ygorvieirayv/spec-driven-kit/actions/workflows/ci.yml)
+
 **Um toolkit de desenvolvimento orientado a IA** — no espírito do
 [GitHub Spec Kit](https://github.com/github/spec-kit), mas com três diferenciais:
 
@@ -105,8 +107,8 @@ algo não bate?             /sdk-doctor — diagnostica drift (read-only) e reco
 
 ## Começando
 
-> Pré-requisito: ter o **Claude Code** instalado e este repositório aberto na pasta do seu projeto. Veja o
-> [`INSTALL.md`](./INSTALL.md) para instalar o kit num projeto novo ou existente.
+> Pré-requisito: ter o **Claude Code** instalado e o kit instalado na pasta do seu projeto. Veja o
+> [`INSTALL.md`](./INSTALL.md) — a opção recomendada é o instalador `install.sh`/`install.ps1`.
 >
 > 👉 Com pressa? O guia rápido de bolso está em [`COMO-USAR.md`](./COMO-USAR.md).
 
@@ -233,6 +235,9 @@ spec-driven-kit/
 ├── INSTALL.md                         # como instalar o kit num projeto
 ├── COMO-USAR.md                       # guia rápido de bolso (uso no dia a dia)
 ├── CLAUDE.md                          # regras de base sempre carregadas (curto, p/ economia de token)
+├── install.sh / install.ps1           # instalador seguro (manifest-aware)
+│
+├── .github/workflows/ci.yml           # validação Linux + Windows do kit e do instalador
 │
 ├── .specify/                          # compatível com o Spec Kit oficial
 │   ├── memory/                        # bases lidas SOB DEMANDA pelos comandos
@@ -256,7 +261,11 @@ spec-driven-kit/
 │   ├── example/                       # walkthrough opcional e ilustrativo (não muda o kit)
 │   └── epics.md                       # escopo do MVP + ledger de estado (coluna Estado)
 │
-└── scripts/                           # (opcional) scaffolding + sdk-check (validação de estado), bash + PowerShell
+├── scripts/
+│   ├── kit-manifest.txt               # classificação ENGINE/SEED/MERGE/SKIP para o instalador
+│   └── new-feature + sdk-check        # scaffolding + validação de estado, bash + PowerShell
+│
+└── tests/fixtures/                    # fixtures valid/broken para testar o sdk-check e o CI
 ```
 
 > **Compatibilidade:** `.specify/memory/constitution.md` e `.specify/templates/` seguem os caminhos do Spec

@@ -8,6 +8,52 @@ dependências.
 
 ---
 
+## Opção 0 — Instalador automático (recomendado)
+
+Use esta opção para adicionar ou atualizar o kit em um projeto sem copiar pastas manualmente. O instalador
+roda a partir de um clone do Spec Driven Kit e copia só o que pertence ao projeto de destino.
+
+```bash
+# 1) Clone o kit em qualquer pasta temporária/de ferramentas
+git clone https://github.com/ygorvieirayv/spec-driven-kit.git spec-driven-kit
+cd spec-driven-kit
+
+# 2) Veja o plano sem escrever nada
+bash install.sh --target /caminho/do/seu-projeto --dry-run --yes
+
+# 3) Instale de fato
+bash install.sh --target /caminho/do/seu-projeto --yes
+```
+
+No Windows PowerShell:
+
+```powershell
+git clone https://github.com/ygorvieirayv/spec-driven-kit.git spec-driven-kit
+cd spec-driven-kit
+
+.\install.ps1 -Target C:\caminho\do\seu-projeto -DryRun -Yes
+.\install.ps1 -Target C:\caminho\do\seu-projeto -Yes
+```
+
+O instalador segue o manifesto `scripts/kit-manifest.txt`:
+
+- **ENGINE** (motor do kit): comandos, agentes, templates, `CLAUDE.md`, `COMO-USAR.md` e scripts. Se o
+  arquivo não existe, copia. Se existe e diverge, **não sobrescreve por padrão**: grava `<arquivo>.sdk-new`
+  para você comparar. Com `--force`/`-Force`, atualiza somente arquivos ENGINE depois de criar backup
+  `<arquivo>.sdk-bak.<data>`.
+- **SEED** (arquivos do produto): `project-context.md`, `docs/epics.md`, READMEs de `docs/` e `.gitignore`.
+  Copia só quando ausentes. Se já existem, nunca sobrescreve.
+- **MERGE**: `lessons.md`. Se já existe, grava `.sdk-new` para merge manual, porque o arquivo acumula
+  lições do seu projeto.
+- **SKIP**: documentação e infra do repositório do kit (`README.md`, `ROADMAP.md`, `docs/example/`,
+  `.github/`, `tests/`, `install.*`). Nunca são copiados para o produto.
+
+Ao final de uma instalação real, o instalador roda `sdk-check` no destino e mostra o próximo passo:
+abrir o Claude Code no projeto e rodar **`/sdk-bootstrap`**. A distribuição via `npm create`/`npx` é um
+caminho futuro; hoje o instalador local é o caminho suportado.
+
+---
+
 ## Opção 1 — Começar um projeto novo a partir do kit
 
 Use este repositório como ponto de partida.
@@ -112,6 +158,10 @@ No Claude Code, digite `/` e veja se os comandos `sdk-*` aparecem. Pronto: rode 
 
 Para puxar melhorias do kit sem perder seus artefatos:
 
+- **Com instalador:** atualize o clone do kit (`git pull`) e rode novamente `bash install.sh --target
+  /caminho/do/projeto --yes` ou `.\install.ps1 -Target C:\caminho\do\projeto -Yes`. Sem `--force`, conflitos
+  do motor viram `.sdk-new`. Com `--force`, só arquivos ENGINE são atualizados, sempre com backup
+  `.sdk-bak.<data>`.
 - **Seguro de sobrescrever** (são o "motor" do kit): `.claude/commands/`, `.claude/agents/`,
   `.specify/templates/`, `.specify/memory/decision-guide.md`, `.specify/memory/engineering-standards.md`,
   `.specify/memory/state-markers.md`, `scripts/sdk-check.*`, `CLAUDE.md`, `COMO-USAR.md`,

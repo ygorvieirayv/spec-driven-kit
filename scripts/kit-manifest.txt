@@ -1,0 +1,63 @@
+# Spec Driven Kit install manifest.
+# Format: CATEGORY path
+# Categories:
+#   ENGINE - kit engine files; installer may update with --force after backup
+#   SEED   - product seed files; copy only when absent
+#   MERGE  - seed that accumulates project data; copy when absent, sidecar when present
+#   SKIP   - kit repository files; never copied into a product project
+
+ENGINE .claude/agents/sdk-domain-researcher.md
+ENGINE .claude/agents/sdk-lesson-curator.md
+ENGINE .claude/agents/sdk-reviewer.md
+ENGINE .claude/commands/sdk-analyze.md
+ENGINE .claude/commands/sdk-bootstrap.md
+ENGINE .claude/commands/sdk-clarify.md
+ENGINE .claude/commands/sdk-decide.md
+ENGINE .claude/commands/sdk-doctor.md
+ENGINE .claude/commands/sdk-implement.md
+ENGINE .claude/commands/sdk-lesson.md
+ENGINE .claude/commands/sdk-next.md
+ENGINE .claude/commands/sdk-plan.md
+ENGINE .claude/commands/sdk-review.md
+ENGINE .claude/commands/sdk-roadmap.md
+ENGINE .claude/commands/sdk-spec.md
+ENGINE .claude/commands/sdk-tasks.md
+SEED .gitignore
+ENGINE .specify/memory/constitution.md
+ENGINE .specify/memory/decision-guide.md
+ENGINE .specify/memory/engineering-standards.md
+MERGE .specify/memory/lessons.md
+SEED .specify/memory/project-context.md
+ENGINE .specify/memory/state-markers.md
+ENGINE .specify/templates/agents-md-template.md
+ENGINE .specify/templates/context-template.md
+ENGINE .specify/templates/plan-template.md
+ENGINE .specify/templates/spec-template.md
+ENGINE .specify/templates/tasks-template.md
+ENGINE CLAUDE.md
+ENGINE COMO-USAR.md
+SKIP INSTALL.md
+SKIP LICENSE
+SKIP README.md
+SKIP ROADMAP.md
+SEED docs/decisions/README.md
+SEED docs/epics.md
+SKIP docs/example/README.md
+SEED docs/plans/README.md
+SEED docs/specs/README.md
+SKIP install.ps1
+SKIP install.sh
+ENGINE scripts/new-feature.ps1
+ENGINE scripts/new-feature.sh
+ENGINE scripts/sdk-check.ps1
+ENGINE scripts/sdk-check.sh
+SKIP scripts/kit-manifest.txt
+SKIP .github/workflows/ci.yml
+SKIP tests/fixtures/broken/docs/epics.md
+SKIP tests/fixtures/broken/docs/plans/broken/plan.md
+SKIP tests/fixtures/broken/docs/plans/broken/tasks.md
+SKIP tests/fixtures/broken/docs/specs/broken/spec.md
+SKIP tests/fixtures/valid/docs/epics.md
+SKIP tests/fixtures/valid/docs/plans/sample/plan.md
+SKIP tests/fixtures/valid/docs/plans/sample/tasks.md
+SKIP tests/fixtures/valid/docs/specs/sample/spec.md
