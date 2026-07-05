@@ -4,6 +4,8 @@ set -euo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 MANIFEST="$ROOT/scripts/kit-manifest.txt"
+VERSION_FILE="$ROOT/VERSION"
+STAMP_REL=".specify/spec-driven-kit.version"
 
 TARGET="."
 DRY_RUN=0
@@ -45,6 +47,13 @@ while [ $# -gt 0 ]; do
 done
 
 [ -f "$MANIFEST" ] || { echo "Missing manifest: $MANIFEST" >&2; exit 1; }
+[ -f "$VERSION_FILE" ] || { echo "Missing VERSION file: $VERSION_FILE" >&2; exit 1; }
+
+KIT_VERSION="$(tr -d '\r\n' < "$VERSION_FILE")"
+if ! echo "$KIT_VERSION" | grep -qE '^[0-9]+\.[0-9]+\.[0-9]+$'; then
+  echo "Invalid VERSION: $KIT_VERSION" >&2
+  exit 1
+fi
 
 abs_existing_dir() {
   local dir="$1"
@@ -82,6 +91,31 @@ case "$TARGET_ABS" in
     exit 1
     ;;
 esac
+
+read_installed_version() {
+  local stamp="$1" value
+  if [ ! -f "$stamp" ]; then
+    printf 'none\n'
+    return
+  fi
+  value="$(tr -d '\r\n' < "$stamp")"
+  if echo "$value" | grep -qE '^[0-9]+\.[0-9]+\.[0-9]+$'; then
+    printf '%s\n' "$value"
+  else
+    printf 'none\n'
+  fi
+}
+
+stamp_version() {
+  local stamp="$TARGET_ABS/$STAMP_REL"
+  if [ "$DRY_RUN" -eq 1 ]; then
+    echo "DRY-RUN would stamp $STAMP_REL: $INSTALLED_VERSION -> $KIT_VERSION"
+  else
+    mkdir -p "$(dirname "$stamp")"
+    printf '%s\n' "$KIT_VERSION" > "$stamp"
+    echo "stamped $STAMP_REL: $INSTALLED_VERSION -> $KIT_VERSION"
+  fi
+}
 
 unique_path() {
   local base="$1"
@@ -135,12 +169,18 @@ backup_and_overwrite() {
   COPIED=$((COPIED + 1))
 }
 
-echo "Spec Driven Kit installer"
+INSTALLED_VERSION="$(read_installed_version "$TARGET_ABS/$STAMP_REL")"
+
+echo "Spec Driven Kit v$KIT_VERSION"
 echo "Source: $ROOT"
 echo "Target: $TARGET_ABS"
+echo "installed: $INSTALLED_VERSION -> $KIT_VERSION"
 [ "$DRY_RUN" -eq 1 ] && echo "Mode: dry-run (no writes)"
 
 while read -r category path extra; do
+  category="${category%$'\r'}"
+  path="${path%$'\r'}"
+  extra="${extra%$'\r'}"
   case "$category" in
     ""|\#*) continue ;;
   esac
@@ -205,6 +245,7 @@ done < "$MANIFEST"
 
 echo "----------------------------------------"
 echo "install: copied=$COPIED skipped=$SKIPPED conflicts=$CONFLICTS sidecars=$SIDECARS backups=$BACKUPS"
+stamp_version
 
 if [ "$DRY_RUN" -eq 1 ]; then
   echo "Dry-run complete. No files were written."

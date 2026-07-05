@@ -36,10 +36,12 @@ ENGINE .specify/templates/spec-template.md
 ENGINE .specify/templates/tasks-template.md
 ENGINE CLAUDE.md
 ENGINE COMO-USAR.md
+SKIP CHANGELOG.md
 SKIP INSTALL.md
 SKIP LICENSE
 SKIP README.md
 SKIP ROADMAP.md
+SKIP VERSION
 SEED docs/decisions/README.md
 SEED docs/epics.md
 SKIP docs/example/README.md

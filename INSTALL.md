@@ -46,11 +46,15 @@ O instalador segue o manifesto `scripts/kit-manifest.txt`:
 - **MERGE**: `lessons.md`. Se já existe, grava `.sdk-new` para merge manual, porque o arquivo acumula
   lições do seu projeto.
 - **SKIP**: documentação e infra do repositório do kit (`README.md`, `ROADMAP.md`, `docs/example/`,
-  `.github/`, `tests/`, `install.*`). Nunca são copiados para o produto.
+  `.github/`, `tests/`, `install.*`, `VERSION`, `CHANGELOG.md`). Nunca são copiados para a raiz do produto.
 
 Ao final de uma instalação real, o instalador roda `sdk-check` no destino e mostra o próximo passo:
 abrir o Claude Code no projeto e rodar **`/sdk-bootstrap`**. A distribuição via `npm create`/`npx` é um
 caminho futuro; hoje o instalador local é o caminho suportado.
+
+O instalador também registra a versão do kit instalada em `.specify/spec-driven-kit.version`. Esse arquivo é
+um selo do kit, não a versão do seu produto, e é seguro commitar. O `VERSION` da raiz do repositório do kit
+fica fora do seu projeto para evitar colisão com versionamento próprio da aplicação.
 
 ---
 
@@ -148,6 +152,7 @@ ls .claude/agents       # sdk-domain-researcher.md, sdk-reviewer.md, sdk-lesson-
 ls .specify/memory      # constitution.md, engineering-standards.md, decision-guide.md, lessons.md,
                         # state-markers.md
 ls scripts              # new-feature.sh/.ps1, sdk-check.sh/.ps1 (validação de estado)
+cat .specify/spec-driven-kit.version  # versão do Spec Driven Kit instalada neste projeto
 ```
 
 No Claude Code, digite `/` e veja se os comandos `sdk-*` aparecem. Pronto: rode **`/sdk-bootstrap`**.
@@ -161,7 +166,8 @@ Para puxar melhorias do kit sem perder seus artefatos:
 - **Com instalador:** atualize o clone do kit (`git pull`) e rode novamente `bash install.sh --target
   /caminho/do/projeto --yes` ou `.\install.ps1 -Target C:\caminho\do\projeto -Yes`. Sem `--force`, conflitos
   do motor viram `.sdk-new`. Com `--force`, só arquivos ENGINE são atualizados, sempre com backup
-  `.sdk-bak.<data>`.
+  `.sdk-bak.<data>`. Antes de atualizar, consulte o [`CHANGELOG.md`](./CHANGELOG.md); durante a instalação,
+  o instalador mostra a transição de versão, por exemplo `installed: 0.1.0 -> 0.2.0`.
 - **Seguro de sobrescrever** (são o "motor" do kit): `.claude/commands/`, `.claude/agents/`,
   `.specify/templates/`, `.specify/memory/decision-guide.md`, `.specify/memory/engineering-standards.md`,
   `.specify/memory/state-markers.md`, `scripts/sdk-check.*`, `CLAUDE.md`, `COMO-USAR.md`,

@@ -2,6 +2,7 @@ name: CI
 
 on:
   push:
+    branches: [main]
   pull_request:
 
 jobs:
@@ -32,6 +33,32 @@ jobs:
           if bad:
               raise SystemExit("Non-ASCII bytes in: " + ", ".join(bad))
           print("ASCII guard passed:", ", ".join(str(p) for p in paths))
+          PY
+
+      - name: Validate VERSION and CHANGELOG
+        if: runner.os == 'Linux'
+        shell: bash
+        run: |
+          python - <<'PY'
+          import re
+          from pathlib import Path
+
+          version_path = Path("VERSION")
+          changelog_path = Path("CHANGELOG.md")
+          if not version_path.exists():
+              raise SystemExit("VERSION file is missing")
+          if not changelog_path.exists():
+              raise SystemExit("CHANGELOG.md file is missing")
+
+          version = version_path.read_text(encoding="utf-8").strip()
+          if not re.fullmatch(r"[0-9]+\.[0-9]+\.[0-9]+", version):
+              raise SystemExit(f"Invalid VERSION: {version!r}")
+
+          changelog = changelog_path.read_text(encoding="utf-8")
+          if not re.search(rf"(?m)^## \[{re.escape(version)}\](?:\s|-|$)", changelog):
+              raise SystemExit(f"CHANGELOG.md has no section for VERSION {version}")
+
+          print(f"VERSION {version} is documented in CHANGELOG.md.")
           PY
 
       - name: Validate install manifest coverage
@@ -100,8 +127,10 @@ jobs:
             exit 1
           fi
 
+          version="$(cat VERSION)"
           dry="$RUNNER_TEMP/sdk-dry-run-target"
-          bash install.sh --target "$dry" --dry-run --yes
+          dry_output="$(bash install.sh --target "$dry" --dry-run --yes)"
+          echo "$dry_output" | grep -q "DRY-RUN would stamp .specify/spec-driven-kit.version: none -> $version"
           test ! -e "$dry"
 
           target="$(mktemp -d)"
@@ -111,6 +140,13 @@ jobs:
           test ! -e "$target/ROADMAP.md"
           test ! -e "$target/install.sh"
           test ! -e "$target/scripts/kit-manifest.txt"
+          test ! -e "$target/VERSION"
+          test -f "$target/.specify/spec-driven-kit.version"
+          test "$(cat "$target/.specify/spec-driven-kit.version")" = "$version"
+
+          second_output="$(bash install.sh --target "$target" --yes)"
+          echo "$second_output" | grep -q "installed: $version -> $version"
+          echo "$second_output" | grep -q "conflicts=0"
 
           conflict="$(mktemp -d)"
           mkdir -p "$conflict/.claude/commands"
@@ -151,8 +187,12 @@ jobs:
             throw "Broken fixture unexpectedly passed"
           }
 
+          $version = (Get-Content -Raw -Path VERSION).Trim()
           $dry = Join-Path $env:RUNNER_TEMP "sdk-dry-run-target"
-          powershell.exe -NoProfile -ExecutionPolicy Bypass -File install.ps1 -Target $dry -DryRun -Yes
+          $dryOutput = powershell.exe -NoProfile -ExecutionPolicy Bypass -File install.ps1 -Target $dry -DryRun -Yes | Out-String
+          if ($dryOutput -notmatch "DRY-RUN would stamp \.specify/spec-driven-kit\.version: none -> $([regex]::Escape($version))") {
+            throw "Dry-run did not report version stamp"
+          }
           if (Test-Path $dry) {
             throw "Dry-run created target"
           }
@@ -164,6 +204,17 @@ jobs:
           if (Test-Path (Join-Path $target "ROADMAP.md")) { throw "ROADMAP.md should not be installed" }
           if (Test-Path (Join-Path $target "install.ps1")) { throw "install.ps1 should not be installed" }
           if (Test-Path (Join-Path $target "scripts\kit-manifest.txt")) { throw "manifest should not be installed" }
+          if (Test-Path (Join-Path $target "VERSION")) { throw "VERSION should not be installed at project root" }
+          $stamp = Join-Path $target ".specify\spec-driven-kit.version"
+          if (-not (Test-Path $stamp)) { throw "Version stamp missing" }
+          $stampValue = (Get-Content -Raw -Path $stamp).Trim()
+          if ($stampValue -ne $version) { throw "Version stamp mismatch: $stampValue" }
+
+          $secondOutput = powershell.exe -NoProfile -ExecutionPolicy Bypass -File install.ps1 -Target $target -Yes | Out-String
+          if ($secondOutput -notmatch "installed: $([regex]::Escape($version)) -> $([regex]::Escape($version))") {
+            throw "Second install did not report same-version update"
+          }
+          if ($secondOutput -notmatch "conflicts=0") { throw "Second install introduced conflicts" }
 
           $conflict = Join-Path $env:RUNNER_TEMP "sdk-conflict"
           New-Item -ItemType Directory -Force -Path (Join-Path $conflict ".claude\commands") | Out-Null
