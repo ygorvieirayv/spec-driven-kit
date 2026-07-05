@@ -139,6 +139,16 @@ de spec/plano e uma branch dedicada a partir dos moldes.
 
 ---
 
+## Versionamento
+
+A versão do kit fica em [`VERSION`](./VERSION), e mudanças relevantes ficam em
+[`CHANGELOG.md`](./CHANGELOG.md). O instalador não copia `VERSION` para a raiz do seu projeto, porque essa
+raiz pode ter a versão do seu próprio produto. Em vez disso, ele grava o selo do kit em
+`.specify/spec-driven-kit.version`; é seguro commitar esse arquivo para saber qual versão do kit está
+instalada no projeto.
+
+---
+
 ## Modos: PROTOTYPE × PRODUCTION
 
 O kit escala o **rigor** conforme o modo (definido no `project-context.md`):
@@ -235,6 +245,8 @@ spec-driven-kit/
 ├── INSTALL.md                         # como instalar o kit num projeto
 ├── COMO-USAR.md                       # guia rápido de bolso (uso no dia a dia)
 ├── CLAUDE.md                          # regras de base sempre carregadas (curto, p/ economia de token)
+├── VERSION                            # versão atual do kit
+├── CHANGELOG.md                       # histórico de mudanças do kit
 ├── install.sh / install.ps1           # instalador seguro (manifest-aware)
 │
 ├── .github/workflows/ci.yml           # validação Linux + Windows do kit e do instalador

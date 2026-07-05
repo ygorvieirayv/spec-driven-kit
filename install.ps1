@@ -35,6 +35,15 @@ $Manifest = Join-Path $Root "scripts\kit-manifest.txt"
 if (-not (Test-Path $Manifest)) {
   throw "Missing manifest: $Manifest"
 }
+$VersionFile = Join-Path $Root "VERSION"
+if (-not (Test-Path $VersionFile)) {
+  throw "Missing VERSION file: $VersionFile"
+}
+$KitVersion = (Get-Content -Raw -LiteralPath $VersionFile).Trim()
+if ($KitVersion -notmatch '^[0-9]+\.[0-9]+\.[0-9]+$') {
+  throw "Invalid VERSION: $KitVersion"
+}
+$StampRel = ".specify/spec-driven-kit.version"
 
 $script:Copied = 0
 $script:Skipped = 0
@@ -103,6 +112,24 @@ function Backup-And-Overwrite($src, $dst) {
   $script:Copied++
 }
 
+function Read-InstalledVersion($path) {
+  if (-not (Test-Path $path)) { return "none" }
+  $value = (Get-Content -Raw -LiteralPath $path).Trim()
+  if ($value -match '^[0-9]+\.[0-9]+\.[0-9]+$') { return $value }
+  return "none"
+}
+
+function Stamp-Version {
+  $stampPath = Join-Path $TargetAbs ($StampRel -replace '/', '\')
+  if ($DryRun) {
+    Write-Host "DRY-RUN would stamp ${StampRel}: $InstalledVersion -> $KitVersion"
+  } else {
+    Ensure-Parent $stampPath
+    [System.IO.File]::WriteAllText($stampPath, $KitVersion + [Environment]::NewLine, [System.Text.Encoding]::ASCII)
+    Write-Host "stamped ${StampRel}: $InstalledVersion -> $KitVersion"
+  }
+}
+
 $targetExists = Test-Path $Target
 if ($targetExists) {
   $TargetAbs = (Resolve-Path $Target).Path
@@ -136,9 +163,12 @@ if ($targetFull.Equals($rootFull, [System.StringComparison]::OrdinalIgnoreCase) 
   throw "Refusing to install into the kit repository itself: $TargetAbs"
 }
 
-Write-Host "Spec Driven Kit installer"
+$InstalledVersion = Read-InstalledVersion (Join-Path $TargetAbs ($StampRel -replace '/', '\'))
+
+Write-Host "Spec Driven Kit v$KitVersion"
 Write-Host "Source: $Root"
 Write-Host "Target: $TargetAbs"
+Write-Host "installed: $InstalledVersion -> $KitVersion"
 if ($DryRun) { Write-Host "Mode: dry-run (no writes)" }
 
 foreach ($line in Get-Content -LiteralPath $Manifest) {
@@ -196,6 +226,7 @@ foreach ($line in Get-Content -LiteralPath $Manifest) {
 
 Write-Host "----------------------------------------"
 Write-Host "install: copied=$($script:Copied) skipped=$($script:Skipped) conflicts=$($script:Conflicts) sidecars=$($script:Sidecars) backups=$($script:Backups)"
+Stamp-Version
 
 if ($DryRun) {
   Write-Host "Dry-run complete. No files were written."

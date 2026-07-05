@@ -18,6 +18,7 @@ histórico das decisões ficam nas seções seguintes.
 - **Recuperação de drift:** `/sdk-doctor` diagnostica inconsistências e só reconcilia com aprovação.
 - **Validação determinística:** `scripts/sdk-check.sh` e `.ps1` validam marcadores sem depender de LLM.
 - **Instalação segura:** `install.sh` e `install.ps1` instalam/atualizam sem sobrescrever artefatos do produto.
+- **Versionamento:** `VERSION`, `CHANGELOG.md` e selo `.specify/spec-driven-kit.version` tornam updates auditáveis.
 - **CI do kit:** Linux e Windows rodam checks, fixtures e instalação ponta a ponta.
 
 ### Próximas prioridades
@@ -25,9 +26,9 @@ histórico das decisões ficam nas seções seguintes.
 | Prioridade | Melhoria | Por que importa |
 |------------|----------|-----------------|
 | P2.1 | Expandir o `decision-guide.md` para decisões de produto | Ajuda usuários menos técnicos a decidir permissões, cobrança, admin, e-mails, analytics, SEO, suporte e políticas de dados sem depender só de intuição. |
-| P2.2 | Criar starter packs | Dá pontos de partida prontos para SaaS, e-commerce, app interno, marketplace e landing + admin, reduzindo a fricção inicial. |
-| P2.3 | Adicionar `CHANGELOG.md` e versionamento | Torna atualizações do kit previsíveis e auditáveis, principalmente agora que existe instalador. |
-| P2.4 | Publicar distribuição npm quando fizer sentido | Permite `npm create spec-driven-kit@latest`, mas só vale depois de versionamento e uso externo suficiente para justificar manutenção. |
+| P2.2 | Adicionar exemplos reais por nicho | Entrega confiança sem assumir regras de domínio do usuário; exemplos são read-only e fictícios. |
+| P2.3 | Decidir starter packs como sementes de conversa | Só entram se forem hipóteses a validar, não projetos prontos que pulem a descoberta do `/sdk-bootstrap`. |
+| P2.4 | Publicar distribuição npm quando fizer sentido | Permite `npm create spec-driven-kit@latest`, mas só vale depois de uso externo suficiente para justificar manutenção. |
 
 ### Fora do próximo ciclo
 
@@ -65,7 +66,8 @@ fixo de estado não é estado.
 | F6 | `scripts/sdk-check.sh` / `.ps1` — validação determinística dos artefatos (zero token) + contrato de marcadores (`state-markers.md`) | script novo | P1 ✅ |
 | F7 | README, COMO-USAR, INSTALL e `docs/example/` atualizados para o fluxo com next/doctor | docs | P0/P1 ✅ |
 | F8 | Instalador seguro + CI do kit | produto | P2 ✅ |
-| F9 | Decisões de produto no decision-guide · starter packs · versionamento · distribuição npm | produto | P2/P3 |
+| F9 | Versionamento do kit | produto | P2 ✅ |
+| F10 | Decisões de produto no decision-guide · exemplos por nicho · starter packs como sementes · distribuição npm | produto | P2/P3 |
 
 Total de comandos: 11 → **13**. Nada além disso — as demais ideias viram comportamento dos comandos que já
 existem, não comandos novos.
@@ -189,11 +191,14 @@ Shell puro (bash + PowerShell), zero token, exit ≠ 0 em falha (serve para CI):
    proteção para nunca sobrescrever artefatos do produto.
 9. **Entregue neste ciclo:** CI Linux + Windows validando `sdk-check`, fixtures `valid`/`broken`,
    instalador ponta a ponta, guarda ASCII para PowerShell e cobertura completa do manifest.
-10. Decisões de **produto** no `decision-guide.md` (papéis/permissões, cobrança/planos, painel admin,
+10. **Entregue neste ciclo:** versionamento do kit com `VERSION`, `CHANGELOG.md`, validação em CI e selo
+    `.specify/spec-driven-kit.version` no projeto instalado.
+11. Decisões de **produto** no `decision-guide.md` (papéis/permissões, cobrança/planos, painel admin,
     e-mail transacional — no mesmo molde de tabela de trade-offs).
-11. Starter packs (SaaS, e-commerce, app interno).
-12. `CHANGELOG.md` + versionamento dos templates.
-13. Distribuição npm (`npm create spec-driven-kit@latest`) quando houver demanda real ou uso externo
+12. Exemplos reais por nicho (SaaS, e-commerce, app interno, marketplace) como material read-only.
+13. Starter packs apenas se forem desenhados como **sementes de conversa**: hipóteses e perguntas a validar,
+    não projeto pronto.
+14. Distribuição npm (`npm create spec-driven-kit@latest`) quando houver demanda real ou uso externo
     suficiente para justificar a superfície de manutenção.
 
 ## Distribuição npm — desenho futuro
