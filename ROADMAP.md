@@ -6,6 +6,36 @@
 > o que foi **rejeitado** (e por quê), e a ordem de execução. Se você instalou o kit no seu projeto, pode
 > apagar este arquivo (ver `INSTALL.md`).
 
+## Próximas Melhorias Planejadas
+
+Esta é a visão curta para quem quer entender rapidamente o que ainda está no radar. O detalhe técnico e o
+histórico das decisões ficam nas seções seguintes.
+
+### Já entregue
+
+- **Núcleo orientado por estado:** os comandos gravam `Status`, `Analyze`, `Review` e ledger de features.
+- **Retomada simples:** `/sdk-next` lê o estado e recomenda o próximo passo.
+- **Recuperação de drift:** `/sdk-doctor` diagnostica inconsistências e só reconcilia com aprovação.
+- **Validação determinística:** `scripts/sdk-check.sh` e `.ps1` validam marcadores sem depender de LLM.
+- **Instalação segura:** `install.sh` e `install.ps1` instalam/atualizam sem sobrescrever artefatos do produto.
+- **CI do kit:** Linux e Windows rodam checks, fixtures e instalação ponta a ponta.
+
+### Próximas prioridades
+
+| Prioridade | Melhoria | Por que importa |
+|------------|----------|-----------------|
+| P2.1 | Expandir o `decision-guide.md` para decisões de produto | Ajuda usuários menos técnicos a decidir permissões, cobrança, admin, e-mails, analytics, SEO, suporte e políticas de dados sem depender só de intuição. |
+| P2.2 | Criar starter packs | Dá pontos de partida prontos para SaaS, e-commerce, app interno, marketplace e landing + admin, reduzindo a fricção inicial. |
+| P2.3 | Adicionar `CHANGELOG.md` e versionamento | Torna atualizações do kit previsíveis e auditáveis, principalmente agora que existe instalador. |
+| P2.4 | Publicar distribuição npm quando fizer sentido | Permite `npm create spec-driven-kit@latest`, mas só vale depois de versionamento e uso externo suficiente para justificar manutenção. |
+
+### Fora do próximo ciclo
+
+- Transformar tudo em CLI pesada: o kit continua sendo slash commands + markdown + scripts pequenos.
+- Criar um índice de estado duplicado em JSONL/TOML: o estado segue em markdown padronizado, validado pelo
+  contrato de marcadores.
+- Automatizar correção de drift sem aprovação humana: o `/sdk-doctor` permanece conservador por desenho.
+
 ## Tese
 
 O kit não precisa de mais comandos nem mais Markdown — precisa ficar **orientado por estado**: saber onde o
