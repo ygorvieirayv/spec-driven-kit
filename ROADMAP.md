@@ -34,7 +34,8 @@ fixo de estado não é estado.
 | F5 | `/sdk-doctor` — diagnóstico global read-only + reconciliação item a item com aprovação | comando novo | P1 ✅ |
 | F6 | `scripts/sdk-check.sh` / `.ps1` — validação determinística dos artefatos (zero token) + contrato de marcadores (`state-markers.md`) | script novo | P1 ✅ |
 | F7 | README, COMO-USAR, INSTALL e `docs/example/` atualizados para o fluxo com next/doctor | docs | P0/P1 ✅ |
-| F8 | Instalador seguro · decisões de produto no decision-guide · starter packs · CI do kit · versionamento | produto | P2 |
+| F8 | Instalador seguro + CI do kit | produto | P2 ✅ |
+| F9 | Decisões de produto no decision-guide · starter packs · versionamento · distribuição npm | produto | P2/P3 |
 
 Total de comandos: 11 → **13**. Nada além disso — as demais ideias viram comportamento dos comandos que já
 existem, não comandos novos.
@@ -152,13 +153,36 @@ Shell puro (bash + PowerShell), zero token, exit ≠ 0 em falha (serve para CI):
 7. **F7** — walkthrough do `docs/example/` com next/doctor; INSTALL ("Verificando a instalação" inclui os
    novos comandos).
 
-### P2 — produto
-8. Instalador seguro (`install.sh` / `.ps1`, merge-aware; npx só se houver demanda comprovada).
-9. Decisões de **produto** no `decision-guide.md` (papéis/permissões, cobrança/planos, painel admin,
-   e-mail transacional — no mesmo molde de tabela de trade-offs).
-10. Starter packs (SaaS, e-commerce, app interno).
-11. CI do próprio kit rodando `sdk-check` nos templates e no example.
+### P2 — produto *(em andamento)*
+8. **Entregue neste ciclo:** instalador seguro (`install.sh` / `.ps1`) guiado por
+   `scripts/kit-manifest.txt`, com dry-run, sidecars `.sdk-new`, backup `.sdk-bak.<data>` em `--force` e
+   proteção para nunca sobrescrever artefatos do produto.
+9. **Entregue neste ciclo:** CI Linux + Windows validando `sdk-check`, fixtures `valid`/`broken`,
+   instalador ponta a ponta, guarda ASCII para PowerShell e cobertura completa do manifest.
+10. Decisões de **produto** no `decision-guide.md` (papéis/permissões, cobrança/planos, painel admin,
+    e-mail transacional — no mesmo molde de tabela de trade-offs).
+11. Starter packs (SaaS, e-commerce, app interno).
 12. `CHANGELOG.md` + versionamento dos templates.
+13. Distribuição npm (`npm create spec-driven-kit@latest`) quando houver demanda real ou uso externo
+    suficiente para justificar a superfície de manutenção.
+
+## Distribuição npm — desenho futuro
+
+O instalador atual foi desenhado para virar o motor de uma distribuição npm sem retrabalho, mas o pacote
+não é criado agora para evitar uma segunda superfície de manutenção sem usuários exercitando.
+
+Desenho preferido quando chegar a hora:
+
+1. Publicar um pacote `create-spec-driven-kit` com `bin` pequeno.
+2. O comando público fica `npm create spec-driven-kit@latest` (equivalente a `npx create-spec-driven-kit`).
+3. O `bin` baixa um release tarball versionado do kit ou empacota os arquivos do release, preservando o
+   mesmo contrato do `scripts/kit-manifest.txt`.
+4. A lógica de cópia continua sendo a mesma: `ENGINE` atualizável com backup, `SEED` nunca sobrescrito,
+   `MERGE` por sidecar, `SKIP` fora do projeto.
+5. O CI do pacote precisa rodar os mesmos testes ponta a ponta do instalador antes de publicar.
+
+Gatilho para implementar: usuários externos pedirem instalação sem clone manual, necessidade de versionar
+releases instaláveis, ou adoção suficiente para justificar suporte a atualização via registry.
 
 ## Decisão de formatos (estado = linhas markdown; sem TOML/JSONL por ora)
 

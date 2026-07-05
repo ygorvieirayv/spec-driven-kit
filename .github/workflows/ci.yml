@@ -1,0 +1,199 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  validate:
+    name: Validate (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Guard PowerShell scripts are ASCII
+        if: runner.os == 'Linux'
+        shell: bash
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          paths = list(Path("scripts").glob("*.ps1")) + [Path("install.ps1")]
+          bad = []
+          for path in paths:
+              data = path.read_bytes()
+              if any(b > 127 for b in data):
+                  bad.append(str(path))
+          if bad:
+              raise SystemExit("Non-ASCII bytes in: " + ", ".join(bad))
+          print("ASCII guard passed:", ", ".join(str(p) for p in paths))
+          PY
+
+      - name: Validate install manifest coverage
+        if: runner.os == 'Linux'
+        shell: bash
+        run: |
+          python - <<'PY'
+          import subprocess
+          from pathlib import Path
+
+          tracked = set(subprocess.check_output(["git", "ls-files"], text=True).splitlines())
+          manifest = Path("scripts/kit-manifest.txt")
+          allowed = {"ENGINE", "SEED", "MERGE", "SKIP"}
+          seen = {}
+          errors = []
+
+          for lineno, raw in enumerate(manifest.read_text(encoding="utf-8").splitlines(), 1):
+              line = raw.strip()
+              if not line or line.startswith("#"):
+                  continue
+              parts = line.split(maxsplit=1)
+              if len(parts) != 2:
+                  errors.append(f"{manifest}:{lineno}: invalid line")
+                  continue
+              category, path = parts
+              if category not in allowed:
+                  errors.append(f"{manifest}:{lineno}: invalid category {category}")
+              if path in seen:
+                  errors.append(f"{manifest}:{lineno}: duplicate path {path} (first at {seen[path]})")
+              seen[path] = lineno
+
+          manifest_paths = set(seen)
+          missing = sorted(tracked - manifest_paths)
+          extra = sorted(manifest_paths - tracked)
+          if missing:
+              errors.append("Tracked files missing from manifest: " + ", ".join(missing))
+          if extra:
+              errors.append("Manifest paths not tracked by git: " + ", ".join(extra))
+          if errors:
+              raise SystemExit("\n".join(errors))
+          print(f"Manifest covers {len(tracked)} tracked files.")
+          PY
+
+      - name: Linux checks
+        if: runner.os == 'Linux'
+        shell: bash
+        run: |
+          set -euo pipefail
+          bash -n scripts/sdk-check.sh
+          bash -n install.sh
+          bash scripts/sdk-check.sh
+          pwsh -NoProfile -File scripts/sdk-check.ps1
+
+          valid="$(mktemp -d)"
+          cp -R tests/fixtures/valid/. "$valid"
+          mkdir -p "$valid/scripts"
+          cp scripts/sdk-check.sh "$valid/scripts/"
+          bash "$valid/scripts/sdk-check.sh"
+
+          broken="$(mktemp -d)"
+          cp -R tests/fixtures/broken/. "$broken"
+          mkdir -p "$broken/scripts"
+          cp scripts/sdk-check.sh "$broken/scripts/"
+          if bash "$broken/scripts/sdk-check.sh"; then
+            echo "Broken fixture unexpectedly passed"
+            exit 1
+          fi
+
+          dry="$RUNNER_TEMP/sdk-dry-run-target"
+          bash install.sh --target "$dry" --dry-run --yes
+          test ! -e "$dry"
+
+          target="$(mktemp -d)"
+          bash install.sh --target "$target" --yes
+          bash "$target/scripts/sdk-check.sh"
+          test ! -e "$target/README.md"
+          test ! -e "$target/ROADMAP.md"
+          test ! -e "$target/install.sh"
+          test ! -e "$target/scripts/kit-manifest.txt"
+
+          conflict="$(mktemp -d)"
+          mkdir -p "$conflict/.claude/commands"
+          printf 'custom\n' > "$conflict/.claude/commands/sdk-next.md"
+          bash install.sh --target "$conflict" --yes
+          grep -qx 'custom' "$conflict/.claude/commands/sdk-next.md"
+          test -f "$conflict/.claude/commands/sdk-next.md.sdk-new"
+
+          force="$(mktemp -d)"
+          mkdir -p "$force/.claude/commands" "$force/docs"
+          printf 'custom\n' > "$force/.claude/commands/sdk-next.md"
+          printf 'product-ledger\n' > "$force/docs/epics.md"
+          bash install.sh --target "$force" --yes --force
+          test -n "$(find "$force/.claude/commands" -name 'sdk-next.md.sdk-bak.*' -print -quit)"
+          ! grep -qx 'custom' "$force/.claude/commands/sdk-next.md"
+          grep -qx 'product-ledger' "$force/docs/epics.md"
+
+      - name: Windows PowerShell checks
+        if: runner.os == 'Windows'
+        shell: powershell
+        run: |
+          powershell.exe -NoProfile -ExecutionPolicy Bypass -File scripts\sdk-check.ps1
+
+          $valid = Join-Path $env:RUNNER_TEMP "sdk-valid"
+          New-Item -ItemType Directory -Force -Path $valid | Out-Null
+          Copy-Item tests\fixtures\valid\* $valid -Recurse
+          New-Item -ItemType Directory -Force -Path (Join-Path $valid "scripts") | Out-Null
+          Copy-Item scripts\sdk-check.ps1 (Join-Path $valid "scripts\sdk-check.ps1")
+          powershell.exe -NoProfile -ExecutionPolicy Bypass -File (Join-Path $valid "scripts\sdk-check.ps1")
+
+          $broken = Join-Path $env:RUNNER_TEMP "sdk-broken"
+          New-Item -ItemType Directory -Force -Path $broken | Out-Null
+          Copy-Item tests\fixtures\broken\* $broken -Recurse
+          New-Item -ItemType Directory -Force -Path (Join-Path $broken "scripts") | Out-Null
+          Copy-Item scripts\sdk-check.ps1 (Join-Path $broken "scripts\sdk-check.ps1")
+          powershell.exe -NoProfile -ExecutionPolicy Bypass -File (Join-Path $broken "scripts\sdk-check.ps1")
+          if ($LASTEXITCODE -eq 0) {
+            throw "Broken fixture unexpectedly passed"
+          }
+
+          $dry = Join-Path $env:RUNNER_TEMP "sdk-dry-run-target"
+          powershell.exe -NoProfile -ExecutionPolicy Bypass -File install.ps1 -Target $dry -DryRun -Yes
+          if (Test-Path $dry) {
+            throw "Dry-run created target"
+          }
+
+          $target = Join-Path $env:RUNNER_TEMP "sdk-install-target"
+          powershell.exe -NoProfile -ExecutionPolicy Bypass -File install.ps1 -Target $target -Yes
+          powershell.exe -NoProfile -ExecutionPolicy Bypass -File (Join-Path $target "scripts\sdk-check.ps1")
+          if (Test-Path (Join-Path $target "README.md")) { throw "README.md should not be installed" }
+          if (Test-Path (Join-Path $target "ROADMAP.md")) { throw "ROADMAP.md should not be installed" }
+          if (Test-Path (Join-Path $target "install.ps1")) { throw "install.ps1 should not be installed" }
+          if (Test-Path (Join-Path $target "scripts\kit-manifest.txt")) { throw "manifest should not be installed" }
+
+          $conflict = Join-Path $env:RUNNER_TEMP "sdk-conflict"
+          New-Item -ItemType Directory -Force -Path (Join-Path $conflict ".claude\commands") | Out-Null
+          Set-Content -Encoding ASCII -Path (Join-Path $conflict ".claude\commands\sdk-next.md") -Value "custom"
+          powershell.exe -NoProfile -ExecutionPolicy Bypass -File install.ps1 -Target $conflict -Yes
+          $content = Get-Content -Raw -Path (Join-Path $conflict ".claude\commands\sdk-next.md")
+          if ($content.Trim() -ne "custom") { throw "Conflict file was overwritten" }
+          if (-not (Test-Path (Join-Path $conflict ".claude\commands\sdk-next.md.sdk-new"))) {
+            throw "Conflict sidecar was not created"
+          }
+
+          $force = Join-Path $env:RUNNER_TEMP "sdk-force"
+          New-Item -ItemType Directory -Force -Path (Join-Path $force ".claude\commands") | Out-Null
+          New-Item -ItemType Directory -Force -Path (Join-Path $force "docs") | Out-Null
+          Set-Content -Encoding ASCII -Path (Join-Path $force ".claude\commands\sdk-next.md") -Value "custom"
+          Set-Content -Encoding ASCII -Path (Join-Path $force "docs\epics.md") -Value "product-ledger"
+          powershell.exe -NoProfile -ExecutionPolicy Bypass -File install.ps1 -Target $force -Yes -Force
+          if (-not (Get-ChildItem -Path (Join-Path $force ".claude\commands") -Filter "sdk-next.md.sdk-bak.*")) {
+            throw "Backup missing"
+          }
+          $forceContent = Get-Content -Raw -Path (Join-Path $force ".claude\commands\sdk-next.md")
+          if ($forceContent.Trim() -eq "custom") { throw "ENGINE file was not updated with -Force" }
+          $seedContent = Get-Content -Raw -Path (Join-Path $force "docs\epics.md")
+          if ($seedContent.Trim() -ne "product-ledger") { throw "SEED epics was overwritten" }
+
+      - name: Windows Git Bash checks
+        if: runner.os == 'Windows'
+        shell: bash
+        run: |
+          set -euo pipefail
+          bash -n scripts/sdk-check.sh
+          bash -n install.sh
+          bash scripts/sdk-check.sh
