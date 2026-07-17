@@ -15,6 +15,9 @@ decisões, lições) são a **fonte da verdade** e ficam no disco — não na me
   verdade da **mudança desejada**. Divergência nunca se resolve em silêncio — aponte ao usuário.
 - **Conversa aprova, arquivo registra:** todo checkpoint 🛑 aprovado vira escrita de estado (`Status:` no
   artefato e/ou a linha da feature no ledger `docs/epics.md`). Estado que não está gravado não existe.
+- **Motor × produto:** os arquivos do kit (comandos/agents `sdk-*`, `.specify/memory/` exceto
+  `project-context.md`, `.specify/templates/`, `scripts/sdk-*`, este arquivo) **nunca** mudam como efeito
+  colateral de uma feature. Diff de feature tocando o motor = drift **Crítico**: pare e avise.
 
 ## Princípios (resumo — detalhe em `.specify/memory/constitution.md`)
 1. Pensar antes de codar · 2. Simples/YAGNI · 3. Mudanças cirúrgicas · 4. Critério de sucesso + verificação ·
@@ -30,6 +33,8 @@ são descobertas, não assumidas · 8. Aprender com o erro **uma vez** e registr
 - **Use subagentes para trabalho pesado/isolado** (`sdk-domain-researcher`, `sdk-reviewer`,
   `sdk-lesson-curator`): o contexto deles não polui a conversa principal; só o resultado volta.
 - **Uma feature por vez.** Não abra várias frentes na mesma sessão.
+- **Diga o que carregou.** Ao fim de cada comando, 1 linha: o que leu de fato e o que deixou de ler (e por
+  quê). Torna auditável a disciplina de carga sob demanda, em vez de só assumida.
 
 ## Disjuntor anti-loop (corta o maior ralo de token)
 Se você tentar resolver a **mesma** coisa **2–3 vezes sem progresso**: **pare**. Não insista no escuro.

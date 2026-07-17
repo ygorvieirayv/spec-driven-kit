@@ -139,6 +139,11 @@ digita `--sdk-plan` (ou o equivalente que sua ferramenta aceitar como texto livr
 
 > **Se você usa Claude Code, ignore esta opção** — os comandos já existem como `/sdk-*` nativamente.
 
+> **Codex CLI:** este adaptador é o caminho **recomendado** (não um fallback) para o Codex. Os "custom
+> prompts" dele foram descontinuados — e mesmo quando existiam viviam na pasta do usuário
+> (`~/.codex/prompts/`), sem viajar com o repositório. Já o `AGENTS.md` é lido pelo Codex a cada início,
+> como regra permanente do projeto.
+
 ---
 
 ## Verificando a instalação
@@ -179,6 +184,11 @@ Para puxar melhorias do kit sem perder seus artefatos:
 - **`.specify/memory/lessons.md`** — caso à parte: as **sementes** vêm do kit, mas o arquivo **acumula** as
   suas lições. Faça **merge**, não sobrescreva. (Se usar a biblioteca como submodule, ela é versionada à
   parte e não há conflito.)
+- **Depois de atualizar, reconcilie os sidecars.** Um `arquivo.sdk-new` é a versão nova do motor quando a
+  sua divergia: compare (`diff arquivo arquivo.sdk-new`), incorpore o que fizer sentido e **apague o
+  sidecar**. Para `lessons.md.sdk-new`, faça o merge das lições novas do kit para dentro do seu arquivo.
+  Backups `*.sdk-bak.*` (criados pelo `--force`) podem ser apagados quando você confirmar que está tudo bem.
+  Sidecar esquecido não é inofensivo — o `/sdk-doctor` avisa se encontrar.
 
 ---
 
