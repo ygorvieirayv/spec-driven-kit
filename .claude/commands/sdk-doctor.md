@@ -30,6 +30,9 @@ token. Se o script não existir (instalação parcial), diga isso e faça as mes
   `aprovado` com `Analyze: bloqueado`?
 - **Pendências críticas:** `[VERIFICAR]` em aberto no `project-context.md` ou em spec de feature `em
   construção`/`concluída`.
+- **Restos de atualização do kit:** existem arquivos `*.sdk-new` ou `*.sdk-bak.*` esquecidos? → AVISO:
+  reconcilie (compare, incorpore o que quiser e apague o sidecar) — o passo está documentado no
+  `INSTALL.md`, "Atualizando o kit".
 
 ### T2 — leitura dirigida (só dos arquivos suspeitos de T1)
 - **Plano × ADRs:** alguma decisão do plano contradiz um ADR de `docs/decisions/` ou o resumo de decisões
@@ -41,6 +44,9 @@ token. Se o script não existir (instalação parcial), diga isso e faça as mes
 ### T3 — código × artefatos (git; só a pedido ou com suspeita concreta)
 - Branch de feature com arquivos alterados **fora** dos declarados na coluna Arquivo(s) do plano/tasks.
 - Mudanças de código em feature cujo ledger diz `a fazer`/`em spec` (código andando na frente da spec).
+- Diff de feature tocando o **motor do kit** (fronteira no `CLAUDE.md`, "Motor × produto") → drift
+  **Crítico**: não corrija em silêncio; restaure do repositório oficial do kit (ou trate como evolução
+  separada do kit), reexecute o `sdk-check` e só então retome a feature.
 > Não tente verificar semanticamente "o código obedece cada AC" aqui — isso é papel do `/sdk-review` por
 > feature, com spec e diff no contexto. O doctor pega drift **estrutural**, não relê a implementação toda.
 

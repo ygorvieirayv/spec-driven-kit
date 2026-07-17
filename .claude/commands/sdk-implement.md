@@ -44,6 +44,12 @@ Para cada AC de lógica crítica:
 - **Sem segredos** no código/git/bundle; valide input público; PII fora de logs.
 - **Disjuntor anti-loop:** se a mesma coisa falhar **2–3 vezes sem progresso**, **pare**. Não insista no
   escuro queimando token. Resuma o que tentou, o que observou e onde travou, e devolva ao usuário com opções.
+- **Handoff ao parar no meio** (por disjuntor ou por decisão do usuário): antes de encerrar, grave 2–3
+  linhas junto das tasks (nota abaixo da tabela) dizendo o que foi **verificado de fato**, o que ficou
+  **pendente/assumido** e **por que parou** — é o que permite outra sessão retomar sem reconfiar na conversa.
+- **Não toque no motor do kit** durante uma feature (comandos/agents `sdk-*`, `.specify/memory/` exceto
+  `project-context.md`, templates, `scripts/sdk-*`, `CLAUDE.md`): se uma task parecer exigir isso, **pare e
+  avise** — mudança no kit é evolução separada, nunca efeito colateral de feature.
 - Antes de codar lógica de risco, dê uma olhada nas **lições** (`lessons.md`) por tag — evite repetir um erro
   já catalogado.
 - Rode os comandos do projeto (test/lint/build) e **mostre que passam**.

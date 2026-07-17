@@ -30,6 +30,31 @@ histórico das decisões ficam nas seções seguintes.
 | P2.3 | Decidir starter packs como sementes de conversa | Só entram se forem hipóteses a validar, não projetos prontos que pulem a descoberta do `/sdk-bootstrap`. |
 | P2.4 | Publicar distribuição npm quando fizer sentido | Permite `npm create spec-driven-kit@latest`, mas só vale depois de uso externo suficiente para justificar manutenção. |
 
+### Trilha de rigor e portabilidade (F11–F12) — aprovada em jul/2026
+
+> Nasceu de um documento de melhorias consolidado (duas revisões externas + auditoria do
+> `lovable-driven-kit`), triado item a item contra o repo real. Corre em paralelo à trilha de conteúdo
+> (F10). Fatias na ordem:
+
+| PR | Conteúdo | Estado |
+|----|----------|--------|
+| I — Coerência e honestidade | Alto bloqueia em PRODUCTION (review) · verificação vs teste alinhados · reviewer em contexto fresco como **padrão** · fronteira motor×produto (CLAUDE/implement/review/doctor) · handoff ao parar no meio · reconciliação de sidecars documentada + doctor avisa · auto-relato de carga · nota Codex/AGENTS.md | ✅ |
+| II — Evidência e estados | `evidence.md` por feature (com SHA — evita evidência velha) · estados de task novos: `blocked` e `verification-pending` · review reroda o subconjunto de verificação citado antes de confirmar `done` · contrato/sdk-check/fixtures atualizados | planejada |
+| III — Perfis de prova | Perfis independentes (visual · logic · journey · data-security · operational · delivery) no `engineering-standards.md`, declarados no plano e cobrados no review · rollback de `data-security` exige verificação **executada** | planejada |
+| IV — Integridade do kit | Contrato executável das instruções (`kit-rules` texto+shell, sem JSON/node) com **teste negativo** no CI · detecção de ciclo de dependências no `sdk-check` | planejada |
+| V — CI do consumidor | Bootstrap gera workflow fail-closed por stack (PRODUCTION: check esperado ausente = falha) + varredura de segredos (gitleaks ou equivalente) | planejada |
+| VI — Portabilidade | Export dos comandos para OpenCode via **script sob demanda** (fonte única = `.claude/commands/`) · `/sdk-cycle`: encadeia só o mecânico (`tasks → analyze`; roadmap pós-review), **para** em todo 🛑, em implement/review e em qualquer veredito não-limpo | planejada |
+
+**Decisões registradas:** estados novos = só `blocked` + `verification-pending` (rejeitados `partial` —
+task parcial é task mal fatiada — e `reopened` — volta a `ready` com nota) · evidência em arquivo próprio
+por feature (não seção do plano: evidência acumula) · contrato de regras no idioma do kit (texto + shell) ·
+export OpenCode gerado sob demanda, nunca cópia commitada (fonte dupla = fábrica de drift) · `/sdk-cycle`
+será o 14º comando — exceção consciente à regra "13 e nada além", por ser orquestrador dos existentes.
+
+**Adiado com gatilho:** SCHEMA_VERSION por artefato (gatilho: primeira mudança **não-aditiva** de
+template) · marcador "claimed by" para sessões concorrentes (gatilho: uso multi-agente real) · evals com
+modelo/e2e — níveis 4–5 da pirâmide (P3; os níveis 1–3 saem do PR IV + fixtures existentes).
+
 ### Fora do próximo ciclo
 
 - Transformar tudo em CLI pesada: o kit continua sendo slash commands + markdown + scripts pequenos.
@@ -68,9 +93,12 @@ fixo de estado não é estado.
 | F8 | Instalador seguro + CI do kit | produto | P2 ✅ |
 | F9 | Versionamento do kit | produto | P2 ✅ |
 | F10 | Decisões de produto no decision-guide · exemplos por nicho · starter packs como sementes · distribuição npm | produto | P2/P3 |
+| F11 | Trilha de rigor: coerência, evidência persistida, estados honestos, perfis de prova, integridade do kit, CI do consumidor (PRs I–V acima) | edições + scripts | PR I ✅ · II–V planejados |
+| F12 | Trilha de portabilidade: export OpenCode + `/sdk-cycle` (PR VI acima) | script + comando novo | planejada |
 
-Total de comandos: 11 → **13**. Nada além disso — as demais ideias viram comportamento dos comandos que já
-existem, não comandos novos.
+Total de comandos: 11 → **13**. Única exceção futura aprovada: `/sdk-cycle` (14º, na F12) — orquestrador
+dos comandos existentes, não capacidade nova. Fora isso, as demais ideias viram comportamento dos comandos
+que já existem, não comandos novos.
 
 ## Onde o estado mora (o desenho que faltava na análise)
 
