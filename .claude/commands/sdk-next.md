@@ -42,13 +42,17 @@ dos comandos de cada etapa.
 | Plano `rascunho` | Terminar/aprovar o plano: `/sdk-plan` |
 | Plano `aprovado`, sem `tasks.md` | `/sdk-tasks` — gerar a fonte única de tasks e ligar ACs aos perfis |
 | `tasks.md` existe e `**Analyze:**` está `pendente` | `/sdk-analyze` — toda feature formal passa pelo gate antes de código |
+| `**Analyze:** ajustar` | Volte ao comando dono apontado no último relatório do `/sdk-analyze` e depois rode `/sdk-analyze` novamente. Não implemente com o gate reprovado |
+| `**Analyze:** bloqueado` | Não avance. Siga o comando dono indicado no último relatório do `/sdk-analyze`, resolva o achado Crítico/Alto e depois rode `/sdk-analyze` novamente |
 | Analyze `consistente`, há `ready`/`in-progress` | `/sdk-implement`; dependências internas `verification-pending`/`done` já satisfazem a ordem |
 | Não há task implementável e há `verification-pending` | `/sdk-review` — revisor fresco reexecuta o menor subconjunto seguro |
 | Não há `ready`/`in-progress`/`verification-pending`; há `blocked` ainda não resolvida | Não avance; mostre motivo/condição. Resolvida, `/sdk-implement` retoma por `blocked → ready` |
 | `blocked` contradiz marker/realidade | `/sdk-doctor` — reconciliar sem apagar histórico |
 | Todas as tasks `done` e `**Review:**` pendente | `/sdk-review` — consolidar veredito; sob contrato estrito, `done` sem recibo review é drift |
 | (`**Review:** aprovado` ou `aprovado com ressalvas`) **e** feature `concluída` | `/sdk-roadmap` — ressalvas aceitas já viraram sub-features `a fazer` no ledger; veja o que a conclusão desbloqueou |
-| `**Review:** bloqueado` | `/sdk-implement` para corrigir/reverificar; depois `/sdk-review` de novo. Não pule direto para review nem avance de feature |
+| `**Review:** bloqueado`, sem task `blocked` não resolvida, e há task `ready`/`in-progress` | `/sdk-implement` para corrigir/reverificar; depois `/sdk-review` de novo. Não pule direto para review nem avance de feature |
+| `**Review:** bloqueado` e há task `blocked` não resolvida | Não avance nem repita `/sdk-review`; mostre a condição do `Bloqueio`. Somente depois de resolvida, `/sdk-implement` retoma por `blocked → ready` |
+| `**Review:** bloqueado`, mas os estados das tasks não explicam o bloqueio | `/sdk-doctor` — reconciliar o veredito e os markers sem presumir correção |
 | Marcadores contraditórios entre si (ledger × artefatos × git) | `/sdk-doctor` — diagnóstico global read-only + reconciliação aprovada |
 
 - **Leia o risco gravado na spec** e faça uma checagem de sanidade pela definição de lógica crítica da
@@ -61,8 +65,14 @@ dos comandos de cada etapa.
   `verification-pending`/`done` e dependência de
   `done` em `done`. Ausência/formato incompleto pede `/sdk-doctor`, nunca presunção.
 - O contrato é estrito: a fonte das tasks exige marker `- **Evidence:**` para a própria feature, e estados
-  comprovados exigem seus recibos. Ausência/formato incompleto pede `/sdk-doctor`; não há modo legado.
+  comprovados exigem seus recibos. Ausência/formato incompleto pede `/sdk-doctor`.
 - `partial`/`reopened` são inválidos. `blocked` volta a `ready` após sua condição objetiva ser observada.
+- **Precedência:** `Analyze: ajustar/bloqueado` impede implementação. Depois do review, uma task `blocked`
+  ainda não resolvida prevalece sobre a rota geral de `Review: bloqueado`; nunca transforme impedimento
+  externo em nova tentativa automática de implementação.
+- Se o último relatório do `/sdk-analyze` não estiver disponível para identificar o comando dono, não
+  adivinhe: recomende **somente** `/sdk-analyze` para reconstruir o diagnóstico. A saída continua apontando
+  um único comando.
 - **Não substitui o `/sdk-roadmap`:** o roadmap decide **qual feature** vem agora (dependências); o next
   decide **qual etapa** da feature atual. Quando a dúvida for "qual feature?", mande para o roadmap.
 

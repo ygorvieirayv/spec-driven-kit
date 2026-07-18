@@ -10,8 +10,9 @@ Implemente a mudança com a menor cerimônia segura para seu risco.
 Primeiro confirme pela constituição se é mudança trivial ou feature formal. Para mudança trivial, carregue
 somente o pedido confirmado, o diff/contexto mínimo e a barra de engenharia relevante. Para feature formal,
 carregue a spec, o plano e `tasks.md` (`docs/plans/<feature>/`), a constituição e
-`engineering-standards.md`; confirme risco, limites de fidelidade e perfis. Leia também
-`state-markers.md` e `evidence-template.md`.
+`engineering-standards.md`; confirme risco, limites de fidelidade e perfis. Em `state-markers.md`, leia
+somente **Os marcadores**, **Regras transversais**, **Ciclo normativo das tasks** e **Contrato de
+evidence**. Carregue `evidence-template.md` somente ao criar o primeiro `evidence.md` da feature.
 
 ## Antes de começar
 - **Mudança trivial sem lifecycle formal:** use o pedido confirmado como escopo, execute a verificação

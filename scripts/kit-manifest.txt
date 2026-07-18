@@ -12,6 +12,7 @@ ENGINE .claude/agents/sdk-reviewer.md
 ENGINE .claude/commands/sdk-analyze.md
 ENGINE .claude/commands/sdk-bootstrap.md
 ENGINE .claude/commands/sdk-clarify.md
+ENGINE .claude/commands/sdk-cycle.md
 ENGINE .claude/commands/sdk-decide.md
 ENGINE .claude/commands/sdk-doctor.md
 ENGINE .claude/commands/sdk-implement.md
@@ -51,6 +52,8 @@ SEED docs/plans/README.md
 SEED docs/specs/README.md
 SKIP install.ps1
 SKIP install.sh
+ENGINE scripts/export-opencode.ps1
+ENGINE scripts/export-opencode.sh
 SKIP scripts/kit-rules.sh
 SKIP scripts/kit-rules.txt
 ENGINE scripts/new-feature.ps1
@@ -62,6 +65,10 @@ ENGINE scripts/sdk-check.sh
 ENGINE scripts/sdk-secrets.sh
 SKIP scripts/kit-manifest.txt
 SKIP .github/workflows/ci.yml
+SKIP tests/export-opencode-wrapper.ps1
+SKIP tests/export-opencode.sh
+SKIP tests/install-path-safety.ps1
+SKIP tests/install-path-safety.sh
 SKIP tests/kit-rules-negative.sh
 SKIP tests/sdk-ci-consumer.sh
 SKIP tests/sdk-ci-wrapper.ps1

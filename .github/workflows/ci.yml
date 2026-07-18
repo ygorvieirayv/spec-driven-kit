@@ -12,7 +12,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-latest, windows-latest]
+        os: [ubuntu-latest, windows-latest, macos-latest]
 
     steps:
       - name: Checkout
@@ -24,7 +24,11 @@ jobs:
         run: |
           python - <<'PY'
           from pathlib import Path
-          paths = list(Path("scripts").glob("*.ps1")) + [Path("install.ps1")]
+          paths = (
+              list(Path("scripts").glob("*.ps1"))
+              + list(Path("tests").glob("*.ps1"))
+              + [Path("install.ps1")]
+          )
           bad = []
           for path in paths:
               data = path.read_bytes()
@@ -103,6 +107,9 @@ jobs:
               if path.startswith(("tests/", ".github/", "docs/example/")) and category != "SKIP":
                   errors.append(f"Internal-only path must be SKIP: {path} ({category})")
           expected_categories = {
+              ".claude/commands/sdk-cycle.md": "ENGINE",
+              "scripts/export-opencode.ps1": "ENGINE",
+              "scripts/export-opencode.sh": "ENGINE",
               "scripts/kit-rules.sh": "SKIP",
               "scripts/kit-rules.txt": "SKIP",
               ".specify/memory/constitution.md": "ENGINE",
@@ -122,9 +129,12 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
+          bash -n scripts/export-opencode.sh
           bash -n scripts/kit-rules.sh
           bash -n scripts/sdk-ci.sh
           bash -n scripts/sdk-secrets.sh
+          bash -n tests/export-opencode.sh
+          bash -n tests/install-path-safety.sh
           bash -n tests/kit-rules-negative.sh
           bash -n tests/sdk-ci-consumer.sh
           bash -n tests/sdk-check-graph.sh
@@ -132,18 +142,24 @@ jobs:
           bash scripts/kit-rules.sh
           bash tests/kit-rules-negative.sh
 
-      - name: Linux checks
-        if: runner.os == 'Linux'
+      - name: Cross-platform Bash and PowerShell checks
+        if: runner.os == 'Linux' || runner.os == 'Windows'
         shell: bash
         run: |
           set -euo pipefail
           bash -n scripts/sdk-check.sh
+          bash -n scripts/export-opencode.sh
           bash -n install.sh
           bash scripts/sdk-check.sh
           pwsh -NoProfile -File scripts/sdk-check.ps1
+          bash tests/export-opencode.sh
+          pwsh -NoProfile -File tests/export-opencode-wrapper.ps1
+          bash tests/install-path-safety.sh
           bash tests/sdk-ci-consumer.sh
           bash tests/sdk-check-graph.sh
-          bash tests/sdk-secrets.sh
+          if [ "$RUNNER_OS" = "Linux" ]; then
+            bash tests/sdk-secrets.sh
+          fi
 
           valid="$(mktemp -d)"
           cp -R tests/fixtures/valid/. "$valid"
@@ -743,7 +759,8 @@ jobs:
           pwsh -NoProfile -File "$reclassified_then_reimplemented/scripts/sdk-check.ps1"
 
           version="$(cat VERSION)"
-          dry="$RUNNER_TEMP/sdk-dry-run-target"
+          dry_parent="$(mktemp -d)"
+          dry="$dry_parent/sdk-dry-run-target"
           dry_output="$(bash install.sh --target "$dry" --dry-run --yes)"
           echo "$dry_output" | grep -q "DRY-RUN would stamp .specify/spec-driven-kit.version: none -> $version"
           test ! -e "$dry"
@@ -813,6 +830,8 @@ jobs:
         run: |
           powershell.exe -NoProfile -ExecutionPolicy Bypass -File scripts\sdk-check.ps1
           powershell.exe -NoProfile -ExecutionPolicy Bypass -File tests\sdk-ci-wrapper.ps1
+          powershell.exe -NoProfile -ExecutionPolicy Bypass -File tests\export-opencode-wrapper.ps1
+          powershell.exe -NoProfile -ExecutionPolicy Bypass -File tests\install-path-safety.ps1
 
           $valid = Join-Path $env:RUNNER_TEMP "sdk-valid"
           New-Item -ItemType Directory -Force -Path $valid | Out-Null
@@ -974,3 +993,65 @@ jobs:
             echo "Broken fixture unexpectedly passed in Windows Git Bash"
             exit 1
           fi
+
+      - name: macOS smoke checks
+        if: runner.os == 'macOS'
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          for script in install.sh scripts/*.sh tests/*.sh; do
+            case "$script" in
+              scripts/sdk-secrets.sh|tests/sdk-secrets.sh) continue ;;
+            esac
+            bash -n "$script"
+          done
+
+          bash scripts/sdk-check.sh
+
+          valid="$(mktemp -d)"
+          cp -R tests/fixtures/valid/. "$valid"
+          mkdir -p "$valid/scripts"
+          cp scripts/sdk-check.sh "$valid/scripts/"
+          bash "$valid/scripts/sdk-check.sh"
+
+          broken="$(mktemp -d)"
+          cp -R tests/fixtures/broken/. "$broken"
+          mkdir -p "$broken/scripts"
+          cp scripts/sdk-check.sh "$broken/scripts/"
+          if bash "$broken/scripts/sdk-check.sh"; then
+            echo "Broken fixture unexpectedly passed on macOS"
+            exit 1
+          fi
+
+          version="$(cat VERSION)"
+          target="$(mktemp -d "$HOME/sdk-macos-install.XXXXXX")"
+          bash install.sh --target "$target" --yes
+          bash "$target/scripts/sdk-check.sh"
+
+          bash "$target/scripts/new-feature.sh" "Smoke Feature"
+          generated_spec="$target/docs/specs/smoke-feature/spec.md"
+          test -f "$generated_spec"
+          if grep -E '<feature>|<Nome da Feature>' "$generated_spec"; then
+            echo "new-feature.sh left template identity placeholders on macOS"
+            exit 1
+          fi
+          test ! -e "$target/docs/specs/smoke-feature/spec.md-e"
+          if find "$target/docs/specs/smoke-feature" \
+              \( -name '*-e' -o -name '*.tmp.*' \) -print | grep -q .; then
+            echo "new-feature.sh left a backup or temporary artifact on macOS"
+            exit 1
+          fi
+          test ! -e "$target/docs/plans/smoke-feature/plan.md"
+          test ! -e "$target/docs/plans/smoke-feature/tasks.md"
+          bash "$target/scripts/sdk-check.sh"
+
+          bash "$target/scripts/export-opencode.sh"
+          bash "$target/scripts/export-opencode.sh" --check
+          test -f "$target/.opencode/commands/sdk-cycle.md"
+
+          second_output="$(bash install.sh --target "$target" --yes)"
+          echo "$second_output" | grep -q "installed: $version -> $version"
+          echo "$second_output" | grep -q "conflicts=0"
+
+          bash tests/install-path-safety.sh

@@ -59,6 +59,10 @@ correspondente. Estado que não está gravado não existe para os outros comando
 8. **Perfis não ampliam evidence:** o plano avalia `visual`, `logic`, `journey`, `data-security`,
    `operational` e `delivery`; cada task cita os aplicáveis na coluna **Perfis**. O recibo continua ligando
    task + AC. `/sdk-analyze` garante a cobertura e `/sdk-review` devolve o mapa perfil → task/AC → recibo.
+9. **Orquestração não cria um segundo motor de estado:** `/sdk-cycle` pode encadear somente `/sdk-tasks` →
+   `/sdk-analyze`, nessa ordem e no máximo uma vez cada por execução. Ele para antes de checkpoint, decisão,
+   correção, `/sdk-roadmap`, `/sdk-implement` ou `/sdk-review`; não escreve artefato nem marcador próprio.
+   Os comandos invocados preservam a propriedade exclusiva de suas mutações.
 
 ## Ciclo normativo das tasks
 
@@ -127,8 +131,8 @@ Arquivo por feature: `docs/plans/<feature>/evidence.md`.
 
 Use `.specify/templates/evidence-template.md`. O arquivo nasce na primeira observação feita por
 `/sdk-implement`; não o crie vazio durante spec/plano/tasks. O marcador `- **Evidence:**` dos templates é
-obrigatório e ativa o contrato antes de o arquivo nascer. Não existe modo legado nem recibo retrospectivo:
-sem prova real, a task não avança para um estado que afirme prova.
+obrigatório e ativa o contrato antes de o arquivo nascer. Recibo retrospectivo é inválido: sem prova real,
+a task não avança para um estado que afirme prova.
 
 Se `evidence.md` existir, precisa conter ao menos um bloco canônico preenchido. Arquivo vazio ou apenas com
 resumo é drift e falha no `sdk-check`.

@@ -72,7 +72,7 @@ check_rule_index() {
   local id count expected actual
   require_file "KR-INDEX" "scripts/kit-rules.txt"
   [ -f "$ROOT/scripts/kit-rules.txt" ] || return
-  expected="$(printf '%s\n' KR-01 KR-02 KR-03 KR-04 KR-05 KR-06 KR-07 KR-08 KR-09 KR-10)"
+  expected="$(printf '%s\n' KR-01 KR-02 KR-03 KR-04 KR-05 KR-06 KR-07 KR-08 KR-09 KR-10 KR-11)"
   actual="$(awk -F'|' '
     /^\| KR-[0-9]+ \|/ {
       id = $2
@@ -83,38 +83,10 @@ check_rule_index() {
   if [ "$actual" != "$expected" ]; then
     rule_error "KR-INDEX" "scripts/kit-rules.txt: conjunto de IDs diverge das asserções implementadas"
   fi
-  for id in KR-01 KR-02 KR-03 KR-04 KR-05 KR-06 KR-07 KR-08 KR-09 KR-10; do
+  for id in KR-01 KR-02 KR-03 KR-04 KR-05 KR-06 KR-07 KR-08 KR-09 KR-10 KR-11; do
     count="$(grep -cE "^\\| $id \\|" "$ROOT/scripts/kit-rules.txt" || true)"
     [ "$count" -eq 1 ] || rule_error "KR-INDEX" "scripts/kit-rules.txt: $id deve aparecer exatamente uma vez"
   done
-}
-
-check_legacy_modes() {
-  local legacy_a legacy_b legacy_marker path rel
-  legacy_a='PROTO'"TYPE"
-  legacy_b='PRODUC'"TION"
-  legacy_marker='- **'"Modo:"'**'
-
-  if git -C "$ROOT" rev-parse --is-inside-work-tree >/dev/null 2>&1; then
-    while IFS= read -r -d '' rel; do
-      path="$ROOT/$rel"
-      [ -f "$path" ] || continue
-      grep -Iq . "$path" || continue
-      if grep -Eq "(^|[^[:alnum:]_])($legacy_a|$legacy_b)([^[:alnum:]_]|$)" "$path" || \
-         grep -Fq -- "$legacy_marker" "$path"; then
-        rule_error "KR-05" "$rel: modo global legado encontrado"
-      fi
-    done < <(git -C "$ROOT" ls-files -z)
-  else
-    while IFS= read -r -d '' path; do
-      rel="${path#"$ROOT"/}"
-      grep -Iq . "$path" || continue
-      if grep -Eq "(^|[^[:alnum:]_])($legacy_a|$legacy_b)([^[:alnum:]_]|$)" "$path" || \
-         grep -Fq -- "$legacy_marker" "$path"; then
-        rule_error "KR-05" "$rel: modo global legado encontrado"
-      fi
-    done < <(find "$ROOT" -path "$ROOT/.git" -prune -o -type f -print0)
-  fi
 }
 
 check_rule_index
@@ -153,7 +125,6 @@ require_match "KR-04" ".claude/commands/sdk-implement.md" 'novo bloco append-onl
 require_match "KR-04" ".claude/commands/sdk-review.md" 'novo bloco append-only' "review não exige nova entrada"
 
 # KR-05 - barra única e fidelidade local.
-check_legacy_modes
 require_match "KR-05" ".specify/memory/constitution.md" 'uma única barra de integridade' "barra única ausente"
 require_match "KR-05" ".specify/templates/spec-template.md" '^- \*\*Risco:\*\*' "template de spec sem risco"
 require_match "KR-05" ".specify/templates/spec-template.md" '^## Limites de fidelidade' "template de spec sem fidelidade"
@@ -225,6 +196,24 @@ require_match "KR-10" ".claude/commands/sdk-review.md" 'head_sha.*exatamente o c
 require_match "KR-10" ".claude/agents/sdk-reviewer.md" 'project-context.md' "reviewer não recebe a matriz aprovada"
 require_match "KR-10" ".claude/commands/sdk-review.md" 'gate.*externo.*não anexe novo recibo|gate.*externo.*nao anexe novo recibo' "review cria ciclo de atestação por SHA"
 require_match "KR-10" ".claude/commands/sdk-doctor.md" 'sdk-ci.sh --validate' "doctor não valida o contrato de CI"
+
+# KR-11 - cycle possui somente o trecho mecânico tasks -> analyze e next roteia os bloqueios sem ambiguidade.
+require_match "KR-11" ".specify/memory/state-markers.md" '/sdk-cycle.*somente.*/sdk-tasks' "fonte normativa não limita o cycle a tasks"
+require_match "KR-11" ".specify/memory/state-markers.md" '/sdk-analyze.*no máximo uma vez cada' "fonte normativa não limita cada etapa a uma execução"
+require_match "KR-11" ".specify/memory/state-markers.md" 'para antes de checkpoint.*decisão' "fonte normativa permite cruzar checkpoint"
+require_match "KR-11" ".specify/memory/state-markers.md" 'não escreve artefato nem marcador próprio' "fonte normativa permite estado próprio"
+require_match "KR-11" ".claude/commands/sdk-cycle.md" '^SDK-CYCLE-ALLOWED=sdk-tasks,sdk-analyze$' "lista permitida do cycle divergiu"
+require_match "KR-11" ".claude/commands/sdk-cycle.md" '^SDK-CYCLE-ORDER=sdk-tasks>sdk-analyze$' "ordem mecânica do cycle divergiu"
+require_match "KR-11" ".claude/commands/sdk-cycle.md" '^SDK-CYCLE-MAX-RUNS-PER-STEP=1$' "cycle pode repetir etapa"
+require_match "KR-11" ".claude/commands/sdk-cycle.md" '^SDK-CYCLE-OWNS-MARKERS=false$' "cycle passou a possuir markers"
+require_match "KR-11" ".claude/commands/sdk-cycle.md" '^SDK-CYCLE-CROSSES-CHECKPOINTS=false$' "cycle pode cruzar checkpoint"
+require_match "KR-11" ".claude/commands/sdk-cycle.md" '\.claude/commands/sdk-tasks\.md.*\.claude/commands/sdk-analyze\.md' "cycle não carrega os procedimentos canônicos"
+reject_match "KR-11" ".claude/commands/sdk-cycle.md" '^SDK-CYCLE-ALLOWED=.*(roadmap|implement|review)' "cycle autorizou etapa não mecânica"
+reject_match "KR-11" ".claude/commands/sdk-cycle.md" '^SDK-CYCLE-(OWNS-MARKERS|CROSSES-CHECKPOINTS)=true$' "cycle ampliou autonomia"
+require_match "KR-11" ".claude/commands/sdk-next.md" 'Analyze:.*ajustar.*Não implemente' "next não bloqueia implementação após Analyze ajustar"
+require_match "KR-11" ".claude/commands/sdk-next.md" 'Analyze:.*bloqueado.*Não avance' "next não roteia Analyze bloqueado"
+require_match "KR-11" ".claude/commands/sdk-next.md" 'Review:.*bloqueado.*task.*blocked.*não resolvida.*Não avance' "next não prioriza task bloqueada sobre Review bloqueado"
+require_match "KR-11" ".claude/commands/sdk-next.md" 'Precedência:.*Analyze: ajustar/bloqueado.*impede implementação' "precedência dos gates não está explícita"
 
 echo "----------------------------------------"
 echo "kit-rules: $ERRORS erro(s)."

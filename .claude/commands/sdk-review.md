@@ -19,7 +19,10 @@ justificada: registre o motivo e reexecute a mesma prova independente exigida ab
 - O plano: `docs/plans/<feature>/plan.md`.
 - As tasks e `docs/plans/<feature>/evidence.md`, se existir.
 - A barra: `.specify/memory/engineering-standards.md` e a `constitution.md`.
-- O contrato: `.specify/memory/state-markers.md` e `.specify/templates/evidence-template.md`.
+- O contrato: em `.specify/memory/state-markers.md`, somente **Os marcadores**, **Regras transversais**,
+  **Ciclo normativo das tasks** e **Contrato de evidence**. Carregue
+  `.specify/templates/evidence-template.md` apenas se precisar conferir ou reparar a forma estrutural do
+  arquivo — não como leitura fixa de toda revisão.
 - O contrato de CI em `.specify/memory/project-context.md` quando `delivery` for aplicável.
 
 Se a mudança foi classificada como **trivial** e não possui lifecycle formal, use o pedido confirmado, o
@@ -67,6 +70,12 @@ sete labels ASCII do exemplo, sem placeholders. `Exit code`: `pass=0`; `fail=int
 `observed|not-run=not-applicable`; `unavailable=unavailable`. Cada rerun gera entrada nova. Sem recibo
 `review` bem-sucedido, não há `done`.
 
+Depois de anexar cada recibo e aplicar a transição correspondente, atualize **somente** o `Resumo
+atualizável` do `evidence.md` existente: última atualização; tasks com implementação observada,
+aguardando revisão, concluídas e bloqueadas; ACs cobertos/faltantes; falhas e limitações abertas. Derive o
+agregado das tasks e entradas atuais, sem reescrever o histórico. Isso mantém a leitura barata do
+`/sdk-next` coerente sem exigir o template como carga fixa.
+
 Quando o perfil `delivery` exigir CI, publique primeiro um commit de implementação com worktree limpo.
 Consulte o provedor (por exemplo `gh pr checks`/Check Runs) e aceite somente `completed/success` de
 `Quality gates` e `Secret scan` cujo `head_sha` seja exatamente o commit de implementação revisado. Registre URL e SHA em
@@ -97,7 +106,7 @@ o `/sdk-analyze`, que continua responsável pelas dependências semânticas entr
 ### Contrato estrito
 
 Plan/tasks precisa conter `- **Evidence:**` apontando para a própria feature. O arquivo nasce na primeira
-observação real; quando um estado exige prova, ausência de recibo é erro. Não há modo legado nem evidência
+observação real; quando um estado exige prova, ausência de recibo é erro. Não fabrique evidência
 retrospectiva.
 
 ## O que checar

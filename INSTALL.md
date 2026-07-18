@@ -49,6 +49,10 @@ O instalador segue o manifesto `scripts/kit-manifest.txt`:
 - **SKIP**: documentação e infra do repositório do kit (`README.md`, `ROADMAP.md`, `docs/example/`,
   `.github/`, `tests/`, `install.*`, `VERSION`, `CHANGELOG.md`). Nunca são copiados para a raiz do produto.
 
+Antes da primeira escrita, o instalador valida o destino e cada componente de caminho que utilizará.
+Symlink, junction ou reparse point capaz de redirecionar arquivo, sidecar, selo ou backup para fora do
+projeto interrompe a instalação sem mutação parcial.
+
 Ao final de uma instalação real, o instalador roda `sdk-check` no destino e mostra o próximo passo:
 abrir o Claude Code no projeto e rodar **`/sdk-bootstrap`**. A distribuição via `npm create`/`npx` é um
 caminho futuro; hoje o instalador local é o caminho suportado.
@@ -77,7 +81,9 @@ dados do produto, ficam fora do manifesto e não são sobrescritos nem mesmo por
 
 ---
 
-## Usando outra ferramenta (sem slash commands nativos)
+## Outras ferramentas
+
+### Codex CLI e ferramentas sem comandos nativos
 
 O kit foi feito para o Claude Code, mas os comandos são só **markdown em `.claude/commands/`** — nada
 impede outra ferramenta de IA agente (ex.: Codex CLI) de ler e seguir esses arquivos, desde que ela saiba
@@ -100,6 +106,31 @@ digita `--sdk-plan` (ou o equivalente que sua ferramenta aceitar como texto livr
 > (`~/.codex/prompts/`), sem viajar com o repositório. Já o `AGENTS.md` é lido pelo Codex a cada início,
 > como regra permanente do projeto.
 
+### OpenCode com comandos nativos
+
+Depois da instalação, gere `.opencode/commands/sdk-*.md` a partir da fonte canônica em
+`.claude/commands/`:
+
+```bash
+bash scripts/export-opencode.sh
+bash scripts/export-opencode.sh --check
+```
+
+No Windows PowerShell:
+
+```powershell
+.\scripts\export-opencode.ps1
+.\scripts\export-opencode.ps1 -Check
+```
+
+O export é sob demanda e idempotente. Ele atualiza ou remove somente arquivos que carregam seu marcador
+de geração, preserva comandos manuais e recusa colisão de nome em vez de sobrescrever. Não escolha modelo
+nem agente automaticamente. Rode novamente depois de atualizar o kit; `--check`/`-Check` apenas confirma
+que o diretório gerado está atual, sem alterar o projeto. Os `sdk-*.md` gerados ficam ignorados pelo `.gitignore` do
+kit porque a fonte versionada é `.claude/commands/`; em projeto existente cujo `.gitignore` é preservado,
+adicione `.opencode/commands/sdk-*.md`. Mantenha também um `AGENTS.md` preenchido se quiser que o
+OpenCode receba as regras permanentes e o fallback inline dos subagentes do projeto.
+
 ---
 
 ## Verificando a instalação
@@ -107,12 +138,13 @@ digita `--sdk-plan` (ou o equivalente que sua ferramenta aceitar como texto livr
 Confira que o Claude Code enxerga os comandos:
 
 ```bash
-ls .claude/commands     # sdk-next, sdk-bootstrap, sdk-roadmap, sdk-spec, sdk-clarify, sdk-plan, sdk-tasks,
-                        # sdk-analyze, sdk-implement, sdk-review, sdk-decide, sdk-lesson, sdk-doctor (.md)
+ls .claude/commands     # sdk-next, sdk-cycle, sdk-bootstrap, sdk-roadmap, sdk-spec, sdk-clarify, sdk-plan,
+                        # sdk-tasks, sdk-analyze, sdk-implement, sdk-review, sdk-decide, sdk-lesson,
+                        # sdk-doctor (.md)
 ls .claude/agents       # sdk-domain-researcher.md, sdk-reviewer.md, sdk-lesson-curator.md
 ls .specify/memory      # constitution.md, engineering-standards.md, decision-guide.md, lessons.md,
                         # state-markers.md, project-context.md
-ls scripts              # new-feature.*, sdk-check.*, sdk-ci.* e sdk-secrets.sh
+ls scripts              # new-feature.*, export-opencode.*, sdk-check.*, sdk-ci.* e sdk-secrets.sh
 cat .specify/spec-driven-kit.version  # versão do Spec Driven Kit instalada neste projeto
 ```
 
@@ -132,7 +164,8 @@ Para puxar melhorias do kit sem perder seus artefatos:
 - **Seguro de sobrescrever** (são o "motor" do kit): `.claude/commands/`, `.claude/agents/`,
   `.specify/templates/`, `.specify/memory/decision-guide.md`, `.specify/memory/engineering-standards.md`,
   `.specify/memory/state-markers.md`, `scripts/sdk-check.*`, `scripts/sdk-ci.*`, `scripts/sdk-secrets.sh`,
-  `scripts/new-feature.*`, `CLAUDE.md`, `COMO-USAR.md` e `.specify/memory/constitution.md`. Princípios
+  `scripts/new-feature.*`, `scripts/export-opencode.*`, `CLAUDE.md`, `COMO-USAR.md` e
+  `.specify/memory/constitution.md`. Princípios
   específicos ficam no `project-context.md`, nunca na
   constituição atualizável do motor.
 - **Nunca sobrescreva** (são **seus**): `.specify/memory/project-context.md`, `.specify/ci/gates/`,
@@ -155,5 +188,6 @@ Para puxar melhorias do kit sem perder seus artefatos:
 
 ## Desinstalar
 
-Remova `.specify/`, `.claude/commands/sdk-*.md`, `.claude/agents/sdk-*.md`, `CLAUDE.md`, `COMO-USAR.md` e
-(se quiser) `docs/` e `scripts/`. Seu código de aplicação não é tocado pelo kit.
+Remova `.specify/`, `.claude/commands/sdk-*.md`, `.claude/agents/sdk-*.md`, os arquivos gerados
+`.opencode/commands/sdk-*.md`, `CLAUDE.md`, `COMO-USAR.md` e (se quiser) `docs/` e `scripts/`. Seu código de
+aplicação não é tocado pelo kit.

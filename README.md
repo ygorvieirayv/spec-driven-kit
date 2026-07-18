@@ -2,8 +2,10 @@
 
 [![CI](https://github.com/ygorvieirayv/spec-driven-kit/actions/workflows/ci.yml/badge.svg)](https://github.com/ygorvieirayv/spec-driven-kit/actions/workflows/ci.yml)
 
-**Um toolkit autônomo de desenvolvimento orientado a IA** — inspirado pelo
-[GitHub Spec Kit](https://github.com/github/spec-kit), com três diferenciais:
+**Um toolkit autônomo de desenvolvimento orientado a IA.** Inspirado pelo
+[GitHub Spec Kit](https://github.com/github/spec-kit).
+
+Três diferenciais orientam o produto:
 
 1. **Criação guiada por IA** — o agente conduz a conversa; você responde e aprova. Os artefatos (specs,
    planos, decisões) nascem do diálogo, não de formulários.
@@ -13,10 +15,6 @@
    arquitetura/infra como **trade-offs claros** (facilidade × desempenho × custo × escala) e ajuda você a
    escolher — sempre oferecendo construir qualquer caminho.
 
-> O Spec Driven Kit possui ciclo completo próprio: descoberta, roadmap, spec, clarify, decisão, plano,
-> tasks, analyze, implement, review, doctor, lições e recomendação de próximo passo. Os caminhos
-> `.specify/` mantêm compatibilidade de artefatos, mas o produto não depende de outro motor de SDD.
-
 ---
 
 ## Para quem é
@@ -24,8 +22,8 @@
 - Quem tem uma ideia e quer sair dela para um sistema **bem especificado** sem se afogar em decisões técnicas.
 - Quem quer entender os **trade-offs** de cada escolha (e o custo) antes de construir.
 - Quem usa o **Claude Code** e quer um fluxo de specs guiado por slash commands.
-- Quem usa outra ferramenta de IA agente que lê `AGENTS.md` (ex.: Codex CLI) — via o adaptador em
-  `.specify/templates/agents-md-template.md` (ver `INSTALL.md`, "Usando outra ferramenta").
+- Quem usa outra ferramenta de IA agente: Codex CLI pelo adaptador `AGENTS.md` e OpenCode por comandos
+  nativos gerados sob demanda (ver `INSTALL.md`, "Outras ferramentas").
 
 ---
 
@@ -57,6 +55,7 @@ ideia vaga
 
 apoio a qualquer momento:  /sdk-decide (escolha com trade-offs) · /sdk-lesson (registrar lição)
 perdido / voltando?        /sdk-next — lê o estado do projeto e diz o próximo passo (não executa nada)
+automatizar o mecânico?     /sdk-cycle — encadeia somente tasks → analyze e para antes de implementar
 algo não bate?             /sdk-doctor — diagnostica drift (read-only) e reconcilia só o que você aprovar
 ```
 
@@ -73,6 +72,7 @@ algo não bate?             /sdk-doctor — diagnostica drift (read-only) e reco
 | Comando | O que faz |
 |---------|-----------|
 | `/sdk-next` | ★ Lê o estado do projeto (ledger de `docs/epics.md`, `Status:` dos artefatos, git) e recomenda **o próximo passo + o porquê**. Read-only; não executa nada sozinho. |
+| `/sdk-cycle` | Executa somente o trecho mecânico `/sdk-tasks` → `/sdk-analyze`, uma vez cada, e para diante de decisão, erro, implementação ou review. |
 
 **Núcleo do fluxo:**
 
@@ -132,11 +132,13 @@ subagente e precisa executar exatamente o mesmo rerun. Se um review falhar, a co
 5. Rode **`/sdk-roadmap`** para ver qual feature está **pronta para começar** (🟢) — comece por ela.
 6. Para essa feature, siga: **`/sdk-spec`** → (se vago, **`/sdk-clarify`**) → **`/sdk-plan`** →
    **`/sdk-tasks`** → **`/sdk-analyze`** → **`/sdk-implement`** → **`/sdk-review`**.
+   Depois do plano aprovado, `/sdk-cycle` pode substituir apenas a digitação de `tasks` + `analyze`;
+   ele nunca inicia a implementação.
 7. Terminou? Volte ao **`/sdk-roadmap`** para a próxima feature desbloqueada.
 8. **Perdeu o fio** (pausa de dias, `/clear`, sessão nova)? Rode **`/sdk-next`** — ele lê o estado gravado
    nos arquivos e diz exatamente onde você parou e o que rodar agora.
 
-**Atalho opcional (Fase 4):** `scripts/new-feature.sh "minha-feature"` (ou `.ps1` no Windows) inicia a spec
+**Atalho opcional:** `scripts/new-feature.sh "minha-feature"` (ou `.ps1` no Windows) inicia a spec
 e uma branch dedicada. Plano e tasks só nascem nos comandos próprios, depois das aprovações.
 
 > 💡 **Quer ver o fluxo inteiro antes de começar?** Há um walkthrough opcional e fictício em
@@ -203,9 +205,8 @@ Cada spec declara seu **Tipo**:
 - **Greenfield** — algo **novo**. Você especifica do zero, normalmente.
 - **Brownfield** — **muda algo que já existe**. Em vez de reespecificar o sistema inteiro, o `/sdk-spec`
   descreve o **comportamento atual** e uma **"delta spec"** (o que é **ADICIONADO / MODIFICADO / REMOVIDO**),
-  mais o impacto/migração e o que **não pode quebrar** (vira teste de não-regressão). É a abordagem incremental
-  inspirada no [OpenSpec](https://github.com/Fission-AI/OpenSpec), boa para evoluir sistemas em produção sem
-  reescrever tudo.
+  mais o impacto/migração e o que **não pode quebrar** (vira teste de não-regressão). Essa abordagem incremental
+  permite evoluir sistemas em produção sem reescrever tudo.
 
 ---
 
@@ -282,9 +283,9 @@ spec-driven-kit/
 ├── CHANGELOG.md                       # histórico de mudanças do kit
 ├── install.sh / install.ps1           # instalador seguro (manifest-aware)
 │
-├── .github/workflows/ci.yml           # validação Linux + Windows do kit e do instalador
+├── .github/workflows/ci.yml           # validação Linux + Windows + macOS do kit e do instalador
 │
-├── .specify/                          # compatível com o Spec Kit oficial
+├── .specify/                          # memória, contratos e templates do kit
 │   ├── memory/                        # bases lidas SOB DEMANDA pelos comandos
 │   │   ├── constitution.md            # princípios universais e neutros (8)
 │   │   ├── engineering-standards.md   # barra técnica (infra, perf, segurança, testes…)
@@ -310,40 +311,11 @@ spec-driven-kit/
 │   ├── kit-manifest.txt               # classificação ENGINE/SEED/MERGE/SKIP para o instalador
 │   ├── kit-rules.*                    # contrato/check interno do próprio kit (SKIP no bundle)
 │   ├── sdk-ci.* + sdk-secrets.sh      # gates portáveis do produto + Gitleaks fixado para CI Ubuntu
+│   ├── export-opencode.*              # gera comandos nativos OpenCode sem fonte duplicada
 │   └── new-feature + sdk-check        # scaffolding + validação de estado, bash + PowerShell
 │
 └── tests/                             # fixtures, mutações, gates e secret scan sintético real
 ```
-
-> **Compatibilidade:** `.specify/memory/constitution.md` e `.specify/templates/` seguem os caminhos do Spec
-> Kit de propósito. `decision-guide.md`, `engineering-standards.md` e os comandos `sdk-*` são a extensão
-> deste kit.
-
----
-
-## Relação com o Spec Kit oficial
-
-Os artefatos que este kit produz (constituição, project-context, specs, planos) são **consumíveis pelo Spec
-Kit oficial**, porque vários caminhos são compatíveis. Isso é portabilidade de artefato, não recomendação
-de operar dois motores no mesmo projeto: use apenas um ciclo de estado por vez para evitar comandos,
-templates e marcadores concorrentes. Uma eventual migração é uma decisão explícita de processo, com
-reconciliação dos contratos; não rode `specify init` por cima deste kit como atualização automática.
-
-### Mapa de equivalência
-
-| Spec Driven Kit | Spec Kit oficial |
-|-----------------|------------------|
-| `/sdk-bootstrap` (etapas B–F) | `specify init` + `/speckit.constitution` **+ extra nosso**: descoberta de domínio e decisões guiadas |
-| `/sdk-next` | (sem equivalente direto — extra nosso: lê o estado e recomenda o próximo passo) |
-| `/sdk-roadmap` | (sem equivalente direto — extra nosso: ordem por dependências) |
-| `/sdk-spec` | `/speckit.specify` |
-| `/sdk-clarify` | `/speckit.clarify` |
-| `/sdk-plan` | `/speckit.plan` |
-| `/sdk-tasks` | `/speckit.tasks` |
-| `/sdk-analyze` | `/speckit.analyze` (read-only de consistência) |
-| `/sdk-implement` | `/speckit.implement` |
-| `/sdk-review` | (review de código + QA — complementa o `analyze`) |
-| `/sdk-doctor` | (sem equivalente direto — extra nosso: diagnóstico global de drift + reconciliação aprovada) |
 
 ---
 

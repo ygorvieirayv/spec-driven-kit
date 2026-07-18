@@ -50,9 +50,82 @@ $script:Skipped = 0
 $script:Conflicts = 0
 $script:Backups = 0
 $script:Sidecars = 0
+$CreateTarget = $false
+$InstallTimestamp = Get-Date -Format "yyyyMMddHHmmss"
 
 function Full-Path($path) {
   return [System.IO.Path]::GetFullPath($path)
+}
+
+function Get-PathEntry($path) {
+  return Get-Item -Force -LiteralPath $path -ErrorAction SilentlyContinue
+}
+
+function Test-ReparsePoint($item) {
+  if ($null -eq $item) { return $false }
+  return (($item.Attributes -band [System.IO.FileAttributes]::ReparsePoint) -ne 0)
+}
+
+function Throw-UnsafePath($path, $reason) {
+  throw "Unsafe install path: $path ($reason)"
+}
+
+function Assert-SafeTargetPath($path) {
+  $full = [System.IO.Path]::GetFullPath($path)
+  $root = [System.IO.Path]::GetPathRoot($full)
+  $tail = $full.Substring($root.Length)
+  $parts = @($tail -split '[\\/]' | Where-Object { $_ -ne '' })
+  $current = $root
+
+  for ($i = 0; $i -lt $parts.Count; $i++) {
+    $current = Join-Path $current $parts[$i]
+    $item = Get-PathEntry $current
+    if ($null -eq $item) { continue }
+    if (Test-ReparsePoint $item) {
+      Throw-UnsafePath $path "target path crosses a symlink/junction/reparse point"
+    }
+    if ($i -lt ($parts.Count - 1) -and -not $item.PSIsContainer) {
+      Throw-UnsafePath $path "target parent component is not a directory"
+    }
+  }
+}
+
+# The only linked leaf that may be read is the documented MERGE lessons file.
+# It remains project data and is never overwritten by the installer.
+function Assert-SafeRelativePath($relative, [bool]$allowLinkedLeaf = $false) {
+  if ([string]::IsNullOrWhiteSpace($relative) -or [System.IO.Path]::IsPathRooted($relative)) {
+    Throw-UnsafePath $relative "manifest path must be relative"
+  }
+
+  $parts = @($relative -split '[\\/]')
+  $current = $TargetAbs
+  for ($i = 0; $i -lt $parts.Count; $i++) {
+    $component = $parts[$i]
+    if ([string]::IsNullOrWhiteSpace($component) -or $component -in @('.', '..')) {
+      Throw-UnsafePath $relative "invalid path component '$component'"
+    }
+
+    $current = Join-Path $current $component
+    $item = Get-PathEntry $current
+    if ($null -eq $item) { continue }
+
+    $isLast = $i -eq ($parts.Count - 1)
+    if (Test-ReparsePoint $item) {
+      if ($isLast -and $allowLinkedLeaf) {
+        if (-not (Test-Path -LiteralPath $current -PathType Leaf)) {
+          Throw-UnsafePath $relative "allowed MERGE link is dangling or not a file"
+        }
+      } else {
+        Throw-UnsafePath $relative "symlink/junction/reparse point detected"
+      }
+    } elseif ($isLast) {
+      if ($item.PSIsContainer) {
+        Throw-UnsafePath $relative "destination is not a regular file"
+      }
+    } elseif (-not $item.PSIsContainer) {
+      Throw-UnsafePath $relative "parent component is not a directory"
+    }
+  }
 }
 
 function Ensure-Parent($path) {
@@ -70,13 +143,25 @@ function Same-File($a, $b) {
 }
 
 function Unique-Path($base) {
-  if (-not (Test-Path $base)) { return $base }
+  $item = Get-PathEntry $base
+  if ($null -eq $item) { return $base }
+  if (Test-ReparsePoint $item) {
+    Throw-UnsafePath $base "generated sidecar/backup is a reparse point"
+  }
   $i = 1
-  while (Test-Path "$base.$i") { $i++ }
-  return "$base.$i"
+  while ($true) {
+    $candidate = "$base.$i"
+    $item = Get-PathEntry $candidate
+    if ($null -eq $item) { return $candidate }
+    if (Test-ReparsePoint $item) {
+      Throw-UnsafePath $candidate "generated sidecar/backup is a reparse point"
+    }
+    $i++
+  }
 }
 
-function Copy-KitFile($src, $dst) {
+function Copy-KitFile($src, $dst, $relative) {
+  Assert-SafeRelativePath $relative $false
   if ($DryRun) {
     Write-Host "DRY-RUN copy $src -> $dst"
   } else {
@@ -86,7 +171,8 @@ function Copy-KitFile($src, $dst) {
   $script:Copied++
 }
 
-function Copy-Sidecar($src, $dst) {
+function Copy-Sidecar($src, $dst, $relative, [bool]$allowLinkedLeaf) {
+  Assert-SafeRelativePath $relative $allowLinkedLeaf
   $sidecar = Unique-Path "$dst.sdk-new"
   if ($DryRun) {
     Write-Host "DRY-RUN sidecar $src -> $sidecar"
@@ -97,9 +183,9 @@ function Copy-Sidecar($src, $dst) {
   $script:Sidecars++
 }
 
-function Backup-And-Overwrite($src, $dst) {
-  $stamp = Get-Date -Format "yyyyMMddHHmmss"
-  $backup = Unique-Path "$dst.sdk-bak.$stamp"
+function Backup-And-Overwrite($src, $dst, $relative) {
+  Assert-SafeRelativePath $relative $false
+  $backup = Unique-Path "$dst.sdk-bak.$InstallTimestamp"
   if ($DryRun) {
     Write-Host "DRY-RUN backup $dst -> $backup"
     Write-Host "DRY-RUN overwrite $dst"
@@ -121,6 +207,7 @@ function Read-InstalledVersion($path) {
 
 function Stamp-Version {
   $stampPath = Join-Path $TargetAbs ($StampRel -replace '/', '\')
+  Assert-SafeRelativePath $StampRel $false
   if ($DryRun) {
     Write-Host "DRY-RUN would stamp ${StampRel}: $InstalledVersion -> $KitVersion"
   } else {
@@ -130,9 +217,15 @@ function Stamp-Version {
   }
 }
 
-$targetExists = Test-Path $Target
-if ($targetExists) {
-  $TargetAbs = (Resolve-Path $Target).Path
+$targetItem = Get-PathEntry $Target
+if ($null -ne $targetItem) {
+  if (Test-ReparsePoint $targetItem) {
+    Throw-UnsafePath $Target "target root is a symlink/junction/reparse point"
+  }
+  if (-not $targetItem.PSIsContainer) {
+    Throw-UnsafePath $Target "target exists and is not a directory"
+  }
+  $TargetAbs = (Resolve-Path -LiteralPath $Target).Path
 } else {
   $parent = Split-Path -Parent $Target
   if ([string]::IsNullOrWhiteSpace($parent)) { $parent = "." }
@@ -140,13 +233,13 @@ if ($targetExists) {
   $TargetAbs = Join-Path (Resolve-Path $parent).Path (Split-Path -Leaf $Target)
   if ($DryRun) {
     Write-Host "DRY-RUN would create target directory: $TargetAbs"
+    $CreateTarget = $true
   } elseif ($Yes) {
-    New-Item -ItemType Directory -Force -Path $TargetAbs | Out-Null
-    Write-Host "Created target directory: $TargetAbs"
+    $CreateTarget = $true
   } elseif ([Environment]::UserInteractive) {
     $answer = Read-Host "Target does not exist. Create '$TargetAbs'? [y/N]"
     if ($answer -match '^(y|yes)$') {
-      New-Item -ItemType Directory -Force -Path $TargetAbs | Out-Null
+      $CreateTarget = $true
     } else {
       Write-Host "Aborted."
       exit 1
@@ -156,6 +249,8 @@ if ($targetExists) {
   }
 }
 
+Assert-SafeTargetPath $TargetAbs
+
 $rootFull = Full-Path $Root
 $targetFull = Full-Path $TargetAbs
 if ($targetFull.Equals($rootFull, [System.StringComparison]::OrdinalIgnoreCase) -or
@@ -163,13 +258,8 @@ if ($targetFull.Equals($rootFull, [System.StringComparison]::OrdinalIgnoreCase) 
   throw "Refusing to install into the kit repository itself: $TargetAbs"
 }
 
-$InstalledVersion = Read-InstalledVersion (Join-Path $TargetAbs ($StampRel -replace '/', '\'))
-
-Write-Host "Spec Driven Kit v$KitVersion"
-Write-Host "Source: $Root"
-Write-Host "Target: $TargetAbs"
-Write-Host "installed: $InstalledVersion -> $KitVersion"
-if ($DryRun) { Write-Host "Mode: dry-run (no writes)" }
+$ManifestEntries = @()
+Assert-SafeRelativePath $StampRel $false
 
 foreach ($line in Get-Content -LiteralPath $Manifest) {
   $trim = $line.Trim()
@@ -179,20 +269,82 @@ foreach ($line in Get-Content -LiteralPath $Manifest) {
   $category = $parts[0]
   $path = $parts[1]
 
-  if ($category -eq "SKIP") {
-    $script:Skipped++
-    continue
-  }
-  if ($category -notin @("ENGINE", "SEED", "MERGE")) {
+  if ($category -notin @("ENGINE", "SEED", "MERGE", "SKIP")) {
     throw "Invalid category in manifest: $category ($path)"
+  }
+
+  if ($category -eq "SKIP") {
+    $ManifestEntries += [PSCustomObject]@{
+      Category = $category
+      Path = $path
+      Source = $null
+      Destination = $null
+      AllowLinkedLeaf = $false
+    }
+    continue
   }
 
   $src = Join-Path $Root ($path -replace '/', '\')
   $dst = Join-Path $TargetAbs ($path -replace '/', '\')
-  if (-not (Test-Path $src)) { throw "Manifest source missing: $path" }
+  if (-not (Test-Path -LiteralPath $src -PathType Leaf)) {
+    throw "Manifest source missing: $path"
+  }
 
-  if (-not (Test-Path $dst)) {
-    Copy-KitFile $src $dst
+  $allowLinkedLeaf = $category -eq "MERGE" -and $path -eq ".specify/memory/lessons.md"
+  Assert-SafeRelativePath $path $allowLinkedLeaf
+
+  $entry = [PSCustomObject]@{
+    Category = $category
+    Path = $path
+    Source = $src
+    Destination = $dst
+    AllowLinkedLeaf = $allowLinkedLeaf
+  }
+  $ManifestEntries += $entry
+
+  $dstItem = Get-PathEntry $dst
+  if ($null -eq $dstItem -or (Same-File $src $dst)) { continue }
+
+  if ($category -eq "ENGINE") {
+    if ($Force) {
+      $null = Unique-Path "$dst.sdk-bak.$InstallTimestamp"
+    } else {
+      $null = Unique-Path "$dst.sdk-new"
+    }
+  } elseif ($category -eq "MERGE") {
+    $null = Unique-Path "$dst.sdk-new"
+  }
+}
+
+$InstalledVersion = Read-InstalledVersion (Join-Path $TargetAbs ($StampRel -replace '/', '\'))
+
+if ($CreateTarget -and -not $DryRun) {
+  if ($null -ne (Get-PathEntry $TargetAbs)) {
+    Throw-UnsafePath $TargetAbs "target appeared after preflight"
+  }
+  New-Item -ItemType Directory -Path $TargetAbs | Out-Null
+  Write-Host "Created target directory: $TargetAbs"
+}
+
+Write-Host "Spec Driven Kit v$KitVersion"
+Write-Host "Source: $Root"
+Write-Host "Target: $TargetAbs"
+Write-Host "installed: $InstalledVersion -> $KitVersion"
+if ($DryRun) { Write-Host "Mode: dry-run (no writes)" }
+
+foreach ($entry in $ManifestEntries) {
+  $category = $entry.Category
+  $path = $entry.Path
+
+  if ($category -eq "SKIP") {
+    $script:Skipped++
+    continue
+  }
+  $src = $entry.Source
+  $dst = $entry.Destination
+
+  if ($null -eq (Get-PathEntry $dst)) {
+    Copy-KitFile $src $dst $path
     continue
   }
 
@@ -206,10 +358,10 @@ foreach ($line in Get-Content -LiteralPath $Manifest) {
     $script:Conflicts++
     if ($Force) {
       Write-Host "force update ENGINE $path"
-      Backup-And-Overwrite $src $dst
+      Backup-And-Overwrite $src $dst $path
     } else {
       Write-Host "conflict ENGINE $path -> writing .sdk-new sidecar"
-      Copy-Sidecar $src $dst
+      Copy-Sidecar $src $dst $path $false
     }
   } elseif ($category -eq "SEED") {
     Write-Host "skip existing SEED $path"
@@ -220,7 +372,7 @@ foreach ($line in Get-Content -LiteralPath $Manifest) {
   } elseif ($category -eq "MERGE") {
     Write-Host "existing MERGE $path -> writing .sdk-new for manual merge"
     $script:Conflicts++
-    Copy-Sidecar $src $dst
+    Copy-Sidecar $src $dst $path $entry.AllowLinkedLeaf
   }
 }
 

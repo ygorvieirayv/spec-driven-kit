@@ -31,3 +31,6 @@ Thumbs.db
 .idea/
 .vscode/
 *.swp
+
+# Adaptadores gerados (a fonte canônica continua em .claude/commands/)
+.opencode/commands/sdk-*.md

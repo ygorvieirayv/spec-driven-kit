@@ -1,7 +1,7 @@
 <#
   new-feature.ps1 - inicia a spec de uma feature e cria a branch dedicada.
   Uso:  ./scripts/new-feature.ps1 "nome-da-feature"
-  Opcional do Spec Driven Kit (Fase 4). O nucleo do kit funciona sem isto.
+  Atalho opcional do Spec Driven Kit. O nucleo do kit funciona sem isto.
 
   IMPORTANTE: este arquivo e ASCII puro de proposito. O Windows PowerShell 5.1 le
   .ps1 sem BOM como ANSI, o que corrompe acentos e pode quebrar o parser. Ao editar,
