@@ -20,14 +20,17 @@ justificada: registre o motivo e reexecute a mesma prova independente exigida ab
 - As tasks e `docs/plans/<feature>/evidence.md`, se existir.
 - A barra: `.specify/memory/engineering-standards.md` e a `constitution.md`.
 - O contrato: `.specify/memory/state-markers.md` e `.specify/templates/evidence-template.md`.
+- O contrato de CI em `.specify/memory/project-context.md` quando `delivery` for aplicável.
 
 Se a mudança foi classificada como **trivial** e não possui lifecycle formal, use o pedido confirmado, o
 diff e a verificação objetiva como insumos; não invente task/evidence nem altere ledger. Se o diff revelar
 risco acima de trivial, bloqueie e peça formalização por `/sdk-spec`.
 
-Para **feature formal**, ao começar atualize sua linha no ledger (`docs/epics.md`, "Ordem de construção")
-para `em review` e siga o gate abaixo. Para mudança trivial, faça a revisão leve diretamente pelo diff e
-pela verificação objetiva; as regras de severidade e a barra inegociável continuam iguais.
+Para **feature formal**, trate a linha do ledger (`docs/epics.md`, "Ordem de construção") como `em review`.
+Se `delivery` exigir CI remoto, observe primeiro o commit publicado com worktree limpo **antes de gravar**
+qualquer estado; aplique `em review` junto do primeiro recibo/resultado da revisão. Nos demais casos, grave
+`em review` ao começar. Para mudança trivial, faça a revisão leve diretamente pelo diff e pela verificação
+objetiva; as regras de severidade e a barra inegociável continuam iguais.
 
 ## Gate de verificação independente
 
@@ -64,6 +67,15 @@ sete labels ASCII do exemplo, sem placeholders. `Exit code`: `pass=0`; `fail=int
 `observed|not-run=not-applicable`; `unavailable=unavailable`. Cada rerun gera entrada nova. Sem recibo
 `review` bem-sucedido, não há `done`.
 
+Quando o perfil `delivery` exigir CI, publique primeiro um commit de implementação com worktree limpo.
+Consulte o provedor (por exemplo `gh pr checks`/Check Runs) e aceite somente `completed/success` de
+`Quality gates` e `Secret scan` cujo `head_sha` seja exatamente o commit de implementação revisado. Registre URL e SHA em
+`Saida/referencia`; isso usa `commit@SHA`, nunca `worktree@SHA`. Ao aplicar o recibo, altere somente
+evidence/estado (`evidence.md`, `tasks.md`, `plan.md` e ledger), criando um commit de finalização. Os checks
+desse SHA final permanecem gate **externo** de merge: aguarde e reporte o veredito, mas não anexe novo recibo
+nem crie outro commit, evitando ciclo infinito de SHA. CI anterior, job ausente/pending, provedor
+indisponível ou mudança de produto posterior não promove a task.
+
 ### Falha, bloqueio e cascata de dependências
 
 - `fail` manda a task para `ready`; a correção obrigatoriamente passa por `/sdk-implement` e só depois por
@@ -95,6 +107,8 @@ retrospectiva.
    está em `.specify/memory/engineering-standards.md`). A barra é única; Crítico/Alto bloqueiam e `N/A`
    sempre exige motivo:
    - [ ] Segredos fora do código/git/bundle/logs (inclui o bundle que vai pro navegador)
+   - [ ] Contrato de CI completo: seis gates iguais à matriz `required`/`N/A`, sem bypass; runner/setup
+         aprovados; Gitleaks preserva defaults; checks remotos verdes quando `delivery` exigir CI
    - [ ] Toda entrada pública validada **no servidor** (não só na UI)
    - [ ] PII fora de logs, mensagens de erro e telemetria
    - [ ] AuthN (quem é) e AuthZ (pode fazer isto?) checadas no servidor em toda rota protegida
@@ -116,6 +130,8 @@ retrospectiva.
 6. **Motor × produto — confronte com o inventário canônico do `CLAUDE.md`:** arquivo de motor no diff da
    feature é drift **Crítico** e evolução separada, nunca efeito colateral. `project-context.md` e
    `lessons.md` são dados do projeto; editá-los pelos comandos donos não é drift do motor.
+   `.github/workflows/sdk-quality.yml` e `.specify/ci/gates/` são configuração do produto: podem mudar por
+   feature `delivery`, mas remover `Secret scan`, enfraquecer histórico/hash ou criar bypass é achado Alto.
 7. **Evidence ↔ estados:** todo `done` tem recibo `review` completo
    e bem-sucedido? Todo `blocked` tem motivo/condição no mesmo bloco negativo? `verification-pending` depende
    apenas de `verification-pending`/`done` e `done` apenas de `done`? Entradas antigas permaneceram

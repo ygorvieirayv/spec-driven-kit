@@ -14,6 +14,7 @@ código, então julga pelo que está escrito na spec e no diff — não pelo que
 - O **diff** a revisar. Se não vier no prompt, gere com `git diff` (ou contra a branch base indicada).
 - A barra: `.specify/memory/engineering-standards.md` e `.specify/memory/constitution.md`.
 - O contrato `.specify/memory/state-markers.md`.
+- O contrato aprovado de CI em `.specify/memory/project-context.md` quando `delivery` for aplicável.
 
 Se o pedido confirmar uma mudança **trivial sem lifecycle formal**, você pode receber apenas pedido, diff,
 verificação objetiva e barra. Nesse caso, faça review leve sem inventar spec, task, evidence ou ledger; se
@@ -56,6 +57,13 @@ mesmo bloco negativo:
 
 Não edite código, evidence ou estados; devolva recibos/achados para `/sdk-review` aplicar.
 
+Se `delivery` exigir CI, a implementação precisa estar publicada com worktree limpo. Consulte os checks
+remotos e só devolva recibo `pass` com `commit@SHA` quando `Quality gates` e `Secret scan` estiverem
+`completed/success` para o `head_sha` exato revisado. Inclua URLs e SHA em `Saida/referencia`. O
+`/sdk-review` pode criar depois um commit somente de evidence/estado; o CI desse SHA final é gate externo de
+merge e não gera outro recibo. Resultado antigo, ausente, pending, indisponível ou mudança de produto não
+provada bloqueia.
+
 Se uma task falhar ou ficar bloqueada, identifique transitivamente seus dependentes em
 `verification-pending`/`done`. Para cada um, devolva um bloco `review | not-run` que diga em
 `Saida/referencia` por que não foi rerodado. Se estava `done`, inclua no mesmo bloco:
@@ -85,6 +93,10 @@ Use o `sdk-check` para ciclos e referências inválidas no grafo interno de `tas
 7. **Motor × produto — confronte com o inventário canônico do `CLAUDE.md`:** arquivo de motor no diff é
    drift **Crítico**, não parte da feature. `project-context.md` e `lessons.md` são dados do projeto e não
    disparam esse achado quando editados pelos comandos donos.
+8. **CI do produto:** os seis gates coincidem com `required`/`N/A` do `project-context.md`, têm exatamente
+   `.sh` ou `.skip` estrutural e não contêm bypass? O workflow mantém runner/setup aprovados,
+   `Quality gates` e `Secret scan`, checkout completo no scan, Gitleaks fixado/hash verificado e config
+   customizada sem desativar defaults? Mudança que enfraquece isso é Alto.
 
 ## Severidade
 - **Crítico** — segurança, perda de dados, vazamento de segredo/PII, AC essencial quebrado. **Bloqueia.**

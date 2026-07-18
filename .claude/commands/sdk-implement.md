@@ -60,7 +60,11 @@ copy/estilo em TDD por hábito, nem use checagem visual para provar regra de neg
   destrutiva/em massa ou operação reversível, execute forward e rollback/restauração/recuperação em
   ambiente descartável. Rollback apenas escrito não autoriza `verification-pending` nesses casos.
 - `operational`: provoque/observe timeout, retry, idempotência, concorrência, job ou health conforme o plano.
-- `delivery`: execute build/package/config/deploy/CI que o plano declarou.
+- `delivery`: execute build/package/config/deploy/CI que o plano declarou. Se runtime, manifest, lockfile,
+  workspace ou scripts mudaram, atualize `project-context.md` e `.specify/ci/gates/` sem deixá-los divergir.
+  No Windows, rode `.\scripts\sdk-ci.ps1 -Validate` e `.\scripts\sdk-ci.ps1`; nos demais sistemas,
+  `bash scripts/sdk-ci.sh --validate` e `bash scripts/sdk-ci.sh`. Nunca mascare ausência com `--if-present`,
+  `|| true`, `set +e` ou `.skip` temporário.
 
 ## Evidence por rodada (somente feature formal)
 
@@ -122,6 +126,9 @@ Nunca marque `done`; essa promoção pertence somente a `/sdk-review` em context
   já catalogado.
 - Rode os comandos do projeto (test/lint/build). Em feature formal, registre cada rodada, inclusive falha,
   `not-run` e `unavailable`; em mudança trivial, reporte a execução na saída. Ausência nunca vira `pass`.
+- CI remoto verde só cobre o commit cujo `head_sha` o provedor observou. O review pode criar depois um
+  commit somente de evidence/estado; os checks desse commit final são gate externo e não geram novo recibo.
+  Mudança posterior de produto continua sem prova remota; não reutilize URL/status de SHA antigo.
 - Ao terminar, **explique em linguagem simples** o que mudou e por quê (o usuário não aceita o que não
   entende). Se um erro relevante surgiu e foi resolvido no caminho, sugira `/sdk-lesson`.
 - **Feature formal:** `partial` e `reopened` são inválidos. Se uma task `done` revelar problema, não a altere aqui: mande ao

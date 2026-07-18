@@ -42,7 +42,7 @@ histórico das decisões ficam nas seções seguintes.
 | II — Evidência e estados | `evidence.md` por feature (com referência ao SHA observado) · estados de task novos: `blocked` e `verification-pending` · review reroda o subconjunto de verificação citado antes de confirmar `done` · contrato/sdk-check/fixtures atualizados | ✅ |
 | III — Rigor unificado, fidelidade e perfis de prova | Remove o modo global · escala cerimônia pelo risco da feature · registra limites de fidelidade na spec · perfis independentes (`visual` · `logic` · `journey` · `data-security` · `operational` · `delivery`) declarados no plano e cobrados no review · rollback de `data-security` exige verificação **executada** · `tasks.md` vira fonte canônica de toda feature formal | ✅ |
 | IV — Integridade do kit | Contrato executável das instruções (`kit-rules` texto+shell, sem JSON/node) com **teste negativo** no CI · detecção de ciclo de dependências no `sdk-check` | ✅ |
-| V — CI do consumidor | Bootstrap gera workflow fail-closed por stack (check esperado ausente = falha) + varredura de segredos (gitleaks ou equivalente) | planejada |
+| V — CI do consumidor | Bootstrap gera workflow fail-closed por stack (check esperado ausente = falha) + Gitleaks CLI fixado por versão/checksum cobrindo histórico e árvore atual | ✅ |
 | VI — Portabilidade | Export dos comandos para OpenCode via **script sob demanda** (fonte única = `.claude/commands/`) · `/sdk-cycle`: encadeia só o mecânico (`tasks → analyze`; roadmap pós-review), **para** em todo 🛑, em implement/review e em qualquer veredito não-limpo | planejada |
 
 **Decisões registradas:** estados novos = só `blocked` + `verification-pending` (rejeitados `partial` —
@@ -105,7 +105,7 @@ fixo de estado não é estado.
 | F8 | Instalador seguro + CI do kit | produto | P2 ✅ |
 | F9 | Versionamento do kit | produto | P2 ✅ |
 | F10 | Decisões de produto no decision-guide · exemplos por nicho · starter packs como sementes · distribuição npm | produto | P2/P3 |
-| F11 | Trilha de rigor: coerência, evidência persistida, estados honestos, fidelidade explícita, perfis de prova, integridade do kit, CI do consumidor (PRs I–V acima) | edições + scripts | PRs I–IV ✅ · V planejado |
+| F11 | Trilha de rigor: coerência, evidência persistida, estados honestos, fidelidade explícita, perfis de prova, integridade do kit, CI do consumidor (PRs I–V acima) | edições + scripts | PRs I–V ✅ · concluída |
 | F12 | Trilha de portabilidade: export OpenCode + `/sdk-cycle` (PR VI acima) | script + comando novo | planejada |
 
 Total de comandos: 11 → **13**. Única exceção futura aprovada: `/sdk-cycle` (14º, na F12) — orquestrador

@@ -66,6 +66,35 @@
 - Cada critério de aceitação da spec mapeia para ao menos uma verificação.
 - Teste que nunca falha não testa nada — confirmar que ele pega a regressão que deveria pegar.
 
+## CI do consumidor (fail-closed)
+
+- O bootstrap confirma stack, runner de quality e setup de runtime e só então **renderiza**
+  `.github/workflows/sdk-quality.yml` a partir do template. O job de quality usa o runner aprovado; o scan
+  de segredos permanece em Ubuntu. Actions de setup usam SHA completo. O workflow gerado pertence ao
+  produto; atualizações do kit nunca o sobrescrevem.
+- O job `Quality gates` executa primeiro `scripts/sdk-check.ps1` e depois `scripts/sdk-ci.ps1`, que delega
+  ao runner Bash canônico. Existem
+  exatamente seis gates do projeto, nesta ordem: `install`, `lint`, `typecheck`, `test`, `build` e
+  `dependency-audit`.
+- Cada gate possui exatamente um `.specify/ci/gates/<gate>.sh` real **ou** `<gate>.skip` com motivo
+  estrutural aprovado. Ausência, duplicidade, placeholder, `--if-present`, `|| true` ou `set +e` bloqueiam
+  antes de qualquer comando. A coluna `Contrato` do `project-context.md` usa exatamente `required` ou
+  `N/A` e precisa coincidir com `.sh`/`.skip`; assim, trocar um check aprovado por skip não fica verde.
+  Falta de scaffold/comando ainda não criado não é N/A: o CI permanece vermelho. No Windows, use
+  `scripts/sdk-ci.ps1`, que encontra o Git Bash e delega ao mesmo runner canônico.
+- O job `Secret scan` é sempre obrigatório e roda `scripts/sdk-secrets.sh` em Ubuntu com histórico completo.
+  Gitleaks é baixado em versão fixa, verificado por SHA-256 e executado sobre histórico e árvore atual;
+  falha/download indisponível nunca viram sucesso. Isto detecta **segredos**, não PII geral.
+- `.gitleaks.toml` customizado preserva as regras padrão com `[extend] useDefault = true`. Exceção é estreita,
+  justificada e revisada como `data-security`; baseline ou allowlist ampla automática são proibidos.
+- Os nomes remotos estáveis são `Quality gates` e `Secret scan`. Para impedir que apagar o workflow vire
+  bypass, configure branch protection/ruleset exigindo ambos quando a plataforma permitir. Essa mutação
+  externa exige aprovação explícita; sem ruleset, descreva honestamente apenas "fail-closed quando executado".
+- Verde remoto prova somente o `head_sha` observado pelo provedor. O review pode registrar o CI do commit
+  de implementação observado e criar um commit **somente de estado/evidence**; os checks desse commit final
+  são um gate externo de merge e nunca geram outro recibo/commit. Mudança posterior de produto invalida a
+  prova; resultado antigo/indisponível não promove prova `delivery` que exige CI.
+
 ## Perfis de prova
 
 > Perfis descrevem **que superfície precisa ser provada**; não são níveis de qualidade nem uma sequência
@@ -114,8 +143,5 @@
 - Quando uma escolha desta barra envolve trade-off real, **não decidir sozinho**: abrir `/sdk-decide`,
   apresentar as opções e registrar um ADR.
 
-> Há uma seção editável para padrões próprios do projeto? Sim — adicione abaixo, na descoberta, somente o
-> que for específico e verificável.
-
-## Padrões específicos deste projeto
-_(Ainda não definido. Será preenchido na descoberta guiada, se necessário.)_
+> Padrões próprios do produto ficam no `project-context.md` ou em ADR, nunca neste arquivo atualizável do
+> motor.

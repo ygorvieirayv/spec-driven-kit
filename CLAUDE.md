@@ -17,9 +17,10 @@ decisões, lições) são a **fonte da verdade** e ficam no disco — não na me
   artefato e/ou a linha da feature no ledger `docs/epics.md`). Estado que não está gravado não existe.
 - **Motor × produto:** o motor instalado é formado por comandos/agents `sdk-*`, memórias normativas
   (`constitution`, `decision-guide`, `engineering-standards`, `state-markers`), templates,
-  `scripts/sdk-check.*`, `scripts/new-feature.*`, `CLAUDE.md` e `COMO-USAR.md`. `project-context.md` e
-  `lessons.md` são dados do projeto e não são motor. Uma feature nunca altera o motor como efeito colateral;
-  se o diff tocar esse inventário, é drift **Crítico**: pare e avise.
+  `scripts/sdk-check.*`, `scripts/sdk-ci.*`, `scripts/sdk-secrets.sh`, `scripts/new-feature.*`, `CLAUDE.md`
+  e `COMO-USAR.md`. `project-context.md`, `.specify/ci/gates/`, o workflow gerado e `lessons.md` são dados
+  do projeto e não são motor. Uma feature nunca altera o motor como efeito colateral; se o diff tocar esse
+  inventário, é drift **Crítico**: pare e avise.
 
 ## Princípios (resumo — detalhe em `.specify/memory/constitution.md`)
 1. Pensar antes de codar · 2. Simples/YAGNI · 3. Mudanças cirúrgicas · 4. Critério de sucesso + verificação ·
@@ -54,6 +55,11 @@ encerre em `verification-pending`; somente o `/sdk-review`, após rerodar a prov
 mudança trivial sem lifecycle, mostre a verificação e siga para review leve sem fabricar artefatos. Revisão
 em contexto fresco é o padrão; inline é somente exceção justificada com o mesmo rerun. Se o review falhar,
 corrija e reverifique via `/sdk-implement` antes de rodar `/sdk-review` de novo.
+
+CI do consumidor é fail-closed: seis gates declarados rodam por `scripts/sdk-ci.sh` (entrada PowerShell em
+`sdk-ci.ps1`) e segredos por `scripts/sdk-secrets.sh`. Quando `delivery` exigir CI remoto, verde só prova o
+`head_sha` executado. O commit final somente de evidence/estado passa pelo gate externo sem gerar outro
+recibo; resultado anterior, job ausente ou mudança de produto não provada não autoriza `done`.
 
 ## Comandos
 - **Perdido? `/sdk-next`** — lê o estado (ledger + artefatos + git) e diz o próximo passo. Não executa nada.

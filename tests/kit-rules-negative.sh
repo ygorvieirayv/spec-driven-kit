@@ -51,7 +51,7 @@ printf '\nA implementação pode marcar `done` diretamente.\n' >> \
   "$additive_contradictions/.claude/commands/sdk-implement.md"
 printf '\nCrítico e Alto podem ser aprovados com ressalvas.\n' >> \
   "$additive_contradictions/.claude/commands/sdk-review.md"
-printf '| KR-10 | Regra sem asserção | fonte | consumidor |\n' >> \
+printf '| KR-11 | Regra sem asserção | fonte | consumidor |\n' >> \
   "$additive_contradictions/scripts/kit-rules.txt"
 if output="$(bash "$additive_contradictions/scripts/kit-rules.sh" 2>&1)"; then
   echo "$output"
@@ -71,6 +71,50 @@ grep -Fq 'KR-02 .claude/commands/sdk-review.md' <<< "$output" || {
 grep -Fq 'KR-INDEX scripts/kit-rules.txt' <<< "$output" || {
   echo "$output"
   echo "Unknown invariant failed without identifying the rule index" >&2
+  exit 1
+}
+
+ci_contract="$TMP_ROOT/ci-contract"
+copy_contract_surface "$ci_contract"
+sed -i 's#run: bash scripts/sdk-secrets.sh#run: echo secret scan disabled#' \
+  "$ci_contract/.specify/templates/consumer-ci-template.yml"
+if output="$(bash "$ci_contract/scripts/kit-rules.sh" 2>&1)"; then
+  echo "$output"
+  echo "Removing the consumer secret scan unexpectedly passed kit-rules" >&2
+  exit 1
+fi
+grep -Fq 'KR-10 .specify/templates/consumer-ci-template.yml' <<< "$output" || {
+  echo "$output"
+  echo "CI mutation failed without identifying KR-10 and its template" >&2
+  exit 1
+}
+
+mutable_action="$TMP_ROOT/mutable-action"
+copy_contract_surface "$mutable_action"
+sed -i 's#actions/checkout@[0-9a-f]\{40\}#actions/checkout@main#' \
+  "$mutable_action/.specify/templates/consumer-ci-template.yml"
+if output="$(bash "$mutable_action/scripts/kit-rules.sh" 2>&1)"; then
+  echo "$output"
+  echo "Mutable consumer action reference unexpectedly passed kit-rules" >&2
+  exit 1
+fi
+grep -Fq 'KR-10 .specify/templates/consumer-ci-template.yml' <<< "$output" || {
+  echo "$output"
+  echo "Mutable action failed without identifying KR-10 and its template" >&2
+  exit 1
+}
+
+missing_tree_scan="$TMP_ROOT/missing-tree-scan"
+copy_contract_surface "$missing_tree_scan"
+sed -i 's/^"\$binary" dir /echo skipped-dir /' "$missing_tree_scan/scripts/sdk-secrets.sh"
+if output="$(bash "$missing_tree_scan/scripts/kit-rules.sh" 2>&1)"; then
+  echo "$output"
+  echo "Removing the current-tree scan unexpectedly passed kit-rules" >&2
+  exit 1
+fi
+grep -Fq 'KR-10 scripts/sdk-secrets.sh' <<< "$output" || {
+  echo "$output"
+  echo "Tree-scan mutation failed without identifying KR-10 and its script" >&2
   exit 1
 }
 

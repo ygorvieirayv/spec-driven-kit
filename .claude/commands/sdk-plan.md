@@ -36,6 +36,9 @@ Carregue: a spec da feature (`docs/specs/<feature>/spec.md`), `.specify/memory/e
    segurança, testes, observabilidade. Verifique o que se aplica a esta feature.
    **E consulte a biblioteca de lições** (`.specify/memory/lessons.md`) por **tag** relevante (grep — não
    carregue o arquivo inteiro): aplique as prevenções já conhecidas ao plano (ex.: tem cache? veja `#cache`).
+   Se a mudança toca runtime, manifests, lockfile, workspace, comandos, build ou workflow, `delivery` é
+   aplicável: cite quais gates em `.specify/ci/gates/` mudam e exija `Quality gates` + `Secret scan` verdes
+   para o SHA publicado. N/A temporário não substitui comando esperado.
 5. **Alinhe a fidelidade:** confronte a abordagem com `Limites de fidelidade` da spec. Comportamento `real`
    não pode depender só de mock; `sandbox` exercita o ambiente de teste real; `simulada` prova apenas o que
    a spec declarou. Divergência volta para `/sdk-spec` ou `/sdk-clarify`.

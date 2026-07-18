@@ -16,7 +16,7 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v7
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
 
       - name: Guard PowerShell scripts are ASCII
         if: runner.os == 'Linux'
@@ -123,8 +123,12 @@ jobs:
         run: |
           set -euo pipefail
           bash -n scripts/kit-rules.sh
+          bash -n scripts/sdk-ci.sh
+          bash -n scripts/sdk-secrets.sh
           bash -n tests/kit-rules-negative.sh
+          bash -n tests/sdk-ci-consumer.sh
           bash -n tests/sdk-check-graph.sh
+          bash -n tests/sdk-secrets.sh
           bash scripts/kit-rules.sh
           bash tests/kit-rules-negative.sh
 
@@ -137,7 +141,9 @@ jobs:
           bash -n install.sh
           bash scripts/sdk-check.sh
           pwsh -NoProfile -File scripts/sdk-check.ps1
+          bash tests/sdk-ci-consumer.sh
           bash tests/sdk-check-graph.sh
+          bash tests/sdk-secrets.sh
 
           valid="$(mktemp -d)"
           cp -R tests/fixtures/valid/. "$valid"
@@ -791,19 +797,22 @@ jobs:
           test -f "$conflict/.claude/commands/sdk-next.md.sdk-new"
 
           force="$(mktemp -d)"
-          mkdir -p "$force/.claude/commands" "$force/docs"
+          mkdir -p "$force/.claude/commands" "$force/docs" "$force/.github/workflows"
           printf 'custom\n' > "$force/.claude/commands/sdk-next.md"
           printf 'product-ledger\n' > "$force/docs/epics.md"
+          printf 'product-workflow\n' > "$force/.github/workflows/sdk-quality.yml"
           bash install.sh --target "$force" --yes --force
           test -n "$(find "$force/.claude/commands" -name 'sdk-next.md.sdk-bak.*' -print -quit)"
           ! grep -qx 'custom' "$force/.claude/commands/sdk-next.md"
           grep -qx 'product-ledger' "$force/docs/epics.md"
+          grep -qx 'product-workflow' "$force/.github/workflows/sdk-quality.yml"
 
       - name: Windows PowerShell checks
         if: runner.os == 'Windows'
         shell: powershell
         run: |
           powershell.exe -NoProfile -ExecutionPolicy Bypass -File scripts\sdk-check.ps1
+          powershell.exe -NoProfile -ExecutionPolicy Bypass -File tests\sdk-ci-wrapper.ps1
 
           $valid = Join-Path $env:RUNNER_TEMP "sdk-valid"
           New-Item -ItemType Directory -Force -Path $valid | Out-Null
@@ -893,8 +902,10 @@ jobs:
           $force = Join-Path $env:RUNNER_TEMP "sdk-force"
           New-Item -ItemType Directory -Force -Path (Join-Path $force ".claude\commands") | Out-Null
           New-Item -ItemType Directory -Force -Path (Join-Path $force "docs") | Out-Null
+          New-Item -ItemType Directory -Force -Path (Join-Path $force ".github\workflows") | Out-Null
           Set-Content -Encoding ASCII -Path (Join-Path $force ".claude\commands\sdk-next.md") -Value "custom"
           Set-Content -Encoding ASCII -Path (Join-Path $force "docs\epics.md") -Value "product-ledger"
+          Set-Content -Encoding ASCII -Path (Join-Path $force ".github\workflows\sdk-quality.yml") -Value "product-workflow"
           powershell.exe -NoProfile -ExecutionPolicy Bypass -File install.ps1 -Target $force -Yes -Force
           if (-not (Get-ChildItem -Path (Join-Path $force ".claude\commands") -Filter "sdk-next.md.sdk-bak.*")) {
             throw "Backup missing"
@@ -903,6 +914,8 @@ jobs:
           if ($forceContent.Trim() -eq "custom") { throw "ENGINE file was not updated with -Force" }
           $seedContent = Get-Content -Raw -Path (Join-Path $force "docs\epics.md")
           if ($seedContent.Trim() -ne "product-ledger") { throw "SEED epics was overwritten" }
+          $workflowContent = Get-Content -Raw -Path (Join-Path $force ".github\workflows\sdk-quality.yml")
+          if ($workflowContent.Trim() -ne "product-workflow") { throw "Consumer workflow was overwritten" }
 
       - name: Windows Git Bash checks
         if: runner.os == 'Windows'
@@ -911,10 +924,13 @@ jobs:
           set -euo pipefail
           bash -n scripts/sdk-check.sh
           bash -n scripts/kit-rules.sh
+          bash -n scripts/sdk-ci.sh
+          bash -n scripts/sdk-secrets.sh
           bash -n install.sh
           bash scripts/kit-rules.sh
           bash scripts/sdk-check.sh
           bash tests/kit-rules-negative.sh
+          bash tests/sdk-ci-consumer.sh
           bash tests/sdk-check-graph.sh
 
           target="$(mktemp -d)"

@@ -17,6 +17,24 @@
 - **Restrições conhecidas:** _(prazo, orçamento, carga esperada, durabilidade/criticidade dos dados,
   capacidade operacional e recuperação — somente o que for relevante)_
 
+## Contrato de CI
+- **Workflow do produto:** `.github/workflows/sdk-quality.yml`
+- **Runner de quality:** _(a confirmar conforme o stack)_
+- **Setup de runtime:** _(a confirmar; actions sempre por SHA completo)_
+- **Runner de secret scan:** `ubuntu-24.04`
+- **Stack confirmado por:** _(manifests, workspaces, lockfiles e arquivos de versão observados)_
+- **Checks remotos estáveis:** `Quality gates` · `Secret scan`
+- **Proteção remota:** pendente `[VERIFICAR]`
+
+| Gate | Contrato | Diretório/comando ou motivo N/A |
+|------|----------|-------------------------------|
+| install | _(required / N/A)_ | _(a definir no bootstrap)_ |
+| lint | _(required / N/A)_ | _(a definir no bootstrap)_ |
+| typecheck | _(required / N/A)_ | _(a definir no bootstrap)_ |
+| test | _(required / N/A)_ | _(a definir no bootstrap)_ |
+| build | _(required / N/A)_ | _(a definir no bootstrap)_ |
+| dependency-audit | _(required / N/A)_ | _(a definir no bootstrap)_ |
+
 ## Princípios específicos deste projeto
 > Regras globais de negócio e operação, propostas durante o bootstrap e aprovadas pelo usuário. Precisam
 > ser concretas e verificáveis; regra que pertence a uma única feature fica na respectiva spec.

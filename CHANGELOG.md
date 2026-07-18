@@ -22,10 +22,16 @@ segue SemVer enquanto o kit amadurece. Versões `0.x` ainda podem mudar contrato
 - Perfis de prova independentes e combináveis (`visual`, `logic`, `journey`, `data-security`, `operational`,
   `delivery`) são selecionados no plano e cobrados no review; rollback de `data-security` só conta quando a
   verificação aplicável foi executada.
-- `scripts/kit-rules.txt` + `kit-rules.sh` formam o contrato executável interno das nove invariantes
+- `scripts/kit-rules.txt` + `kit-rules.sh` formam o contrato executável interno das dez invariantes
   transversais do motor; testes negativos provam que mutações reais são rejeitadas com o ID correto.
 - Matriz compartilhada de grafo cobre DAGs, referências inexistentes, gramática inválida, duplicatas,
   auto-ciclo e ciclos longos em ambos os `sdk-check`.
+- `scripts/sdk-ci.sh` valida e executa, sem atalhos fail-open, os seis gates canônicos do produto; o wrapper
+  `sdk-ci.ps1` dá a mesma entrada local no Windows sem duplicar a regra.
+- `scripts/sdk-secrets.sh` fixa versão e checksum do Gitleaks CLI e varre histórico Git completo e árvore
+  atual; a fixture real comprova aprovação limpa, bloqueio por segredo removido e saída redigida.
+- Template de workflow do consumidor com checks estáveis `Quality gates` e `Secret scan`, checkout fixado
+  por SHA completo e histórico integral para a varredura de segredos.
 
 ### Fixed
 
@@ -44,6 +50,8 @@ segue SemVer enquanto o kit amadurece. Versões `0.x` ainda podem mudar contrato
 - Fronteira motor × produto reconciliada com o manifesto: `lessons.md` e `project-context.md` são dados do
   projeto; `new-feature.*` e `COMO-USAR.md` fazem parte do motor. Princípios específicos foram movidos da
   constituição atualizável para o `project-context.md`, evitando perda em atualização forçada.
+- `engineering-standards.md` deixou de acumular uma seção editável do produto; escolhas específicas ficam
+  somente no `project-context.md`.
 
 ### Changed
 
@@ -75,11 +83,14 @@ segue SemVer enquanto o kit amadurece. Versões `0.x` ainda podem mudar contrato
   bundle a partir de `kit-manifest.txt`, incluindo ausência de cada item `SKIP`.
 - Instalação manual por clone/cópia recursiva deixou de ser documentada como suportada; projetos novos e
   existentes usam o instalador manifest-aware para não carregar fixtures e infraestrutura interna.
+- O bootstrap propõe runner, setup e a matriz dos seis gates a partir de evidência do stack, só os
+  materializa após o Checkpoint 1 e preserva workflow/gates como dados do produto. O runner compara a
+  matriz aprovada com os arquivos executáveis. Review remoto separa o SHA de implementação registrado do
+  gate externo do commit final, sem criar ciclo de recibos.
 
 ### Planned
 
-- Restante da trilha de rigor e portabilidade (F11–F12) — ver ROADMAP: CI fail-closed do consumidor,
-  export OpenCode e `/sdk-cycle`.
+- Trilha de portabilidade F12 — export OpenCode e `/sdk-cycle`.
 - Expandir o `decision-guide.md` para decisões de produto.
 - Adicionar exemplos reais por nicho.
 - Avaliar starter packs como sementes de conversa, não como projetos prontos.

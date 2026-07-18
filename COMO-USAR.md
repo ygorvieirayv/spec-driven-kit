@@ -22,8 +22,9 @@ recomenda — nada acontece sem você aprovar. É o único comando que você pre
 3. Responda às perguntas (uma de cada vez). Não sabe? Diga **"não sei"** — ele explica e sugere um caminho seguro.
 4. Nos checkpoints 🛑, leia e aprove (ou peça pra mudar).
 
-No fim, o projeto tem: stack, decisões (hospedagem, banco, pagamento…), regras do seu negócio, o **MVP** e a
-**ordem de construção** (o que fazer primeiro).
+No fim, o projeto tem: stack, gates de CI, varredura de segredos, decisões (hospedagem, banco, pagamento…),
+regras do seu negócio, o **MVP** e a **ordem de construção** (o que fazer primeiro). Um gate esperado
+ausente deixa o CI vermelho; N/A só vale com motivo estrutural aprovado.
 
 ---
 

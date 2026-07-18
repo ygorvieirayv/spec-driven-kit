@@ -108,6 +108,13 @@ marque `[VERIFICAR]` ou pergunte — nunca invente.
 
 <comandos de instalar / rodar / testar / build / lint>
 
+O contrato executável fica em `.specify/ci/gates/`: cada um de `install`, `lint`, `typecheck`, `test`,
+`build` e `dependency-audit` tem exatamente `.sh` ou `.skip` com motivo estrutural. Rode
+`.\scripts\sdk-ci.ps1 -Validate`/`.\scripts\sdk-ci.ps1` no Windows ou
+`bash scripts/sdk-ci.sh --validate`/`bash scripts/sdk-ci.sh` nos demais sistemas.
+Quando `delivery` exigir CI remoto, `Quality gates` e `Secret scan` precisam estar verdes para o SHA exato;
+CI antigo ou ausente não prova o worktree atual.
+
 ## Segurança
 Segredos vivem em variáveis de ambiente / `.env` (nunca no código ou no git). Revise com cuidado qualquer
 mudança em autenticação, autorização, permissões, pagamento e dados pessoais — use a checklist do
