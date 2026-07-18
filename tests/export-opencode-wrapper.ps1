@@ -1,6 +1,6 @@
 $ErrorActionPreference = "Stop"
 $root = Split-Path $PSScriptRoot -Parent
-$target = Join-Path $env:TEMP ("sdk opencode wrapper " + [guid]::NewGuid().ToString("N"))
+$target = Join-Path ([System.IO.Path]::GetTempPath()) ("sdk opencode wrapper " + [guid]::NewGuid().ToString("N"))
 
 try {
   $scripts = Join-Path $target "scripts"
