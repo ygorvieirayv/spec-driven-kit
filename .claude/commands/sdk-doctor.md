@@ -14,8 +14,9 @@ para retomar um projeto perdido, checar saúde antes de um merge de alto risco, 
 > código de UMA feature depois de codar; o **doctor** olha o **projeto inteiro**, entre features, e é o
 > único com um modo de correção (sempre gateado por aprovação).
 
-Carregue: `.specify/memory/state-markers.md` (o contrato dos marcadores) e a hierarquia de fonte da verdade
-do `CLAUDE.md`. O resto se lê **por camadas, sob demanda** — nunca o projeto inteiro de uma vez.
+Comece somente pela hierarquia de fonte da verdade do `CLAUDE.md` e pelo T0 abaixo. Carregue de
+`.specify/memory/state-markers.md` apenas as seções relacionadas ao achado quando precisar descer para
+T1 ou além. O resto se lê **por camadas, sob demanda** — nunca o projeto inteiro de uma vez.
 
 ## Camadas do diagnóstico (pare quando tiver o suficiente)
 
@@ -43,7 +44,7 @@ token. Se o script não existir (instalação parcial), diga isso e faça as mes
 - **Estado × evidence (contrato estrito):** a fonte das tasks exige marker `Evidence` para a própria
   feature; ausência/caminho divergente é erro. `verification-pending` exige `Registro implement` válido;
   `done`, `Registro review` `pass`/`observed`; `blocked`, `Bloqueio` no mesmo bloco negativo. Evidence vazio
-  antes da primeira observação é drift. Não há modo legado nem fabricação de evidência retrospectiva.
+  antes da primeira observação é drift. Não fabrique evidência retrospectiva.
 - **Restos de atualização do kit:** existem arquivos `*.sdk-new` ou `*.sdk-bak.*` esquecidos? → AVISO:
   compare o original com o sidecar, incorpore conscientemente o que deve permanecer e só então apague o
   sidecar. Nunca escolha automaticamente entre dado do projeto e atualização de motor.

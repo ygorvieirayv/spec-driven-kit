@@ -19,7 +19,7 @@ histórico das decisões ficam nas seções seguintes.
 - **Validação determinística:** `scripts/sdk-check.sh` e `.ps1` validam marcadores sem depender de LLM.
 - **Instalação segura:** `install.sh` e `install.ps1` instalam/atualizam sem sobrescrever artefatos do produto.
 - **Versionamento:** `VERSION`, `CHANGELOG.md` e selo `.specify/spec-driven-kit.version` tornam updates auditáveis.
-- **CI do kit:** Linux e Windows rodam checks, fixtures e instalação ponta a ponta.
+- **CI do kit:** Linux, Windows e macOS rodam a cobertura apropriada de checks, fixtures e instalação.
 
 ### Próximas prioridades
 
@@ -32,9 +32,8 @@ histórico das decisões ficam nas seções seguintes.
 
 ### Trilha de rigor e portabilidade (F11–F12) — aprovada em jul/2026
 
-> Nasceu de um documento de melhorias consolidado (duas revisões externas + auditoria do
-> `lovable-driven-kit`), triado item a item contra o repo real. Corre em paralelo à trilha de conteúdo
-> (F10). Fatias na ordem:
+> Nasceu de um documento de melhorias consolidado e triado item a item contra o repo real. Corre em
+> paralelo à trilha de conteúdo (F10). Fatias na ordem:
 
 | PR | Conteúdo | Estado |
 |----|----------|--------|
@@ -43,13 +42,13 @@ histórico das decisões ficam nas seções seguintes.
 | III — Rigor unificado, fidelidade e perfis de prova | Remove o modo global · escala cerimônia pelo risco da feature · registra limites de fidelidade na spec · perfis independentes (`visual` · `logic` · `journey` · `data-security` · `operational` · `delivery`) declarados no plano e cobrados no review · rollback de `data-security` exige verificação **executada** · `tasks.md` vira fonte canônica de toda feature formal | ✅ |
 | IV — Integridade do kit | Contrato executável das instruções (`kit-rules` texto+shell, sem JSON/node) com **teste negativo** no CI · detecção de ciclo de dependências no `sdk-check` | ✅ |
 | V — CI do consumidor | Bootstrap gera workflow fail-closed por stack (check esperado ausente = falha) + Gitleaks CLI fixado por versão/checksum cobrindo histórico e árvore atual | ✅ |
-| VI — Portabilidade | Export dos comandos para OpenCode via **script sob demanda** (fonte única = `.claude/commands/`) · `/sdk-cycle`: encadeia só o mecânico (`tasks → analyze`; roadmap pós-review), **para** em todo 🛑, em implement/review e em qualquer veredito não-limpo | planejada |
+| VI — Portabilidade | Export dos comandos para OpenCode via **script sob demanda** (fonte única = `.claude/commands/`) · `/sdk-cycle`: encadeia somente `tasks → analyze`, **para** em todo 🛑, antes de implement/review/roadmap e em qualquer veredito não-limpo | ✅ |
 
 **Decisões registradas:** estados novos = só `blocked` + `verification-pending` (rejeitados `partial` —
 task parcial é task mal fatiada — e `reopened` — volta a `ready` com registro canônico) · evidência em arquivo próprio
 por feature (não seção do plano: evidência acumula) · contrato de regras no idioma do kit (texto + shell) ·
 export OpenCode gerado sob demanda, nunca cópia commitada (fonte dupla = fábrica de drift) · `/sdk-cycle`
-será o 14º comando — exceção consciente à regra "13 e nada além", por ser orquestrador dos existentes.
+é o 14º comando — exceção consciente à regra "13 e nada além", por ser orquestrador dos existentes.
 
 **Simplificação registrada no PR III:** não existe mais modo global de rigor. Pedido de protótipo, mock ou
 sandbox vira **limite de fidelidade da feature**, nunca licença para reduzir integridade. O fluxo escala pelo
@@ -61,9 +60,8 @@ coluna `Depende de` usa IDs estáveis `T<n>`. Dependências entre features conti
 detecção global só será segura quando o ledger possuir IDs/slugs canônicos, sem comparação aproximada de
 nomes livres.
 
-**Adiado com gatilho:** SCHEMA_VERSION por artefato (gatilho: existir uma base instalada que precise de
-migração entre contratos). O PR II pode ser estrito porque o kit ainda não possui consumidores legados; a
-primeira necessidade real de migração acionará versionamento de schema. · marcador
+**Adiado com gatilho:** SCHEMA_VERSION por artefato (gatilho: surgir a primeira necessidade real de migrar
+artefatos entre contratos). · marcador
 "claimed by" para sessões concorrentes (gatilho: uso multi-agente real) · evals com
 modelo/e2e — níveis 4–5 da pirâmide (P3; níveis 1–3 cobertos pelo PR IV + fixtures existentes).
 
@@ -106,9 +104,9 @@ fixo de estado não é estado.
 | F9 | Versionamento do kit | produto | P2 ✅ |
 | F10 | Decisões de produto no decision-guide · exemplos por nicho · starter packs como sementes · distribuição npm | produto | P2/P3 |
 | F11 | Trilha de rigor: coerência, evidência persistida, estados honestos, fidelidade explícita, perfis de prova, integridade do kit, CI do consumidor (PRs I–V acima) | edições + scripts | PRs I–V ✅ · concluída |
-| F12 | Trilha de portabilidade: export OpenCode + `/sdk-cycle` (PR VI acima) | script + comando novo | planejada |
+| F12 | Trilha de portabilidade: export OpenCode + `/sdk-cycle` (PR VI acima) | script + comando novo | PR VI ✅ · concluída |
 
-Total de comandos: 11 → **13**. Única exceção futura aprovada: `/sdk-cycle` (14º, na F12) — orquestrador
+Total de comandos: 11 → **14**. A única exceção aprovada à consolidação em 13 foi `/sdk-cycle` — orquestrador
 dos comandos existentes, não capacidade nova. Fora isso, as demais ideias viram comportamento dos comandos
 que já existem, não comandos novos.
 

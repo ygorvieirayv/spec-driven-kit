@@ -17,7 +17,8 @@ decisões, lições) são a **fonte da verdade** e ficam no disco — não na me
   artefato e/ou a linha da feature no ledger `docs/epics.md`). Estado que não está gravado não existe.
 - **Motor × produto:** o motor instalado é formado por comandos/agents `sdk-*`, memórias normativas
   (`constitution`, `decision-guide`, `engineering-standards`, `state-markers`), templates,
-  `scripts/sdk-check.*`, `scripts/sdk-ci.*`, `scripts/sdk-secrets.sh`, `scripts/new-feature.*`, `CLAUDE.md`
+  `scripts/sdk-check.*`, `scripts/sdk-ci.*`, `scripts/sdk-secrets.sh`, `scripts/new-feature.*`,
+  `scripts/export-opencode.*`, `CLAUDE.md`
   e `COMO-USAR.md`. `project-context.md`, `.specify/ci/gates/`, o workflow gerado e `lessons.md` são dados
   do projeto e não são motor. Uma feature nunca altera o motor como efeito colateral; se o diff tocar esse
   inventário, é drift **Crítico**: pare e avise.
@@ -63,6 +64,8 @@ recibo; resultado anterior, job ausente ou mudança de produto não provada não
 
 ## Comandos
 - **Perdido? `/sdk-next`** — lê o estado (ledger + artefatos + git) e diz o próximo passo. Não executa nada.
+- **Automação limitada: `/sdk-cycle`** — segue apenas `/sdk-tasks` → `/sdk-analyze`, uma vez cada, e para
+  antes de decisão, correção, implementação ou review; não possui marcador próprio.
 - **Núcleo:** `/sdk-bootstrap` → `/sdk-roadmap` → `/sdk-spec` → `/sdk-plan` → `/sdk-tasks` →
   `/sdk-analyze` → `/sdk-implement` → `/sdk-review`. A **régua de cerimônia** da `constitution.md` diz
   quais passos entram conforme o risco da mudança (trivial não precisa do lifecycle formal; toda feature

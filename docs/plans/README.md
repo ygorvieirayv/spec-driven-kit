@@ -10,5 +10,5 @@ Uma pasta por feature:
 Não preencha evidência por antecipação: se algo não foi executado ou observado, registre `not-run` ou
 `unavailable`. Uma task implementada fica `verification-pending`; somente o review, após rerodar a verificação
 citada em contexto fresco por padrão, pode promovê-la a `done`. Inline é exceção justificada com o mesmo
-rerun. Plan/tasks trazem `- **Evidence:**`, obrigatório e apontando para a própria feature. Não há modo
-legado: estado que afirma prova sem recibo correspondente é inválido.
+rerun. Plan/tasks trazem `- **Evidence:**`, obrigatório e apontando para a própria feature. Estado que
+afirma prova sem recibo correspondente é inválido.

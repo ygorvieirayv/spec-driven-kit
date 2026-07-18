@@ -22,7 +22,7 @@ segue SemVer enquanto o kit amadurece. Versões `0.x` ainda podem mudar contrato
 - Perfis de prova independentes e combináveis (`visual`, `logic`, `journey`, `data-security`, `operational`,
   `delivery`) são selecionados no plano e cobrados no review; rollback de `data-security` só conta quando a
   verificação aplicável foi executada.
-- `scripts/kit-rules.txt` + `kit-rules.sh` formam o contrato executável interno das dez invariantes
+- `scripts/kit-rules.txt` + `kit-rules.sh` formam o contrato executável interno das onze invariantes
   transversais do motor; testes negativos provam que mutações reais são rejeitadas com o ID correto.
 - Matriz compartilhada de grafo cobre DAGs, referências inexistentes, gramática inválida, duplicatas,
   auto-ciclo e ciclos longos em ambos os `sdk-check`.
@@ -32,6 +32,11 @@ segue SemVer enquanto o kit amadurece. Versões `0.x` ainda podem mudar contrato
   atual; a fixture real comprova aprovação limpa, bloqueio por segredo removido e saída redigida.
 - Template de workflow do consumidor com checks estáveis `Quality gates` e `Secret scan`, checkout fixado
   por SHA completo e histórico integral para a varredura de segredos.
+- `/sdk-cycle` como orquestrador deliberadamente estreito: executa no máximo `/sdk-tasks` →
+  `/sdk-analyze`, não possui estado e para antes de decisão, correção, implementação ou review.
+- Export OpenCode sob demanda em `scripts/export-opencode.sh`/`.ps1`, com fonte única nos comandos Claude,
+  geração em staging com rollback de troca, modo read-only `--check`/`-Check` e preservação de comandos
+  manuais.
 
 ### Fixed
 
@@ -52,6 +57,11 @@ segue SemVer enquanto o kit amadurece. Versões `0.x` ainda podem mudar contrato
   constituição atualizável para o `project-context.md`, evitando perda em atualização forçada.
 - `engineering-standards.md` deixou de acumular uma seção editável do produto; escolhas específicas ficam
   somente no `project-context.md`.
+- Instaladores Bash e PowerShell agora recusam symlink, junction ou reparse point que possa redirecionar
+  arquivo, sidecar, selo ou backup para fora do destino, com preflight antes da primeira escrita.
+- `new-feature.sh` deixou de depender do `sed -i` GNU e funciona com o `sed` do macOS sem criar resíduos.
+- `/sdk-next` cobre explicitamente `Analyze: ajustar`, `Analyze: bloqueado` e a precedência de task
+  `blocked` quando o review também está bloqueado, sem improvisar uma rota de implementação.
 
 ### Changed
 
@@ -67,9 +77,8 @@ segue SemVer enquanto o kit amadurece. Versões `0.x` ainda podem mudar contrato
   dependências em `done`. Falha upstream reclassifica transitivamente dependentes
   `verification-pending`/`done` para `ready`
   com recibo `review | not-run` e marker `Reclassificacao` quando necessário.
-- O contrato novo é estrito porque o kit ainda não possui base instalada a migrar: não há modo legado nem
-  evidência retroativa. IDs e significados de task/AC já comprovados ficam históricos; evolução usa novos
-  IDs ou delta feature.
+- O contrato de evidence não permite fabricação retrospectiva. IDs e significados de task/AC já
+  comprovados ficam históricos; evolução usa novos IDs ou delta feature.
 - `sdk-doctor` T1 avisa sobre sidecars `*.sdk-new`/`*.sdk-bak.*` esquecidos; `INSTALL.md` documenta o passo
   de reconciliação pós-atualização.
 - Higiene de contexto: cada comando relata em 1 linha o que carregou (auditabilidade da carga sob demanda).
@@ -87,10 +96,14 @@ segue SemVer enquanto o kit amadurece. Versões `0.x` ainda podem mudar contrato
   materializa após o Checkpoint 1 e preserva workflow/gates como dados do produto. O runner compara a
   matriz aprovada com os arquivos executáveis. Review remoto separa o SHA de implementação registrado do
   gate externo do commit final, sem criar ciclo de recibos.
+- Leitura de contexto ficou mais seletiva: doctor executa T0 antes do contrato de estado; tasks,
+  implement e review carregam somente as seções normativas necessárias, e o template de evidence só entra
+  quando sua forma precisa ser criada ou conferida.
+- CI do próprio kit ganhou smoke de portabilidade em macOS, mantendo a varredura de segredos fixada ao
+  ambiente Linux compatível.
 
 ### Planned
 
-- Trilha de portabilidade F12 — export OpenCode e `/sdk-cycle`.
 - Expandir o `decision-guide.md` para decisões de produto.
 - Adicionar exemplos reais por nicho.
 - Avaliar starter packs como sementes de conversa, não como projetos prontos.

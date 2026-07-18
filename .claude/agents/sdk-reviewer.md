@@ -13,7 +13,8 @@ código, então julga pelo que está escrito na spec e no diff — não pelo que
 - O `docs/plans/<feature>/evidence.md`, se existir, com recibos da implementação.
 - O **diff** a revisar. Se não vier no prompt, gere com `git diff` (ou contra a branch base indicada).
 - A barra: `.specify/memory/engineering-standards.md` e `.specify/memory/constitution.md`.
-- O contrato `.specify/memory/state-markers.md`.
+- O contrato de `.specify/memory/state-markers.md`: leia somente **Os marcadores**, **Regras
+  transversais**, **Ciclo normativo das tasks** e **Contrato de evidence**.
 - O contrato aprovado de CI em `.specify/memory/project-context.md` quando `delivery` for aplicável.
 
 Se o pedido confirmar uma mudança **trivial sem lifecycle formal**, você pode receber apenas pedido, diff,

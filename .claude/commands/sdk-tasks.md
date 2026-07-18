@@ -13,7 +13,9 @@ Carregue: o plano (`docs/plans/<feature>/plan.md`), a spec (`docs/specs/<feature
 `project-context.md`, `.specify/memory/engineering-standards.md` (seção de perfis) e
 `.specify/templates/tasks-template.md`.
 
-Leia também `.specify/memory/state-markers.md`; ele é normativo para estados e transições.
+Leia em `.specify/memory/state-markers.md` somente **Os marcadores**, **Regras transversais** e **Ciclo
+normativo das tasks**; essas seções são normativas para estados e transições. Carregue **Contrato de
+evidence** apenas se estiver reconciliando recibos já existentes.
 
 ## O que fazer
 

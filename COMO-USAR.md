@@ -46,6 +46,10 @@ Depois, para a feature escolhida, siga a trilha:
 
 Terminou? **Volte ao `/sdk-roadmap`** para a próxima feature desbloqueada.
 
+Depois de aprovar o plano, você pode rodar **`/sdk-cycle`** para encadear somente `/sdk-tasks` e
+`/sdk-analyze`. Ele executa cada etapa no máximo uma vez e sempre para antes de decisão, correção,
+implementação ou review. O `/sdk-next` continua sendo quem lê o estado e recomenda o próximo passo.
+
 O implementador não aprova o próprio trabalho: uma task verificada por ele fica
 `verification-pending`. O `/sdk-review` usa **contexto fresco por padrão** e repete a verificação citada no
 recibo; inline só vale como exceção justificada, com o mesmo rerun. Só então a task vira `done`. Se uma
@@ -80,6 +84,7 @@ corrigido e revisado novamente.
 - **`/sdk-doctor`** — "será que meu projeto se perdeu?". Ele confere se os arquivos batem entre si (spec,
   plano, tarefas, o mapa) e com o código, **sem mudar nada**. Se achar algo torto, te mostra as opções e só
   conserta o que você aprovar, um de cada vez. Bom pra retomar depois de dias parado.
+- **`/sdk-cycle`** — reduz digitação no trecho mecânico `tasks → analyze`; não toma decisão nem codifica.
 
 ---
 
@@ -97,6 +102,8 @@ tudo salvo nos arquivos. Continue do próximo comando.
 por feature 🟢:     /sdk-spec → (/sdk-clarify se vago) → /sdk-plan → /sdk-tasks
                     → /sdk-analyze → /sdk-implement → /sdk-review
                     → volta ao /sdk-roadmap (próxima feature)
+
+atalho mecânico:      /sdk-cycle  (somente /sdk-tasks → /sdk-analyze; para antes do código)
 
 perdido / voltando:   /sdk-next   (diz onde você está e o próximo passo)
 travou numa escolha:  /sdk-decide

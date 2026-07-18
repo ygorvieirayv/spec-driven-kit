@@ -1,8 +1,9 @@
 # AGENTS.md — adaptador do Spec Driven Kit (template)
 
 > **Para quem é este arquivo:** ferramentas de IA agente que leem `AGENTS.md` por convenção mas **não**
-> suportam slash commands customizados (ex.: Codex CLI). Se você usa o **Claude Code**, não precisa disto —
-> os comandos já existem como `/sdk-*` em `.claude/commands/`.
+> suportam os comandos customizados do kit (principalmente Codex CLI). No Claude Code, os comandos já
+> existem em `.claude/commands/`; no OpenCode, `scripts/export-opencode.*` gera a entrada nativa. O
+> `AGENTS.md` ainda pode carregar as regras permanentes do projeto nessas ferramentas.
 >
 > **Como usar:** copie este arquivo para `AGENTS.md` na raiz do seu projeto (fora de `.specify/templates/`)
 > e preencha os placeholders `<...>` com o que o bootstrap gerou em `.specify/memory/project-context.md`.
@@ -43,6 +44,8 @@ Exemplos:
 - `--sdk-bootstrap` → carregue e siga `.claude/commands/sdk-bootstrap.md`.
 - `--sdk-spec carrinho` → carregue e siga `.claude/commands/sdk-spec.md` para a feature indicada.
 - `--sdk-plan docs/specs/carrinho/spec.md` → carregue e siga `.claude/commands/sdk-plan.md` com esse alvo.
+- `--sdk-cycle carrinho` → carregue e siga `.claude/commands/sdk-cycle.md`; ele só pode encadear tasks e
+  analyze, sem iniciar código ou review.
 
 Se a flag apontar para um arquivo inexistente em `.claude/commands/`, avise que o comando não foi encontrado
 e liste os disponíveis (`ls .claude/commands`). **Sempre leia o arquivo do comando antes de agir** — ele é a
@@ -62,6 +65,8 @@ Ordem usual:
 Apoio: `--sdk-decide` (escolha com trade-offs) e `--sdk-lesson` (registrar erro resolvido como aprendizado
 reutilizável). Perdido ou voltando de pausa: `--sdk-next` — lê o estado gravado (ledger em `docs/epics.md`,
 linhas `Status:` dos artefatos, git) e recomenda o próximo passo sem executar nada.
+Depois de um plano aprovado, `--sdk-cycle` reduz somente a digitação de `tasks → analyze`; cada etapa roda
+no máximo uma vez e o comando para antes de qualquer decisão, implementação ou review.
 
 Planeje e implemente **uma feature por vez**. Em mudanças brownfield, registre só o que adiciona, altera ou
 remove, e o que **não pode quebrar**.
