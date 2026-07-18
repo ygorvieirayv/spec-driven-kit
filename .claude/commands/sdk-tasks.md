@@ -21,8 +21,10 @@ Leia também `.specify/memory/state-markers.md`; ele é normativo para estados e
    **perfil(is) de prova aplicável(is)**, arquivo(s) afetado(s), forma de **verificação** e **estado**. A
    verificação traz ação/comando exato, diretório/local, fonte/tool e resultado observável. Passo manual
    precisa ser igualmente reproduzível.
-2. **Ordene por dependência.** Para implementar, dependências internas em `verification-pending` ou `done`
-   satisfazem a ordem; para uma task ficar `done`, todas precisam estar `done`.
+2. **Ordene por dependência.** A célula **Depende de** contém somente `—` ou IDs internos separados por
+   vírgula (`T1` ou `T1, T2`), sem texto livre, repetição ou referência externa. Para implementar,
+   dependências internas em `verification-pending` ou `done` satisfazem a ordem; para uma task ficar
+   `done`, todas precisam estar `done`. Rode `sdk-check`: qualquer referência inexistente ou ciclo bloqueia.
 3. **Cobertura de AC e perfis:** confira que **todo** AC da spec e **todo** perfil `aplicável` do plano têm
    ao menos uma task. Cada task cita ao menos um perfil aplicável; perfil `N/A` não pode aparecer. Se uma
    task citar vários perfis, a verificação cobre todos; caso contrário, fatie. As duas listas de lacunas

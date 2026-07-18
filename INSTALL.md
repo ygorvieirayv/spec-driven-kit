@@ -8,7 +8,7 @@ dependências.
 
 ---
 
-## Opção 0 — Instalador automático (recomendado)
+## Instalação suportada — instalador manifest-aware
 
 Use esta opção para adicionar ou atualizar o kit em um projeto sem copiar pastas manualmente. O instalador
 roda a partir de um clone do Spec Driven Kit e copia só o que pertence ao projeto de destino.
@@ -58,70 +58,20 @@ fica fora do seu projeto para evitar colisão com versionamento próprio da apli
 
 ---
 
-## Opção 1 — Começar um projeto novo a partir do kit
+## Projetos novos e existentes
 
-Use este repositório como ponto de partida.
+Use o mesmo instalador acima nos dois casos. Em pasta nova, ele cria somente os arquivos declarados no
+manifesto; em repositório existente, preserva código e dados do produto, gerando sidecar quando encontra
+conflito de motor. Clonar este repositório como se fosse o produto ou copiar `docs/`/`scripts/`
+recursivamente não é caminho suportado: isso levaria CI, fixtures e documentação interna marcados como
+`SKIP` para dentro da aplicação.
 
-```bash
-# 1) Clone para a pasta do seu projeto
-#    (o repo precisa estar acessível; se ainda estiver privado, o clone pede login no GitHub)
-git clone https://github.com/ygorvieirayv/spec-driven-kit.git meu-projeto
-cd meu-projeto
-
-# 2) Comece o histórico do SEU projeto do zero
-rm -rf .git          # Windows (PowerShell): Remove-Item -Recurse -Force .git
-git init
-
-# 3) primeiro commit do seu projeto (necessário antes de /sdk-implement registrar evidence)
-git add -A && git commit -m "chore: inicia projeto a partir do Spec Driven Kit"
-
-# 4) abra o Claude Code e rode o onboarding guiado
-#   /sdk-bootstrap
-```
-
-> **Limpe o que é do kit (não do seu produto).** Após o clone, troque o `README.md` pelo do seu projeto e,
-> se quiser, remova `INSTALL.md`, `ROADMAP.md` e `docs/example/` (são documentação do kit). Vale **manter**: `.specify/`,
-> `.claude/`, `CLAUDE.md`, `COMO-USAR.md`, `docs/specs|plans|decisions`, `scripts/`. O `LICENSE` é sua
-> escolha (o do kit é MIT).
-
-O `/sdk-bootstrap` cuida do resto: estrutura, `.gitignore`, stack, descoberta, decisões e MVP.
+Depois da instalação, abra a ferramenta de IA no projeto e rode `/sdk-bootstrap`. Em brownfield, o comando
+lê o stack e o comportamento existentes antes de propor qualquer mudança.
 
 ---
 
-## Opção 2 — Adicionar o kit a um projeto existente
-
-Copie as peças do kit para a raiz do seu projeto, **sem** sobrescrever seu código:
-
-1. **`.specify/`** — memória (constituição, padrões, guia de decisões, lições, templates).
-2. **`.claude/`** — `commands/` (os `sdk-*`) e `agents/` (researcher, reviewer, lesson-curator).
-3. **`CLAUDE.md`** — regras de base sempre carregadas (na raiz do projeto).
-4. **`docs/`** — pastas de saída (`specs/`, `plans/`, `decisions/`) e `epics.md`.
-5. *(Opcional)* **`scripts/`** — scaffolding de feature em bash/PowerShell.
-
-```bash
-# a partir da raiz do seu projeto existente
-SDK=/caminho/para/spec-driven-kit
-
-cp -r "$SDK/.specify"        ./
-cp -r "$SDK/.claude"         ./
-cp    "$SDK/CLAUDE.md"       ./
-cp    "$SDK/COMO-USAR.md"    ./   # guia rápido (opcional, mas útil)
-cp -r "$SDK/docs"            ./
-cp -r "$SDK/scripts"         ./   # opcional
-
-# se você ainda não tem um .gitignore, aproveite o do kit (ele protege .env)
-[ -f .gitignore ] || cp "$SDK/.gitignore" ./
-```
-
-> **Cuidado:** se você já tem `.claude/commands/` ou `docs/` com conteúdo, mescle em vez de sobrescrever.
-> Os comandos `sdk-*` não colidem com outros comandos seus (têm prefixo próprio).
-
-Depois, abra o Claude Code e rode `/sdk-bootstrap`. Em repositório existente, ele **lê o seu stack** e
-confirma com você, em vez de recriar.
-
----
-
-## Opção 3 — Usando outra ferramenta (sem slash commands nativos)
+## Usando outra ferramenta (sem slash commands nativos)
 
 O kit foi feito para o Claude Code, mas os comandos são só **markdown em `.claude/commands/`** — nada
 impede outra ferramenta de IA agente (ex.: Codex CLI) de ler e seguir esses arquivos, desde que ela saiba
@@ -129,7 +79,7 @@ onde procurar. Para isso existe um **adaptador**: um `AGENTS.md` que ensina a fe
 flag de texto (`--sdk-bootstrap`, `--sdk-spec`, ...) como "leia o comando correspondente e siga-o".
 
 ```bash
-# a partir da raiz do seu projeto (depois de instalar via Opção 1 ou 2)
+# a partir da raiz do seu projeto (depois de usar o instalador manifest-aware)
 cp .specify/templates/agents-md-template.md ./AGENTS.md
 ```
 
@@ -155,7 +105,7 @@ ls .claude/commands     # sdk-next, sdk-bootstrap, sdk-roadmap, sdk-spec, sdk-cl
                         # sdk-analyze, sdk-implement, sdk-review, sdk-decide, sdk-lesson, sdk-doctor (.md)
 ls .claude/agents       # sdk-domain-researcher.md, sdk-reviewer.md, sdk-lesson-curator.md
 ls .specify/memory      # constitution.md, engineering-standards.md, decision-guide.md, lessons.md,
-                        # state-markers.md
+                        # state-markers.md, project-context.md
 ls scripts              # new-feature.sh/.ps1, sdk-check.sh/.ps1 (validação de estado)
 cat .specify/spec-driven-kit.version  # versão do Spec Driven Kit instalada neste projeto
 ```
@@ -175,11 +125,11 @@ Para puxar melhorias do kit sem perder seus artefatos:
   o instalador mostra a transição de versão, por exemplo `installed: 0.1.0 -> 0.2.0`.
 - **Seguro de sobrescrever** (são o "motor" do kit): `.claude/commands/`, `.claude/agents/`,
   `.specify/templates/`, `.specify/memory/decision-guide.md`, `.specify/memory/engineering-standards.md`,
-  `.specify/memory/state-markers.md`, `scripts/sdk-check.*`, `CLAUDE.md`, `COMO-USAR.md`,
-  `.specify/memory/constitution.md` *(a menos que você tenha editado a seção "Princípios específicos deste
-  projeto")*.
+  `.specify/memory/state-markers.md`, `scripts/sdk-check.*`, `scripts/new-feature.*`, `CLAUDE.md`, `COMO-USAR.md` e
+  `.specify/memory/constitution.md`. Princípios específicos ficam no `project-context.md`, nunca na
+  constituição atualizável do motor.
 - **Nunca sobrescreva** (são **seus**): `.specify/memory/project-context.md`, `docs/specs/`, `docs/plans/`,
-  `docs/decisions/`, `docs/epics.md`, e o `AGENTS.md` na raiz **se você usou a Opção 3** (ele foi preenchido
+  `docs/decisions/`, `docs/epics.md`, e o `AGENTS.md` na raiz **se você usa o adaptador** (ele foi preenchido
   com dados do seu projeto — só o molde em `.specify/templates/agents-md-template.md` é seguro de atualizar).
 - **Evidence é estrito:** plan/tasks exige marker `- **Evidence:**` para a própria feature. O arquivo só
   nasce na primeira observação real, mas `verification-pending`, `done` e `blocked` não são aceitos sem os

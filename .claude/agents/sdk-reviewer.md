@@ -64,8 +64,8 @@ Se uma task falhar ou ficar bloqueada, identifique transitivamente seus dependen
 - **Reclassificacao:** T2 | done | ready | 2026-07-17T21:57:18Z | T1 deixou de estar done; ver E4
 ```
 
-Não substitua o `/sdk-analyze` com detecção mecânica de ciclos; reporte somente ciclo já evidente nos
-artefatos.
+Use o `sdk-check` para ciclos e referências inválidas no grafo interno de `tasks.md`. Não o confunda com o
+`/sdk-analyze`, que continua responsável pelas dependências semânticas entre features, serviços e dados.
 
 ## O que checar
 1. **Spec ↔ código:** cada critério de aceitação (AC) foi atendido? Há comportamento fora do escopo?
@@ -82,9 +82,9 @@ artefatos.
    `verification-pending`/`done` e a
    de `done` está em `done`? A fonte das tasks tem marker `Evidence` correto e nenhum estado comprovado está
    sem seu recibo obrigatório?
-7. **Fronteira motor × produto:** diff de feature tocando comandos/agents `sdk-*`, memória do kit (exceto
-   `project-context.md`), templates, `scripts/sdk-*`, `scripts/new-feature.*`, `CLAUDE.md` ou `COMO-USAR.md`
-   é drift **Crítico**, não parte da feature.
+7. **Motor × produto — confronte com o inventário canônico do `CLAUDE.md`:** arquivo de motor no diff é
+   drift **Crítico**, não parte da feature. `project-context.md` e `lessons.md` são dados do projeto e não
+   disparam esse achado quando editados pelos comandos donos.
 
 ## Severidade
 - **Crítico** — segurança, perda de dados, vazamento de segredo/PII, AC essencial quebrado. **Bloqueia.**

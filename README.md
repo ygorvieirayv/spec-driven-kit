@@ -2,8 +2,8 @@
 
 [![CI](https://github.com/ygorvieirayv/spec-driven-kit/actions/workflows/ci.yml/badge.svg)](https://github.com/ygorvieirayv/spec-driven-kit/actions/workflows/ci.yml)
 
-**Um toolkit de desenvolvimento orientado a IA** — no espírito do
-[GitHub Spec Kit](https://github.com/github/spec-kit), mas com três diferenciais:
+**Um toolkit autônomo de desenvolvimento orientado a IA** — inspirado pelo
+[GitHub Spec Kit](https://github.com/github/spec-kit), com três diferenciais:
 
 1. **Criação guiada por IA** — o agente conduz a conversa; você responde e aprova. Os artefatos (specs,
    planos, decisões) nascem do diálogo, não de formulários.
@@ -13,9 +13,9 @@
    arquitetura/infra como **trade-offs claros** (facilidade × desempenho × custo × escala) e ajuda você a
    escolher — sempre oferecendo construir qualquer caminho.
 
-> O Spec Driven Kit não substitui o Spec Kit oficial. Ele é uma **camada guiada e consultiva**, montada nos
-> **mesmos caminhos** do Spec Kit (`.specify/memory/`, `.specify/templates/`), para você começar de forma
-> amigável e **migrar para o Spec Kit oficial quando quiser**.
+> O Spec Driven Kit possui ciclo completo próprio: descoberta, roadmap, spec, clarify, decisão, plano,
+> tasks, analyze, implement, review, doctor, lições e recomendação de próximo passo. Os caminhos
+> `.specify/` mantêm compatibilidade de artefatos, mas o produto não depende de outro motor de SDD.
 
 ---
 
@@ -25,7 +25,7 @@
 - Quem quer entender os **trade-offs** de cada escolha (e o custo) antes de construir.
 - Quem usa o **Claude Code** e quer um fluxo de specs guiado por slash commands.
 - Quem usa outra ferramenta de IA agente que lê `AGENTS.md` (ex.: Codex CLI) — via o adaptador em
-  `.specify/templates/agents-md-template.md` (ver `INSTALL.md`, Opção 3).
+  `.specify/templates/agents-md-template.md` (ver `INSTALL.md`, "Usando outra ferramenta").
 
 ---
 
@@ -294,6 +294,7 @@ spec-driven-kit/
 │
 ├── scripts/
 │   ├── kit-manifest.txt               # classificação ENGINE/SEED/MERGE/SKIP para o instalador
+│   ├── kit-rules.*                    # contrato/check interno do próprio kit (SKIP no bundle)
 │   └── new-feature + sdk-check        # scaffolding + validação de estado, bash + PowerShell
 │
 └── tests/fixtures/                    # fixtures valid/broken para testar o sdk-check e o CI
@@ -305,15 +306,13 @@ spec-driven-kit/
 
 ---
 
-## Relação com o Spec Kit oficial e quando migrar
+## Relação com o Spec Kit oficial
 
 Os artefatos que este kit produz (constituição, project-context, specs, planos) são **consumíveis pelo Spec
-Kit oficial**, porque usam os mesmos caminhos.
-
-**Quando migrar:** comece no Spec Driven Kit (onboarding guiado + descoberta + decisões conscientes). Quando o
-projeto amadurecer e você quiser a **CLI, a automação e os gates** do Spec Kit, rode `specify init` no mesmo
-repositório. A constituição e o `project-context` já estarão no lugar; o pipeline
-`/speckit.specify → plan → tasks → implement` assume a partir daí.
+Kit oficial**, porque vários caminhos são compatíveis. Isso é portabilidade de artefato, não recomendação
+de operar dois motores no mesmo projeto: use apenas um ciclo de estado por vez para evitar comandos,
+templates e marcadores concorrentes. Uma eventual migração é uma decisão explícita de processo, com
+reconciliação dos contratos; não rode `specify init` por cima deste kit como atualização automática.
 
 ### Mapa de equivalência
 

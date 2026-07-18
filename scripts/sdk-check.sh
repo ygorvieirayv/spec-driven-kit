@@ -521,14 +521,145 @@ task_declared_dependencies() {
       }
       id = trim_value($2)
       if (dependency_column > 0 && id == target) {
-        value = $dependency_column
-        while (match(value, /T[0-9]+/)) {
-          print substr(value, RSTART, RLENGTH)
-          value = substr(value, RSTART + RLENGTH)
+        value = trim_value($dependency_column)
+        if (value == "—") next
+        count = split(value, dependencies, ",")
+        for (dependency_index = 1; dependency_index <= count; dependency_index++) {
+          print trim_value(dependencies[dependency_index])
         }
       }
     }
-  ' "$task_source" | sort -u
+  ' "$task_source"
+}
+
+validate_task_dependency_graph() {
+  local task_source="$1"
+  awk -F'|' '
+    function trim_value(value) {
+      gsub(/^[ \t]+|[ \t\r]+$/, "", value)
+      return value
+    }
+    function emit_error(message) {
+      print "ERROR\t" message
+      invalid = 1
+    }
+    function visit(node,    raw, count, parts, edge_index, dependency, start, cycle, cursor) {
+      color[node] = 1
+      depth++
+      stack[depth] = node
+      stack_position[node] = depth
+
+      raw = dependencies[node]
+      count = split(raw, parts, " ")
+      for (edge_index = 1; edge_index <= count; edge_index++) {
+        dependency = parts[edge_index]
+        if (dependency == "") continue
+        if (color[dependency] == 0) {
+          visit(dependency)
+        } else if (color[dependency] == 1) {
+          start = stack_position[dependency]
+          cycle = stack[start]
+          for (cursor = start + 1; cursor <= depth; cursor++) {
+            cycle = cycle " -> " stack[cursor]
+          }
+          cycle = cycle " -> " dependency
+          if (!reported_cycle[cycle]++) print "CYCLE\t" cycle
+        }
+      }
+
+      delete stack_position[node]
+      delete stack[depth]
+      depth--
+      color[node] = 2
+    }
+    {
+      if (in_task_table && $0 !~ /^\|/) in_task_table = 0
+    }
+    /^\|/ {
+      first = trim_value($2)
+      if (first == "ID") {
+        header_count++
+        in_task_table = 1
+        dependency_column = 0
+        dependency_column_count = 0
+        for (column = 1; column <= NF; column++) {
+          if (trim_value($column) == "Depende de") {
+            dependency_column = column
+            dependency_column_count++
+          }
+        }
+        if (dependency_column_count != 1) {
+          emit_error("tabela de tasks exige exatamente uma coluna Depende de")
+        }
+        next
+      }
+
+      if (!in_task_table) next
+      if (first ~ /^-+$/) next
+      if (first !~ /^T[0-9]+$/) {
+        emit_error("ID de task invalido: " first)
+        next
+      }
+      if (first in nodes) {
+        invalid = 1
+        next
+      }
+      nodes[first] = 1
+      order[++node_count] = first
+
+      if (dependency_column == 0 || dependency_column >= NF) {
+        emit_error("task " first " sem célula Depende de")
+        next
+      }
+      value = trim_value($dependency_column)
+      if (value == "—") {
+        dependencies[first] = ""
+        next
+      }
+      if (value !~ /^T[0-9]+([ \t]*,[ \t]*T[0-9]+)*$/) {
+        emit_error("task " first " tem Depende de inválido: " value)
+        next
+      }
+
+      dependency_count = split(value, dependency_parts, ",")
+      delete row_seen
+      for (dependency_index = 1; dependency_index <= dependency_count; dependency_index++) {
+        dependency = trim_value(dependency_parts[dependency_index])
+        if (dependency in row_seen) {
+          emit_error("task " first " repete dependência " dependency)
+          continue
+        }
+        row_seen[dependency] = 1
+        dependencies[first] = dependencies[first] (dependencies[first] == "" ? "" : " ") dependency
+      }
+    }
+    END {
+      if (header_count != 1) {
+        emit_error("exige exatamente um cabeçalho canônico de tasks")
+      }
+      if (node_count == 0) {
+        emit_error("tabela de tasks nao possui task canonica")
+      }
+      if (invalid) exit
+
+      for (node_index = 1; node_index <= node_count; node_index++) {
+        node = order[node_index]
+        count = split(dependencies[node], parts, " ")
+        for (dependency_index = 1; dependency_index <= count; dependency_index++) {
+          dependency = parts[dependency_index]
+          if (dependency != "" && !(dependency in nodes)) {
+            emit_error("task " node " depende de task inexistente " dependency)
+          }
+        }
+      }
+      if (invalid) exit
+
+      for (node_index = 1; node_index <= node_count; node_index++) {
+        node = order[node_index]
+        if (color[node] == 0) visit(node)
+      }
+    }
+  ' "$task_source"
 }
 
 task_state_for_id() {
@@ -878,6 +1009,15 @@ for plandir in "$ROOT"/docs/plans/*/; do
     [ -n "$duplicate_task" ] || continue
     erro "$task_source_rel: ID de task duplicado: $duplicate_task"
   done <<< "$duplicate_task_ids"
+
+  while IFS=$'\t' read -r graph_result graph_detail; do
+    [ -n "$graph_result" ] || continue
+    case "$graph_result" in
+      ERROR) erro "$task_source_rel: $graph_detail" ;;
+      CYCLE) erro "$task_source_rel: ciclo de dependencias: $graph_detail" ;;
+    esac
+  done < <(validate_task_dependency_graph "$task_source")
+
   task_acs="$(while IFS= read -r task_id; do
     [ -n "$task_id" ] || continue
     task_declared_acs "$task_source" "$task_id"

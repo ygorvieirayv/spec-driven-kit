@@ -22,6 +22,10 @@ segue SemVer enquanto o kit amadurece. Versões `0.x` ainda podem mudar contrato
 - Perfis de prova independentes e combináveis (`visual`, `logic`, `journey`, `data-security`, `operational`,
   `delivery`) são selecionados no plano e cobrados no review; rollback de `data-security` só conta quando a
   verificação aplicável foi executada.
+- `scripts/kit-rules.txt` + `kit-rules.sh` formam o contrato executável interno das nove invariantes
+  transversais do motor; testes negativos provam que mutações reais são rejeitadas com o ID correto.
+- Matriz compartilhada de grafo cobre DAGs, referências inexistentes, gramática inválida, duplicatas,
+  auto-ciclo e ciclos longos em ambos os `sdk-check`.
 
 ### Fixed
 
@@ -35,6 +39,11 @@ segue SemVer enquanto o kit amadurece. Versões `0.x` ainda podem mudar contrato
 - `sdk-check` Bash/PowerShell agora rejeita risco duplicado/inválido, ausência do contrato de fidelidade ou
   dos seis perfis, coluna `Perfis` ausente, markers `Analyze`/`Review` ausentes e tabela `Tasks` inline; a
   extração Bash de AC passou a ler somente a coluna canônica, em paridade com PowerShell.
+- `sdk-check` Bash/PowerShell validam `Depende de` em qualquer estado e rejeitam ID/coluna/célula inválida,
+  tabela sem task canônica, referência inexistente ou repetida e ciclo determinístico com o caminho observado.
+- Fronteira motor × produto reconciliada com o manifesto: `lessons.md` e `project-context.md` são dados do
+  projeto; `new-feature.*` e `COMO-USAR.md` fazem parte do motor. Princípios específicos foram movidos da
+  constituição atualizável para o `project-context.md`, evitando perda em atualização forçada.
 
 ### Changed
 
@@ -62,11 +71,15 @@ segue SemVer enquanto o kit amadurece. Versões `0.x` ainda podem mudar contrato
   risco da feature e as decisões técnicas se ancoram nas restrições e objetivos observáveis do produto.
 - `tasks.md` passou a ser a fonte canônica das tasks de toda feature formal; o plano não mantém uma tabela
   inline concorrente.
+- O CI substituiu regras Python embutidas pelo `kit-rules` canônico e agora verifica todos os caminhos do
+  bundle a partir de `kit-manifest.txt`, incluindo ausência de cada item `SKIP`.
+- Instalação manual por clone/cópia recursiva deixou de ser documentada como suportada; projetos novos e
+  existentes usam o instalador manifest-aware para não carregar fixtures e infraestrutura interna.
 
 ### Planned
 
-- Restante da trilha de rigor e portabilidade (F11–F12) — ver ROADMAP: contrato executável das instruções do
-  kit, CI fail-closed do consumidor, export OpenCode e `/sdk-cycle`.
+- Restante da trilha de rigor e portabilidade (F11–F12) — ver ROADMAP: CI fail-closed do consumidor,
+  export OpenCode e `/sdk-cycle`.
 - Expandir o `decision-guide.md` para decisões de produto.
 - Adicionar exemplos reais por nicho.
 - Avaliar starter packs como sementes de conversa, não como projetos prontos.

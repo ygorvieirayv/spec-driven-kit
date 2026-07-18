@@ -1,0 +1,27 @@
+# Spec Driven Kit - índice das invariantes executáveis
+
+Este arquivo não cria uma segunda constituição. Ele aponta cada invariante transversal para sua fonte
+normativa e declara onde ela obrigatoriamente precisa estar refletida. O checker `kit-rules.sh` transforma
+este índice em uma guarda determinística de coerência textual. Ele não prova que uma IA obedeceu à regra;
+prova que o motor distribuído não perdeu ou contradisse a instrução.
+
+| ID | Invariante | Fonte normativa | Reflexos obrigatórios |
+|----|------------|-----------------|-----------------------|
+| KR-01 | Somente `/sdk-review` promove task para `done` | `.specify/memory/state-markers.md` | constituição, implement, review, reviewer e templates de plan/tasks |
+| KR-02 | Achados Crítico e Alto bloqueiam sempre | `.specify/memory/constitution.md` | analyze, review, reviewer e adaptador AGENTS |
+| KR-03 | `tasks.md` é a única fonte formal de tasks | `.specify/memory/state-markers.md` | plan, analyze, next e templates de plan/tasks |
+| KR-04 | Evidence é real, append-only e guarda proveniência | `.specify/memory/state-markers.md` | template de evidence, implement e review |
+| KR-05 | Existe uma barra de integridade; fidelidade não é modo global | `.specify/memory/constitution.md` | CLAUDE, spec/plan/templates e ausência dos modos globais legados |
+| KR-06 | Existem exatamente seis perfis canônicos de prova | `.specify/memory/engineering-standards.md` | constituição, plan e templates |
+| KR-07 | ENGINE é motor; SEED/MERGE são dados do projeto | `scripts/kit-manifest.txt` e `CLAUDE.md` | implement, review, reviewer e doctor |
+| KR-08 | Duas tentativas iguais sem progresso acionam o disjuntor | `.specify/memory/constitution.md` | CLAUDE, implement, review, reviewer e doctor |
+| KR-09 | Mudança de contrato invalida Analyze | `.specify/memory/state-markers.md` | spec, clarify, decide, plan e tasks |
+
+Regras para evoluir este índice:
+
+- Só entram invariantes transversais cuja perda pode autorizar mutação, conclusão ou evidência falsa.
+- A semântica completa continua na fonte normativa indicada; este arquivo é o índice de propagação.
+- Um novo ID exige ao menos uma asserção executável. A suíte negativa mantém mutações representativas para
+  provar que o checker falha fechado e identifica regra/arquivo; mecanismo novo de detecção exige seu próprio
+  caso negativo.
+- Regra que não pode ser validada honestamente por texto permanece no review sem fingir enforcement.

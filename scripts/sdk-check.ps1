@@ -113,6 +113,51 @@ function Test-RecordCoversAcs($record, $declaredAcs) {
   return $true
 }
 
+function Get-TaskDependencyCycles($taskIds, $taskDepsById, $taskOrder) {
+  $colors = @{}
+  $stack = [System.Collections.Generic.List[string]]::new()
+  $positions = @{}
+  $reported = @{}
+  $cycles = [System.Collections.Generic.List[string]]::new()
+  $visit = $null
+
+  $visit = {
+    param([string]$node)
+
+    $colors[$node] = 1
+    $positions[$node] = $stack.Count
+    [void]$stack.Add($node)
+
+    foreach ($dependency in @($taskDepsById[$node])) {
+      if (-not $taskIds.ContainsKey($dependency)) { continue }
+      if (-not $colors.ContainsKey($dependency)) {
+        & $visit $dependency
+      } elseif ($colors[$dependency] -eq 1) {
+        $start = [int]$positions[$dependency]
+        $parts = @()
+        for ($index = $start; $index -lt $stack.Count; $index++) {
+          $parts += $stack[$index]
+        }
+        $parts += $dependency
+        $cycle = $parts -join ' -> '
+        if (-not $reported.ContainsKey($cycle)) {
+          $reported[$cycle] = $true
+          [void]$cycles.Add($cycle)
+        }
+      }
+    }
+
+    [void]$stack.RemoveAt($stack.Count - 1)
+    [void]$positions.Remove($node)
+    $colors[$node] = 2
+  }
+
+  foreach ($node in @($taskOrder)) {
+    if (-not $colors.ContainsKey($node)) { & $visit $node }
+  }
+  return @($cycles)
+}
+
 foreach ($d in @($planDirs)) {
   $feature  = $d.Name
   $plan     = Join-Path $d.FullName "plan.md"
@@ -147,37 +192,68 @@ foreach ($d in @($planDirs)) {
   $taskStates = @{}
   $taskAcsById = @{}
   $taskDepsById = @{}
+  $taskOrder = [System.Collections.Generic.List[string]]::new()
   $taskAcs = @()
   $taskLines = @(Get-Content -Encoding UTF8 $taskFile)
   $acColumnIndex = $null
   $depColumnIndex = $null
   $profilesColumnIndex = $null
+  $taskHeaderCount = 0
+  $dependencyColumnCount = 0
+  $dependencyGraphValid = $true
   foreach ($line in $taskLines) {
     if ($line -notmatch '^\|') { continue }
     $headerCells = $line -split '\|'
+    if ($headerCells.Count -lt 3 -or $headerCells[1].Trim() -cne 'ID') { continue }
+    $taskHeaderCount++
     for ($cellIndex = 0; $cellIndex -lt $headerCells.Count; $cellIndex++) {
-      if ($headerCells[$cellIndex].Trim() -eq 'AC') {
+      if ($headerCells[$cellIndex].Trim() -ceq 'AC') {
         $acColumnIndex = $cellIndex
       }
-      if ($headerCells[$cellIndex].Trim() -eq 'Depende de') {
+      if ($headerCells[$cellIndex].Trim() -ceq 'Depende de') {
         $depColumnIndex = $cellIndex
+        $dependencyColumnCount++
       }
-      if ($headerCells[$cellIndex].Trim() -eq 'Perfis') {
+      if ($headerCells[$cellIndex].Trim() -ceq 'Perfis') {
         $profilesColumnIndex = $cellIndex
       }
     }
-    if ($null -ne $acColumnIndex) { break }
   }
+  if ($taskHeaderCount -ne 1) {
+    Erro "${taskRel}: exige exatamente um cabecalho canonico de tasks"
+    $dependencyGraphValid = $false
+  }
+  if ($dependencyColumnCount -ne 1) {
+    Erro "${taskRel}: tabela de tasks exige exatamente uma coluna Depende de"
+    $dependencyGraphValid = $false
+  }
+  if ($null -eq $acColumnIndex) { Erro "${taskRel}: tabela de tasks exige a coluna 'AC'" }
   if ($null -eq $profilesColumnIndex) { Erro "${taskRel}: tabela de tasks exige a coluna 'Perfis'" }
 
+  $inTaskTable = $false
   foreach ($line in $taskLines) {
-    $tm = [regex]::Match($line, '^\| *(T[0-9]+) *\|')
-    if (-not $tm.Success) { continue }
-    $task = $tm.Groups[1].Value
+    if ($line -notmatch '^\|') {
+      if ($inTaskTable) { $inTaskTable = $false }
+      continue
+    }
     $cells = $line -split '\|'
     if ($cells.Count -lt 3) { continue }
+    $firstCell = $cells[1].Trim()
+    if ($firstCell -ceq 'ID') {
+      $inTaskTable = $true
+      continue
+    }
+    if (-not $inTaskTable) { continue }
+    if ($firstCell -match '^-+$') { continue }
+    if ($firstCell -cnotmatch '^T[0-9]+$') {
+      Erro "${taskRel}: ID de task invalido: $firstCell"
+      $dependencyGraphValid = $false
+      continue
+    }
+    $task = $firstCell
     if ($taskIds.ContainsKey($task)) {
       Erro "${taskRel}: ID de task duplicado: $task"
+      $dependencyGraphValid = $false
       continue
     }
     $state = $cells[$cells.Count - 2].Trim()
@@ -188,20 +264,53 @@ foreach ($d in @($planDirs)) {
     }
     $rowDeps = @()
     if ($null -ne $depColumnIndex -and $cells.Count -gt $depColumnIndex) {
-      $rowDeps = @([regex]::Matches($cells[$depColumnIndex], 'T[0-9]+') |
-        ForEach-Object { $_.Value } | Sort-Object -Unique)
+      $dependencyCell = $cells[$depColumnIndex].Trim()
+      if ($dependencyCell -eq [string][char]0x2014) {
+        $rowDeps = @()
+      } elseif ($dependencyCell -cnotmatch '^T[0-9]+(?:[ \t]*,[ \t]*T[0-9]+)*$') {
+        Erro "${taskRel}: task $task tem Depende de invalido: $dependencyCell"
+        $dependencyGraphValid = $false
+      } else {
+        $rowDeps = @($dependencyCell -split ',' | ForEach-Object { $_.Trim() })
+        foreach ($duplicateDependency in @($rowDeps | Group-Object | Where-Object { $_.Count -gt 1 })) {
+          Erro "${taskRel}: task $task repete dependencia $($duplicateDependency.Name)"
+          $dependencyGraphValid = $false
+        }
+      }
+    } else {
+      Erro "${taskRel}: task $task sem celula Depende de"
+      $dependencyGraphValid = $false
     }
     $taskIds[$task] = $true
+    [void]$taskOrder.Add($task)
     $taskStates[$task] = $state
     $taskAcsById[$task] = $rowAcs
     $taskDepsById[$task] = $rowDeps
     $taskAcs += $rowAcs
 
-    if ($state -match '^(backlog|ready|in-progress|verification-pending|blocked|done)$') { continue }
+    if ($state -cmatch '^(backlog|ready|in-progress|verification-pending|blocked|done)$') { continue }
     if ($state -eq '' -or $state -like '*<*') { continue }  # placeholder de molde
     Erro "${taskRel}: estado de task invalido: '$state' (backlog | ready | in-progress | verification-pending | blocked | done)"
   }
+  if ($taskOrder.Count -eq 0) {
+    Erro "${taskRel}: tabela de tasks nao possui task canonica"
+    $dependencyGraphValid = $false
+  }
   $taskAcs = @($taskAcs | Sort-Object -Unique)
+
+  foreach ($task in @($taskOrder)) {
+    foreach ($dependency in @($taskDepsById[$task])) {
+      if (-not $taskIds.ContainsKey($dependency)) {
+        Erro "${taskRel}: task $task depende de task inexistente $dependency"
+        $dependencyGraphValid = $false
+      }
+    }
+  }
+  if ($dependencyGraphValid) {
+    foreach ($cycle in @(Get-TaskDependencyCycles $taskIds $taskDepsById $taskOrder)) {
+      Erro "${taskRel}: ciclo de dependencias: $cycle"
+    }
+  }
 
   $specAcs = @()
   if (Test-Path $spec) {
@@ -278,7 +387,6 @@ foreach ($d in @($planDirs)) {
 
     foreach ($dep in @($taskDepsById[$task])) {
       if (-not $taskStates.ContainsKey($dep)) {
-        Erro "${taskRel}: task $task em $state depende de task inexistente $dep"
         continue
       }
       $depState = $taskStates[$dep]

@@ -37,15 +37,16 @@ token. Se o script não existir (instalação parcial), diga isso e faça as mes
   construção`/`concluída`.
 - **Estado de task:** aceite só `backlog`, `ready`, `in-progress`, `verification-pending`, `done`, `blocked`.
   `partial`/`reopened` são drift. `verification-pending` só depende de
-  `verification-pending`/`done`; `done`, somente de `done`. O `sdk-check` ainda não detecta ciclos;
-  encaminhe suspeita concreta ao `/sdk-analyze`.
+  `verification-pending`/`done`; `done`, somente de `done`. O `sdk-check` rejeita gramática inválida,
+  referência ausente/repetida e ciclo no grafo interno de `tasks.md`; dependências entre features ainda
+  são conferidas semanticamente pelo `/sdk-roadmap` e `/sdk-analyze`.
 - **Estado × evidence (contrato estrito):** a fonte das tasks exige marker `Evidence` para a própria
   feature; ausência/caminho divergente é erro. `verification-pending` exige `Registro implement` válido;
   `done`, `Registro review` `pass`/`observed`; `blocked`, `Bloqueio` no mesmo bloco negativo. Evidence vazio
   antes da primeira observação é drift. Não há modo legado nem fabricação de evidência retrospectiva.
 - **Restos de atualização do kit:** existem arquivos `*.sdk-new` ou `*.sdk-bak.*` esquecidos? → AVISO:
-  reconcilie (compare, incorpore o que quiser e apague o sidecar) — o passo está documentado no
-  `INSTALL.md`, "Atualizando o kit".
+  compare o original com o sidecar, incorpore conscientemente o que deve permanecer e só então apague o
+  sidecar. Nunca escolha automaticamente entre dado do projeto e atualização de motor.
 
 ### T2 — leitura dirigida (só dos arquivos suspeitos de T1)
 - **Plano × ADRs:** alguma decisão do plano contradiz um ADR de `docs/decisions/` ou o resumo de decisões
@@ -81,9 +82,9 @@ A ref SHA registra só proveniência. Não compare com HEAD nem classifique `cur
 ### T3 — código × artefatos (git; só a pedido ou com suspeita concreta)
 - Branch de feature com arquivos alterados **fora** dos declarados na coluna Arquivo(s) do plano/tasks.
 - Mudanças de código em feature cujo ledger diz `a fazer`/`em spec` (código andando na frente da spec).
-- Diff de feature tocando o **motor do kit** (fronteira no `CLAUDE.md`, "Motor × produto") → drift
-  **Crítico**: não corrija em silêncio; restaure do repositório oficial do kit (ou trate como evolução
-  separada do kit), reexecute o `sdk-check` e só então retome a feature.
+- **Motor × produto — use o inventário canônico do `CLAUDE.md`:** diff de feature tocando motor é drift
+  **Crítico**. Não corrija em silêncio; restaure do repositório oficial do kit (ou trate como evolução
+  separada), reexecute o `sdk-check` e só então retome. `project-context.md` e `lessons.md` não são motor.
 > Não tente verificar semanticamente "o código obedece cada AC" aqui — isso é papel do `/sdk-review` por
 > feature, com spec e diff no contexto. O doctor pega drift **estrutural**, não relê a implementação toda.
 

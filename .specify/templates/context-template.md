@@ -14,6 +14,12 @@
 - **Restrições conhecidas:** <prazo, orçamento, carga esperada, durabilidade/criticidade dos dados,
   capacidade operacional e recuperação — somente o que for relevante>
 
+## Princípios específicos deste projeto
+> Regras globais de negócio/operação explicadas e aprovadas pelo usuário. Mantenha-as concretas e
+> verificáveis; regra que pertence a uma feature fica na respectiva spec.
+
+- <princípio e efeito observável>
+
 ## Jurisdição e usuários
 - **País de operação:** <...> `[VERIFICAR]`
 - **Países dos usuários:** <...> `[VERIFICAR]`

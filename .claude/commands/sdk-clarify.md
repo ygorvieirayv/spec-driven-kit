@@ -39,7 +39,7 @@ ou reinterpretado. Esclarecimento que muda seu significado cria novo AC/task ou 
 ## Saída
 - Atualize a spec em `docs/specs/<feature>/spec.md` (AC mais nítidos, edge cases, regras explícitas, escopo
   e limites de fidelidade).
-- Se risco, limites de fidelidade, AC ou escopo mudarem e já houver plano, volte `**Analyze:**` para
-  `pendente` e aponte o plano/tasks afetado. Não deixe a análise antiga parecer válida.
+- Se risco, limites de fidelidade, AC ou escopo mudarem e já houver plano, grave imediatamente
+  `**Analyze:** pendente` e aponte o plano/tasks afetado. Não deixe a análise antiga parecer válida.
 - Liste o que ficou esclarecido e o que (se algo) continua em aberto como `[VERIFICAR]`.
 - Sugira o próximo passo: `/sdk-plan` (ou `/sdk-analyze` se já houver plano/tasks).
