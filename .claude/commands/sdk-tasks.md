@@ -5,32 +5,31 @@ argument-hint: "[nome da feature]"
 
 # /sdk-tasks — Tasks rastreáveis
 
-Gere ou atualize a lista de tasks de uma feature a partir do plano. Em **PRODUCTION**, grave em
-`docs/plans/<feature>/tasks.md` usando o `tasks-template.md`. Em **PROTOTYPE**, a tabela "Tasks" que já está
-dentro do `plan.md` pode bastar (ver matriz de rigor em `constitution.md`) — não duplique em arquivo
-separado só por hábito.
+Gere ou atualize a lista canônica de tasks de uma feature a partir do plano. Toda feature formal, inclusive
+de baixo risco, grava `docs/plans/<feature>/tasks.md` usando o `tasks-template.md`. O plano não mantém uma
+segunda tabela de tasks.
 
 Carregue: o plano (`docs/plans/<feature>/plan.md`), a spec (`docs/specs/<feature>/spec.md`), o
-`project-context.md` (para confirmar o modo) e, se for gerar arquivo separado,
+`project-context.md`, `.specify/memory/engineering-standards.md` (seção de perfis) e
 `.specify/templates/tasks-template.md`.
 
 Leia também `.specify/memory/state-markers.md`; ele é normativo para estados e transições.
 
 ## O que fazer
 
-0. **Confira o modo.** Se PROTOTYPE e a tabela inline do `plan.md` já cobre o que falta, atualize-a ali
-   mesmo e pare por aqui. Se PRODUCTION — ou o usuário quer rastreio mais forte mesmo em PROTOTYPE — siga os
-   passos abaixo.
 1. **Derive as tasks** do plano. Cada task precisa de: ID, descrição, dependências, **AC que satisfaz**,
-   arquivo(s) afetado(s), forma de **verificação** e **estado**. A verificação traz ação/comando exato,
-   diretório/local, fonte/tool e resultado observável. Passo manual precisa ser igualmente reproduzível.
+   **perfil(is) de prova aplicável(is)**, arquivo(s) afetado(s), forma de **verificação** e **estado**. A
+   verificação traz ação/comando exato, diretório/local, fonte/tool e resultado observável. Passo manual
+   precisa ser igualmente reproduzível.
 2. **Ordene por dependência.** Para implementar, dependências internas em `verification-pending` ou `done`
    satisfazem a ordem; para uma task ficar `done`, todas precisam estar `done`.
-3. **Cobertura de AC:** confira que **todo** AC da spec tem ao menos uma task. Liste AC sem task — deve ficar
-   vazio antes de implementar.
+3. **Cobertura de AC e perfis:** confira que **todo** AC da spec e **todo** perfil `aplicável` do plano têm
+   ao menos uma task. Cada task cita ao menos um perfil aplicável; perfil `N/A` não pode aparecer. Se uma
+   task citar vários perfis, a verificação cobre todos; caso contrário, fatie. As duas listas de lacunas
+   precisam ficar vazias antes de implementar.
 4. **Atualização:** se já existir `tasks.md`, atualize estados e adicione/remova somente tasks que ainda não
    têm `Registro`, preservando o histórico de IDs. Depois do primeiro recibo, ID, descrição/semântica,
-   dependências, ACs e verificação não são apagados nem reutilizados. Mudança semântica ganha novo AC/task
+   dependências, ACs, perfis e verificação não são apagados nem reutilizados. Mudança semântica ganha novo AC/task
    ou delta feature.
    Uma task não concluída retirada do escopo fica em `backlog`, com o texto original seguido de
    `[DESCONTINUADA: <decisão/referência>]`; `done` permanece histórica. Não reclassifique silenciosamente
@@ -52,7 +51,7 @@ Leia também `.specify/memory/state-markers.md`; ele é normativo para estados e
 - `partial` e `reopened` são inválidos.
 
 ## Saída
-- Grave/atualize `docs/plans/<feature>/tasks.md` (ou a tabela inline do `plan.md`, se ficou em PROTOTYPE).
-  Se as tasks **mudaram** depois de uma análise, volte a linha `**Analyze:**` do plano para `pendente`.
+- Grave/atualize `docs/plans/<feature>/tasks.md`. Se as tasks **mudaram** depois de uma análise, volte a
+  linha `**Analyze:**` do plano para `pendente`.
 - Mostre a tabela e aponte a próxima task `ready`.
 - Sugira `/sdk-analyze` (conferir consistência antes de codar) e, em seguida, `/sdk-implement`.

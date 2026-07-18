@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# new-feature.sh — cria o esqueleto de uma feature (pasta de spec/plano + branch).
+# new-feature.sh — inicia a spec de uma feature e cria a branch dedicada.
 # Uso:  ./scripts/new-feature.sh "nome-da-feature"
 # Opcional do Spec Driven Kit (Fase 4). O núcleo do kit funciona sem isto.
 
@@ -23,19 +23,24 @@ fi
 
 root="$(cd "$(dirname "$0")/.." && pwd)"
 spec_dir="$root/docs/specs/$slug"
-plan_dir="$root/docs/plans/$slug"
 
-mkdir -p "$spec_dir" "$plan_dir"
+mkdir -p "$spec_dir"
 
-# Copia os moldes se a spec/plano ainda não existirem (não sobrescreve).
-[ -f "$spec_dir/spec.md" ] || cp "$root/.specify/templates/spec-template.md" "$spec_dir/spec.md"
-[ -f "$plan_dir/plan.md" ] || cp "$root/.specify/templates/plan-template.md" "$plan_dir/plan.md"
-[ -f "$plan_dir/tasks.md" ] || cp "$root/.specify/templates/tasks-template.md" "$plan_dir/tasks.md"
+# Copia e materializa os moldes somente na primeira criação (não sobrescreve).
+create_from_template() {
+  local source="$1" target="$2"
+  [ -f "$target" ] && return
+  cp "$source" "$target"
+  sed -i \
+    -e "s#<feature>#$slug#g" \
+    -e "s#<Nome da Feature>#$slug#g" \
+    "$target"
+}
+
+create_from_template "$root/.specify/templates/spec-template.md" "$spec_dir/spec.md"
 
 echo "Criado:"
 echo "  $spec_dir/spec.md"
-echo "  $plan_dir/plan.md"
-echo "  $plan_dir/tasks.md"
 
 # Cria a branch dedicada, se estivermos num repo git.
 if git -C "$root" rev-parse --git-dir >/dev/null 2>&1; then
@@ -49,4 +54,4 @@ if git -C "$root" rev-parse --git-dir >/dev/null 2>&1; then
   fi
 fi
 
-echo "Pronto. Detalhe a feature com /sdk-spec e depois /sdk-plan."
+echo "Pronto. Detalhe a feature com /sdk-spec; depois use /sdk-next para seguir o estado gravado."

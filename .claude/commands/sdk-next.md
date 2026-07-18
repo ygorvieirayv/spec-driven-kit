@@ -15,13 +15,14 @@ simples.
 
 ## O que ler (nesta ordem, e só isto — economia de token)
 
-1. `.specify/memory/project-context.md` — só as linhas de **Identidade/Modo** (grep, não o arquivo todo).
+1. `.specify/memory/project-context.md` — só as linhas de **Identidade** e **Restrições conhecidas** (grep,
+   não o arquivo todo).
 2. `docs/epics.md` — a tabela **"Ordem de construção (dependências)"** (o ledger: colunas Estado e
    "Pronta p/ começar?").
 3. `git branch --show-current` e `git status --porcelain` — o que está em curso (**sinal**, não verdade).
-4. **Só da feature ativa:** a linha `Status:` de `docs/specs/<feature>/spec.md` e de
-   `docs/plans/<feature>/plan.md`, as linhas `**Analyze:**` e `**Review:**` do plano, e os estados das
-   tasks (`tasks.md` ou a tabela inline do plano).
+4. **Só da feature ativa:** as linhas `Status:` e `Risco:` de `docs/specs/<feature>/spec.md`; `Status:`,
+   `**Analyze:**` e `**Review:**` de `docs/plans/<feature>/plan.md`; e os estados das tasks em `tasks.md`.
+   No plano, leia somente as linhas da tabela de perfis marcadas `aplicável`.
 5. Se existir `docs/plans/<feature>/evidence.md`, leia só o resumo, os `Registro` mais recentes das tasks
    ativas e `Bloqueio`. A ref SHA é apenas proveniência; não compare com HEAD nem use
    `current`/`historical`.
@@ -36,20 +37,22 @@ dos comandos de cada etapa.
 | Não há `docs/epics.md` preenchido (ou está no esqueleto) | `/sdk-bootstrap` — o projeto ainda não fez o onboarding |
 | Ledger existe; nenhuma feature em andamento; há 🟢 | `/sdk-spec` da próxima 🟢 (ou `/sdk-roadmap` se a ordem parece desatualizada) |
 | Spec `rascunho` / `em revisão` | Terminar a spec: `/sdk-spec` (ou `/sdk-clarify`, se o que falta é tirar ambiguidade) |
-| Spec `aprovada`, sem plano | Risco médio/alto → `/sdk-plan` · risco trivial/baixo → a régua permite encurtar (ver abaixo) |
+| Mudança confirmada como trivial, sem lifecycle formal | `/sdk-implement` com verificação objetiva; depois review leve. Se tocar lógica crítica, reclassifique e abra spec |
+| Spec `aprovada`, sem plano | `/sdk-plan` — toda feature formal, inclusive risco baixo, registra estratégia e perfis |
 | Plano `rascunho` | Terminar/aprovar o plano: `/sdk-plan` |
-| Plano `aprovado`, linha `**Analyze:**` ainda `pendente` | `/sdk-analyze` (médio/alto) ou direto `/sdk-implement` (baixo, régua dispensa) |
-| Analyze `consistente` (ou dispensado), há `ready`/`in-progress` | `/sdk-implement`; dependências internas `verification-pending`/`done` já satisfazem a ordem |
+| Plano `aprovado`, sem `tasks.md` | `/sdk-tasks` — gerar a fonte única de tasks e ligar ACs aos perfis |
+| `tasks.md` existe e `**Analyze:**` está `pendente` | `/sdk-analyze` — toda feature formal passa pelo gate antes de código |
+| Analyze `consistente`, há `ready`/`in-progress` | `/sdk-implement`; dependências internas `verification-pending`/`done` já satisfazem a ordem |
 | Não há task implementável e há `verification-pending` | `/sdk-review` — revisor fresco reexecuta o menor subconjunto seguro |
 | Não há `ready`/`in-progress`/`verification-pending`; há `blocked` ainda não resolvida | Não avance; mostre motivo/condição. Resolvida, `/sdk-implement` retoma por `blocked → ready` |
 | `blocked` contradiz marker/realidade | `/sdk-doctor` — reconciliar sem apagar histórico |
 | Todas as tasks `done` e `**Review:**` pendente | `/sdk-review` — consolidar veredito; sob contrato estrito, `done` sem recibo review é drift |
-| `**Review:** aprovado` / feature `concluída` | `/sdk-roadmap` — ver o que a conclusão desbloqueou, e seguir para a próxima 🟢 |
-| `**Review:** bloqueado` ou `aprovado com ressalvas` | `/sdk-implement` para corrigir/reverificar; depois `/sdk-review` de novo. Não pule direto para review nem avance de feature |
+| (`**Review:** aprovado` ou `aprovado com ressalvas`) **e** feature `concluída` | `/sdk-roadmap` — ressalvas aceitas já viraram sub-features `a fazer` no ledger; veja o que a conclusão desbloqueou |
+| `**Review:** bloqueado` | `/sdk-implement` para corrigir/reverificar; depois `/sdk-review` de novo. Não pule direto para review nem avance de feature |
 | Marcadores contraditórios entre si (ledger × artefatos × git) | `/sdk-doctor` — diagnóstico global read-only + reconciliação aprovada |
 
-- **Estime o risco** aplicando a definição de lógica crítica e a **régua de cerimônia** da
-  `constitution.md` ao que a feature toca. Na dúvida entre dois níveis, use o de cima — e diga isso.
+- **Leia o risco gravado na spec** e faça uma checagem de sanidade pela definição de lógica crítica da
+  `constitution.md`. Ausência ou subestimação pede `/sdk-spec`/`/sdk-doctor`; não recalcule em silêncio.
 - **Git como sinal de divergência:** se há mudanças de código na branch mas o ledger/artefatos dizem outra
   coisa (ex.: feature "em spec" com código já mexido), **aponte a divergência** ao usuário em vez de fingir
   que não existe — e sugira `/sdk-doctor`; a hierarquia de fonte da verdade do `CLAUDE.md` decide quem vence.
@@ -65,9 +68,10 @@ dos comandos de cada etapa.
 
 ## Saída (curta, sempre neste formato)
 
-- **Onde estamos:** produto/modo em 1 frase · feature ativa e o estágio dela.
+- **Onde estamos:** produto em 1 frase · feature ativa e o estágio dela.
 - **Risco:** o nível da régua para a mudança em curso, e o que isso implica no fluxo.
+- **Prova:** perfis aplicáveis já declarados (ou o ponto em que ainda serão definidos).
 - **Próximo passo:** **um** comando recomendado + o porquê em 1–2 frases.
-- **Alternativa consciente:** se der para encurtar (ex.: pular `/sdk-tasks` em PROTOTYPE), diga qual etapa e
-  qual o custo de pular.
+- **Atalho consciente:** só existe se a mudança for de fato trivial. Nunca sugira pular tasks/analyze de
+  uma feature formal para economizar cerimônia.
 - Termine perguntando se o usuário quer seguir com o recomendado. **Não execute sem o "sim".**

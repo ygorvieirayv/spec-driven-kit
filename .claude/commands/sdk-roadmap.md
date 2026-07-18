@@ -31,6 +31,8 @@ Carregue: `docs/epics.md` (áreas e MVP), e o estado das features em `docs/specs
    sub-feature continua sendo feito **só na hora** (`/sdk-spec`), uma por vez.
    > Exemplo: o epic **"Checkout"** decompõe em: *carrinho · cálculo de frete · meio de pagamento ·
    > confirmação do pedido*. Cada uma dessas é uma sub-feature que entra na ordem abaixo.
+   Preserve sub-features de dívida criadas por `/sdk-review` com referência `review <feature> <data>`;
+   reordene e recalcule dependências, mas não as apague sem decisão explícita do usuário.
 2. **Mapeie as dependências de cada sub-feature.** Para cada uma, descubra o que ela precisa que já exista:
    - dados de que depende (ex.: "precisa dos produtos e dos preços");
    - features das quais é continuação (ex.: "carrinho depende do catálogo");

@@ -17,14 +17,24 @@ segue SemVer enquanto o kit amadurece. Versões `0.x` ainda podem mudar contrato
 - `sdk-check` Bash e PowerShell validam o formato dos recibos, a unicidade de IDs canônicos de task/AC e
   impedem marker ausente/divergente, estado comprovado sem recibo, reabertura/rebaixamento silencioso ou
   recibo citando AC de outra task. Fixtures cobrem caminhos válidos e corrompidos.
+- Limites de fidelidade por feature registram explicitamente o que é real, simulado/sandbox e fora de escopo,
+  sem transformar um pedido de protótipo em redução global de qualidade.
+- Perfis de prova independentes e combináveis (`visual`, `logic`, `journey`, `data-security`, `operational`,
+  `delivery`) são selecionados no plano e cobrados no review; rollback de `data-security` só conta quando a
+  verificação aplicável foi executada.
 
 ### Fixed
 
-- `sdk-review`: achado **Alto** agora bloqueia explicitamente em PRODUCTION (alinhado à matriz de rigor da
-  constituição, que já mandava bloquear); em PROTOTYPE segue podendo virar dívida anotada.
+- `sdk-review`: achados **Crítico** e **Alto** bloqueiam sempre; dívida anotada não pode lavar um bloqueador.
 - `sdk-review`: rastreabilidade de QA alinhada ao vocabulário dos demais comandos — mapa **AC → verificação**
   (teste automatizado ou checagem manual legítima), com exceção explícita: AC de lógica crítica exige teste
   automatizado.
+- `new-feature.sh`/`.ps1` materializam o slug e criam somente a spec; plano/tasks nascem em suas etapas, sem
+  placeholders que fariam `/sdk-next` pular o fluxo. O probe Git do PowerShell também não aborta quando o
+  kit instalado ainda não está dentro de um repositório.
+- `sdk-check` Bash/PowerShell agora rejeita risco duplicado/inválido, ausência do contrato de fidelidade ou
+  dos seis perfis, coluna `Perfis` ausente, markers `Analyze`/`Review` ausentes e tabela `Tasks` inline; a
+  extração Bash de AC passou a ler somente a coluna canônica, em paridade com PowerShell.
 
 ### Changed
 
@@ -48,11 +58,15 @@ segue SemVer enquanto o kit amadurece. Versões `0.x` ainda podem mudar contrato
 - Higiene de contexto: cada comando relata em 1 linha o que carregou (auditabilidade da carga sob demanda).
 - `INSTALL.md`: adaptador `AGENTS.md` documentado como caminho **recomendado** para Codex CLI (custom
   prompts do Codex foram descontinuados).
+- O rigor deixou de ser um modo global do projeto: a barra de integridade é única, a cerimônia escala pelo
+  risco da feature e as decisões técnicas se ancoram nas restrições e objetivos observáveis do produto.
+- `tasks.md` passou a ser a fonte canônica das tasks de toda feature formal; o plano não mantém uma tabela
+  inline concorrente.
 
 ### Planned
 
-- Restante da trilha de rigor e portabilidade (F11–F12) — ver ROADMAP: perfis de prova, contrato executável
-  das instruções do kit, CI fail-closed do consumidor, export OpenCode e `/sdk-cycle`.
+- Restante da trilha de rigor e portabilidade (F11–F12) — ver ROADMAP: contrato executável das instruções do
+  kit, CI fail-closed do consumidor, export OpenCode e `/sdk-cycle`.
 - Expandir o `decision-guide.md` para decisões de produto.
 - Adicionar exemplos reais por nicho.
 - Avaliar starter packs como sementes de conversa, não como projetos prontos.

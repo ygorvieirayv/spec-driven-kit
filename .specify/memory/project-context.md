@@ -12,9 +12,10 @@
 
 ## Identidade
 - **Produto:** _(o que faz, para quem)_
-- **Modo:** PROTOTYPE | PRODUCTION  _(define o rigor — ver constituição)_
 - **Stack:** _(linguagem, framework, banco — confirmado no bootstrap)_
 - **Comandos do projeto:** _(rodar / testar / build / lint — preenchido na descoberta)_
+- **Restrições conhecidas:** _(prazo, orçamento, carga esperada, durabilidade/criticidade dos dados,
+  capacidade operacional e recuperação — somente o que for relevante)_
 
 ## Jurisdição e usuários
 - **País de operação:** `[VERIFICAR]`

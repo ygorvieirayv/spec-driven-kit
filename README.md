@@ -46,8 +46,8 @@ ideia vaga
    │   ── por feature (na ordem certa) ──────────────────────────────
    ▼  /sdk-spec        ── spec de uma feature (QUÊ e PORQUÊ) [trava: dependências prontas?]
    ▼  /sdk-clarify     ── (se vago) tira a ambiguidade da spec
-   ▼  /sdk-plan        ── plano técnico (COMO) + tasks
-   ▼  /sdk-tasks       ── lista de tasks rastreáveis
+   ▼  /sdk-plan        ── plano técnico (COMO) + perfis de prova
+   ▼  /sdk-tasks       ── tasks rastreáveis na fonte canônica tasks.md
    ▼  /sdk-analyze     ── confere consistência spec ↔ plano ↔ tasks ↔ AC (antes de codar)
    ▼  /sdk-implement   ── implementação + recibos persistidos em evidence.md
    ▼  /sdk-review      ── revisão fresca + reexecução da verificação antes de done
@@ -61,9 +61,10 @@ algo não bate?             /sdk-doctor — diagnostica drift (read-only) e reco
 ```
 
 > **Nem toda mudança precisa do ciclo inteiro.** A **régua de cerimônia** da `constitution.md` dita quais
-> passos entram conforme o **risco da mudança**: trivial (copy/visual) → implementar + review leve; baixo →
-> spec curta + implement + review; médio → ciclo padrão; alto (dinheiro, auth, dados pessoais…) → ciclo
-> completo com `/sdk-clarify` e TDD. O `/sdk-next` aplica essa régua ao recomendar.
+> passos entram conforme o **risco da mudança**: trivial (copy/visual) → implementar + review leve, sem
+> lifecycle formal; baixo → spec curta + plano/tasks compactos + analyze + implement + review; médio → ciclo
+> padrão; alto (dinheiro, auth, dados pessoais…) → ciclo completo com `/sdk-clarify` e TDD. Toda feature
+> formal usa `tasks.md`. O `/sdk-next` aplica essa régua ao recomendar.
 
 ### Os comandos
 
@@ -80,10 +81,10 @@ algo não bate?             /sdk-doctor — diagnostica drift (read-only) e reco
 | `/sdk-bootstrap` | Onboarding guiado completo: do produto ao escopo do MVP, com 5 checkpoints de aprovação. |
 | `/sdk-roadmap` | ★ Descobre a **ordem certa** de construir as features (por dependências) e o que está "pronto para começar". |
 | `/sdk-spec` | Cria a spec de uma feature por conversa (QUÊ/PORQUÊ). Trava se as dependências não estiverem prontas. |
-| `/sdk-plan` | Cria o plano técnico (COMO), consultando os padrões de engenharia e as lições. |
-| `/sdk-tasks` | Quebra/atualiza a lista de tasks rastreáveis. |
+| `/sdk-plan` | Cria o plano técnico (COMO), consultando padrões e lições, e seleciona os perfis de prova aplicáveis. |
+| `/sdk-tasks` | Quebra/atualiza a lista rastreável em `tasks.md`, fonte canônica das tasks de toda feature formal. |
 | `/sdk-analyze` | Confere a **consistência** spec ↔ plano ↔ tasks ↔ AC (read-only), antes de codar. |
-| `/sdk-implement` | Implementa seguindo o plano, registra cada verificação em `evidence.md` e deixa a task `verification-pending`; TDD na lógica crítica em PRODUCTION. |
+| `/sdk-implement` | Implementa seguindo o plano, aplica TDD na lógica crítica, registra cada verificação em `evidence.md` e deixa a task `verification-pending`. |
 | `/sdk-review` | Revisa em contexto fresco e reroda o subconjunto de verificação citado; somente um novo recibo satisfatório confirma `done`. |
 
 O contexto fresco é o **padrão** do review. Revisão inline é apenas fallback justificado para ambiente sem
@@ -121,7 +122,7 @@ subagente e precisa executar exatamente o mesmo rerun. Se um review falhar, a co
    recursos** (telas, regras, ideias soltas). O agente organiza o despejo em epics, decisões e regras.
 3. Responda às perguntas (uma de cada vez). O agente vai:
    - preparar a estrutura e o `.gitignore`;
-   - confirmar/recomendar o **stack** e o **modo** (PROTOTYPE ou PRODUCTION);
+   - confirmar/recomendar o **stack** a partir das restrições reais (orçamento, escala, operação e prazo);
    - fazer a **descoberta de domínio** (país, leis, pagamentos…) com fontes;
    - conduzir as **decisões de arquitetura** com trade-offs;
    - propor as **regras de negócio** (constituição do projeto);
@@ -134,8 +135,8 @@ subagente e precisa executar exatamente o mesmo rerun. Se um review falhar, a co
 8. **Perdeu o fio** (pausa de dias, `/clear`, sessão nova)? Rode **`/sdk-next`** — ele lê o estado gravado
    nos arquivos e diz exatamente onde você parou e o que rodar agora.
 
-**Atalho opcional (Fase 4):** `scripts/new-feature.sh "minha-feature"` (ou `.ps1` no Windows) cria as pastas
-de spec/plano e uma branch dedicada a partir dos moldes.
+**Atalho opcional (Fase 4):** `scripts/new-feature.sh "minha-feature"` (ou `.ps1` no Windows) inicia a spec
+e uma branch dedicada. Plano e tasks só nascem nos comandos próprios, depois das aprovações.
 
 > 💡 **Quer ver o fluxo inteiro antes de começar?** Há um walkthrough opcional e fictício em
 > [`docs/example/`](./docs/example/README.md) mostrando um projeto do "tenho uma ideia" até a primeira
@@ -153,17 +154,31 @@ instalada no projeto.
 
 ---
 
-## Modos: PROTOTYPE × PRODUCTION
+## Rigor unificado, fidelidade e perfis de prova
 
-O kit escala o **rigor** conforme o modo (definido no `project-context.md`):
+O kit tem **uma única barra de integridade**. Segurança, autorização, proteção de dados, honestidade da
+evidência e revisão independente não ficam mais fracas porque o pedido é um protótipo, uma demonstração ou
+um experimento. O que escala é o trabalho necessário para provar cada **feature**, conforme seu risco e sua
+superfície — não um modo global do projeto.
 
-- **PROTOTYPE** — rápido e descartável. Menos cerimônia, testes só no essencial, decisões reversíveis.
-- **PRODUCTION** — mantido a sério. Verificação rigorosa, TDD na lógica crítica, decisões registradas (ADRs).
+Cada spec registra seus **limites de fidelidade**: o que será real, o que será simulado ou executado em
+sandbox e o que ficará fora de escopo. Um checkout demonstrativo, por exemplo, pode usar um gateway simulado;
+a spec precisa dizer isso e nunca pode apresentar a simulação como cobrança real.
 
-Os princípios da constituição valem nos dois modos; o que muda é o **nível de rigor**, nunca a integridade.
-A `constitution.md` tem a **matriz de rigor por modo** — o que cada comando (`/sdk-tasks`, `/sdk-analyze`,
-`/sdk-implement`, `/sdk-review`) trata diferente em PROTOTYPE × PRODUCTION, e o que **nunca** muda (segredos,
-PII, validação de entrada, autorização — esses valem igual nos dois modos, sempre).
+No plano, os perfis de prova são independentes e combináveis:
+
+| Perfil | O que precisa ser demonstrado |
+|--------|-------------------------------|
+| `visual` | Renderização, responsividade, estados visuais e acessibilidade observável. |
+| `logic` | Regras de negócio e modos de falha por testes automatizados. |
+| `journey` | Jornada completa do usuário e integrações atravessadas pelo fluxo. |
+| `data-security` | Migração, acesso, autorização, integridade de dados e rollback realmente executado quando aplicável. |
+| `operational` | Filas, retries, timeouts, idempotência, observabilidade e comportamento sob falha. |
+| `delivery` | Lint, typecheck, build, CI, deploy e capacidade real de entrega. |
+
+Uma alteração visual pode exigir apenas `visual`; uma mudança de autenticação pode combinar `logic`,
+`data-security`, `journey` e `delivery`. A régua de risco decide a cerimônia mínima, o plano declara os perfis
+aplicáveis e o `/sdk-review` cobra as provas correspondentes. Achados **Crítico** e **Alto** bloqueiam sempre.
 
 ---
 
@@ -210,8 +225,8 @@ para gastar pouco:
 - **Consulta de lições por tag.** A `lessons.md` é lida por `grep`/tag, nunca inteira — escala sem encarecer.
 - **Subagentes isolam contexto.** `sdk-domain-researcher`, `sdk-reviewer` e `sdk-lesson-curator` fazem o
   trabalho pesado num contexto próprio; só o resultado volta para a conversa principal.
-- **Disjuntor anti-loop.** Se o agente falha 2–3 vezes na mesma coisa, ele **para** e devolve o problema a
-  você, em vez de insistir no escuro queimando token.
+- **Disjuntor anti-loop.** Se o agente falha duas vezes seguidas na mesma coisa sem progresso observável,
+  ele **para** e devolve o problema a você, em vez de insistir no escuro queimando token.
 - **Uma feature por vez** e, se quiser, um modelo mais barato para etapas mecânicas (tasks, scaffolding).
 
 ## Biblioteca de lições
@@ -324,7 +339,8 @@ repositório. A constituição e o `project-context` já estarão no lugar; o pi
 - **Explicar antes de perguntar.** Toda pergunta vem com o "porquê" e exemplos.
 - **Adaptar ao nível.** Técnico → acelera. "Não sei" → simplifica e sugere um default seguro.
 - **Decisões com trade-offs.** Em cada bifurcação relevante: facilidade × desempenho × custo × escala, com
-  recomendação por modo. Sempre: "posso construir qualquer um dos dois".
+  recomendação baseada nas restrições, no risco e no objetivo observável. Sempre: "posso construir qualquer
+  um dos dois".
 - **Honestidade epistêmica.** Não inventar regras de negócio/lei — pesquisar, citar fontes, sinalizar
   incerteza. Compliance é confirmado por humano.
 - **Artefato é a fonte da verdade.** Código serve à spec; se divergem, a spec vence **dentro da feature**

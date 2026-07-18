@@ -2,13 +2,17 @@
 
 - **Spec de referência:** `docs/specs/broken/spec.md`
 - **Status:** aprovado
-- **Modo:** PROTOTYPE
 - **Analyze:** invalido
 - **Review:** pendente
 
 ---
 
-## Tasks
-| ID | Descrição | Arquivo(s) | AC | Verificação | Estado |
-|----|-----------|-----------|----|-------------|--------|
-| T1 | Referencia AC inexistente | `x` | AC99 | manual | weird |
+## Perfis de prova
+| Perfil | Aplicabilidade | Motivo | ACs | Prova e critério objetivo de saída |
+|--------|----------------|--------|-----|------------------------------------|
+| visual | N/A | sem interface | — | — |
+| logic | aplicável | regra do fixture | AC99 | manual |
+| journey | N/A | sem jornada | — | — |
+| data-security | N/A | sem dados | — | — |
+| operational | N/A | sem operacao | — | — |
+| delivery | N/A | sem entrega | — | — |

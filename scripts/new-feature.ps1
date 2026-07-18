@@ -1,5 +1,5 @@
 <#
-  new-feature.ps1 - cria o esqueleto de uma feature (pasta de spec/plano + branch).
+  new-feature.ps1 - inicia a spec de uma feature e cria a branch dedicada.
   Uso:  ./scripts/new-feature.ps1 "nome-da-feature"
   Opcional do Spec Driven Kit (Fase 4). O nucleo do kit funciona sem isto.
 
@@ -28,27 +28,34 @@ if ([string]::IsNullOrWhiteSpace($slug)) {
 
 $root     = (Resolve-Path (Join-Path $PSScriptRoot "..")).Path
 $specDir  = Join-Path $root "docs/specs/$slug"
-$planDir  = Join-Path $root "docs/plans/$slug"
 $templates = Join-Path $root ".specify/templates"
 
-New-Item -ItemType Directory -Force -Path $specDir, $planDir | Out-Null
+New-Item -ItemType Directory -Force -Path $specDir | Out-Null
 
-# Copia os moldes se ainda nao existirem (nao sobrescreve).
+# Copia e materializa os moldes somente na primeira criacao (nao sobrescreve).
 $specFile  = Join-Path $specDir "spec.md"
-$planFile  = Join-Path $planDir "plan.md"
-$tasksFile = Join-Path $planDir "tasks.md"
-if (-not (Test-Path $specFile))  { Copy-Item (Join-Path $templates "spec-template.md")  $specFile }
-if (-not (Test-Path $planFile))  { Copy-Item (Join-Path $templates "plan-template.md")  $planFile }
-if (-not (Test-Path $tasksFile)) { Copy-Item (Join-Path $templates "tasks-template.md") $tasksFile }
+
+function New-FromTemplate($source, $target) {
+  if (Test-Path $target) { return }
+  $content = [System.IO.File]::ReadAllText($source)
+  $content = $content.Replace("<feature>", $slug).Replace("<Nome da Feature>", $slug)
+  $utf8NoBom = New-Object System.Text.UTF8Encoding($false)
+  [System.IO.File]::WriteAllText($target, $content, $utf8NoBom)
+}
+
+New-FromTemplate (Join-Path $templates "spec-template.md") $specFile
 
 Write-Host "Criado:"
 Write-Host "  $specFile"
-Write-Host "  $planFile"
-Write-Host "  $tasksFile"
 
-# Cria a branch dedicada, se estivermos num repo git.
+# Cria a branch dedicada, se estivermos num repo git. O probe nao pode abortar em pasta sem .git.
+$previousErrorActionPreference = $ErrorActionPreference
+$ErrorActionPreference = "SilentlyContinue"
 git -C $root rev-parse --git-dir > $null 2>&1
-if ($LASTEXITCODE -eq 0) {
+$isGitRepo = ($LASTEXITCODE -eq 0)
+$ErrorActionPreference = $previousErrorActionPreference
+
+if ($isGitRepo) {
   $branch = "feature/$slug"
   git -C $root show-ref --verify --quiet "refs/heads/$branch"
   if ($LASTEXITCODE -eq 0) {
@@ -60,4 +67,4 @@ if ($LASTEXITCODE -eq 0) {
   }
 }
 
-Write-Host "Pronto. Detalhe a feature com /sdk-spec e depois /sdk-plan."
+Write-Host "Pronto. Detalhe a feature com /sdk-spec; depois use /sdk-next para seguir o estado gravado."

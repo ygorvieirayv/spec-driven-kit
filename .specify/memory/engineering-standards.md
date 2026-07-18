@@ -10,7 +10,7 @@
 
 ---
 
-## Sempre (inegociável, vale nos dois modos)
+## Sempre (inegociável)
 
 - **Segredos nunca no código nem no git.** Chaves, tokens, senhas e strings de conexão vivem em variáveis
   de ambiente / cofre, nunca commitados. `.env` está no `.gitignore`. Conferir também que segredos não
@@ -59,19 +59,50 @@
 - Rate limiting em endpoints públicos e de autenticação.
 
 ## Testes
-**VERIFICAR (rigor escala com o modo):**
-- **PROTOTYPE:** testar o "caminho feliz" da lógica de maior risco; smoke test do fluxo principal.
-- **PRODUCTION:** TDD na lógica crítica (RED→GREEN→REFACTOR); cobrir edge cases e modos de falha.
+**VERIFICAR (rigor escala com o risco e com as superfícies alteradas):**
+- Lógica crítica usa TDD (RED→GREEN→REFACTOR) e cobre edge cases e modos de falha.
+- Mudança não crítica usa a menor prova reproduzível que ainda demonstra os critérios de aceitação.
 - Testes determinísticos e independentes (sem depender de ordem, rede ou relógio real sem necessidade).
 - Cada critério de aceitação da spec mapeia para ao menos uma verificação.
 - Teste que nunca falha não testa nada — confirmar que ele pega a regressão que deveria pegar.
+
+## Perfis de prova
+
+> Perfis descrevem **que superfície precisa ser provada**; não são níveis de qualidade nem uma sequência
+> fixa. O `/sdk-plan` avalia os seis para cada feature, marca cada um como `aplicável` ou `N/A` com motivo e
+> combina quantos forem necessários. O risco da mudança define a profundidade da prova dentro do perfil.
+
+| Perfil | Quando se aplica | Prova mínima esperada |
+|--------|------------------|-----------------------|
+| `visual` | Interface, layout, estados visuais, responsividade ou acessibilidade observável mudam | Inspeção nos estados e dimensões relevantes, com artefato reproduzível (screenshot, preview ou equivalente) e resultado objetivo |
+| `logic` | Regra, cálculo, transformação, validação ou ramificação muda | Teste automatizado determinístico; lógica crítica segue RED→GREEN→REFACTOR |
+| `journey` | Um AC atravessa telas, componentes, serviços ou uma integração e representa uma jornada do usuário | Fluxo ponta a ponta reproduzível, incluindo o limite externo permitido pela spec e ao menos o modo de falha relevante |
+| `data-security` | Há persistência, schema, migração, PII, autenticação, autorização, permissão ou deleção | Provas de integridade e negativas de acesso; migração/schema, transformação destrutiva/em massa ou operação que exige reversibilidade tem forward e rollback/restore/forward-recovery **executados** em ambiente seguro, nunca apenas descritos |
+| `operational` | Há rede, fila, job, cron, retry, timeout, idempotência, concorrência, recuperação ou saúde operacional | Falha controlada e recuperação observável; verificar os mecanismos aplicáveis e seus sinais em logs/métricas sem PII |
+| `delivery` | Build, dependência, configuração, empacotamento, deploy ou execução no ambiente-alvo podem mudar | Lint/typecheck/test/build aplicáveis e smoke do artefato/ambiente afetado; CI quando fizer parte da entrega |
+
+### Regras de seleção e rastreio
+
+- `N/A` nunca fica sem motivo. Ausência de interface não torna `visual` implicitamente N/A; o plano registra
+  a razão. O mesmo vale para todos os perfis.
+- Todo perfil `aplicável` mapeia para ao menos um AC e, em `tasks.md`, para ao menos uma task. Toda task cita
+  ao menos um perfil aplicável.
+- Se uma task citar vários perfis, sua verificação precisa provar todos; se as provas forem independentes,
+  fatie a task.
+- Os limites de fidelidade da spec controlam o que vale como prova: comportamento declarado `real` não pode
+  ser aprovado só com mock; `sandbox` precisa exercitar o ambiente de teste real; `simulada` pode usar um
+  double desde que a simulação e o que ela não prova estejam explícitos.
+- O rastreio reutiliza os artefatos existentes: **perfil → AC → task → Registro em `evidence.md`**. Não
+  acrescente campos ao recibo de evidence para repetir o perfil.
+- Critérios de saída aprovados encerram a validação. Achado novo só reabre trabalho quando viola AC, perfil
+  aplicável, esta barra ou a constituição; melhoria aceita como dívida vira sub-feature no ledger.
 
 ## Observabilidade
 **VERIFICAR:**
 - Logs estruturados com nível adequado (sem PII — ver "Sempre").
 - Erros capturados com contexto suficiente para diagnosticar (sem vazar dados sensíveis).
 - Métricas/saúde do que importa para o negócio e para a operação.
-- Em PRODUCTION: alguma forma de alerta quando algo crítico quebra.
+- Alguma forma de alerta quando algo crítico para a operação quebra.
 
 ---
 

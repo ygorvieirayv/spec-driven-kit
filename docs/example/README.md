@@ -25,15 +25,16 @@ O agente conduz **uma pergunta por vez**, explicando o porquê. Versão condensa
 **A. Terreno (mecânico):**
 > 🤖 "Preparei a estrutura do projeto e o `.gitignore` (com `.env` protegido). Agora me conta sobre o produto."
 
-**B. Produto + stack + modo:**
+**B. Produto, restrições e stack:**
 > 🤖 "Em uma frase, o que o site faz e para quem?"
 > 👩 "Recebe encomendas de bolos com data de entrega, pros meus clientes do bairro."
-> 🤖 "Isso é um **protótipo** pra validar rápido, ou algo pra **manter a sério** desde já? (No protótipo eu
-> priorizo velocidade; no de produção, capricho em testes e segurança.)"
-> 👩 "Validar rápido."
-> 🤖 "Combinado: modo **PROTOTYPE**. Como você não é da área, sugiro uma stack simples e barata: um site só
-> (monolito) em Next.js + um banco gerenciado no plano gratuito. Eu explico cada peça quando chegarmos lá.
-> Pode ser, ou prefere indicar alguma tecnologia?"
+> 🤖 "Essas encomendas já serão reais? E o pagamento precisa ser automático desde o primeiro dia? Isso
+> separa o que precisa funcionar de verdade do que pode ficar fora desta primeira entrega."
+> 👩 "Os pedidos serão reais. No começo eu confirmo o Pix manualmente; não preciso integrar um provedor."
+> 🤖 "Entendido: cadastro e encomenda serão reais; automação do pagamento fica fora do primeiro recorte e
+> não será apresentada como pronta. Como o público inicial é local, o volume esperado é baixo e você quer
+> operar sem equipe técnica, sugiro um monolito em Next.js + banco gerenciado. É a opção mais simples para
+> manter agora, sem reduzir a segurança dos dados dos clientes. Posso montar assim ou comparar outra stack."
 > 👩 "Pode ser."
 > — 🛑 *Checkpoint 1 aprovado.*
 
@@ -51,10 +52,12 @@ O agente conduz **uma pergunta por vez**, explicando o porquê. Versão condensa
 > 🤖 "Sobre onde o site vai morar: dá pra pôr **tudo numa máquina só** — mais simples e barato, eu monto
 > tudo junto. A desvantagem é desempenho sob carga. A alternativa é **separar** (site + uma CDN pras fotos
 > dos bolos + banco gerenciado) — abre mais rápido e é mais profissional, mas custa um pouco mais e é mais
-> complexo. Pra um protótipo eu sugiro **tudo numa máquina**. **Posso construir qualquer um dos dois — qual
-> prefere?**"
+> complexo. Para o volume local esperado, o orçamento inicial e a ausência de equipe de operação, sugiro
+> **tudo numa máquina**, com backup e um caminho de separação se as métricas mostrarem necessidade. **Posso
+> construir qualquer um dos dois — qual prefere?**"
 > 👩 "O mais simples."
-> O agente grava um ADR (ver Passo 2). Repete para banco, pagamento (Pix → checkout hospedado), fotos, etc.
+> O agente grava um ADR (ver Passo 2). Repete para banco e fotos; a automação do Pix só será decidida quando
+> entrar no escopo de uma feature futura.
 > — 🛑 *Checkpoint 3 aprovado.*
 
 **E. Regras de negócio (constituição):**
@@ -65,7 +68,8 @@ O agente conduz **uma pergunta por vez**, explicando o porquê. Versão condensa
 
 **F. Brief + epics:**
 > 🤖 "Resumindo, vejo 4 áreas: catálogo de bolos, carrinho/encomenda, pagamento Pix, e painel da Marta.
-> Pro **MVP** (mínimo pra ir ao ar), o essencial é catálogo + encomenda + Pix. O painel fica pra depois?"
+> Pro **MVP** (mínimo pra ir ao ar), o essencial é catálogo + encomenda + confirmação manual do Pix. O
+> painel e a automação do pagamento ficam pra depois?"
 > 👩 "Isso."
 > — 🛑 *Checkpoint 5: grava `docs/epics.md`.*
 
@@ -79,20 +83,20 @@ O agente conduz **uma pergunta por vez**, explicando o porquê. Versão condensa
 
 ```
 # ADR — Hospedagem
-- Data: 2026-06-27 · Modo: PROTOTYPE · Status: aceita
+- Data: 2026-06-27 · Status: aceita
 ## Contexto
-Confeitaria caseira validando a ideia; orçamento baixo; público local; pouca carga esperada.
+Confeitaria caseira; orçamento inicial baixo; público local; pouca carga esperada; sem equipe de operação.
 ## Opções consideradas
 - A — Tudo numa máquina (mono-Docker): simples e barato; menor desempenho sob carga.
 - B — Separar (app + CDN + banco gerenciado): mais rápido/escalável; mais caro e complexo.
 ## Decisão
-A — tudo numa máquina. Adequado a um protótipo de baixo tráfego.
+A — tudo numa máquina. Adequado às restrições atuais de tráfego, orçamento e operação.
 ## Consequências
 Se a loja crescer, migrar para o caminho B (fotos em CDN primeiro).
 ```
 
-`.specify/memory/project-context.md` (trecho): modo PROTOTYPE, Brasil, Pix, princípio "3 dias de
-antecedência", tabela de decisões apontando para os ADRs, e pendências `[VERIFICAR]`.
+`.specify/memory/project-context.md` (trecho): Brasil, Pix, stack, comandos, princípio "3 dias de
+antecedência", tabela de decisões apontando para os ADRs e pendências `[VERIFICAR]`.
 
 ---
 
@@ -122,11 +126,21 @@ Conversa de esclarecimento até não sobrar ambiguidade. Trecho do resultado em
 `docs/specs/encomenda-de-bolo/spec.md`:
 
 ```
+- **Risco:** alto
+
 ## Critérios de aceitação (AC)
-- AC1 — Dado um cliente no catálogo, quando escolhe um bolo, tamanho e data de entrega,
+- **AC1** — Dado um cliente no catálogo, quando escolhe um bolo, tamanho e data de entrega,
         então a encomenda é criada com status "aguardando pagamento".
-- AC2 — A data de entrega só aceita datas com pelo menos 3 dias de antecedência (regra do negócio).
-- AC3 — Sem telefone válido, a encomenda não é criada.
+- **AC2** — A data de entrega só aceita datas com pelo menos 3 dias de antecedência (regra do negócio).
+- **AC3** — Sem telefone válido, a encomenda não é criada.
+- **AC4** — Outro cliente não acessa a encomenda; telefone/endereço não aparecem nos logs.
+## Limites de fidelidade
+- **Limites intencionais:** declarados abaixo
+
+| Superfície | Fidelidade neste ciclo | O que é real | O que não é real | Como o limite fica observável |
+|------------|-------------------------|--------------|------------------|--------------------------------|
+| encomenda | real | catálogo, validações e persistência | — | registro criado no banco |
+| pagamento Pix | fora de escopo | status indica o próximo passo manual | cobrança e confirmação automáticas | texto informa que a confirmação é manual |
 ## Fora de escopo
 - Cupons de desconto; entrega agendada por hora.
 ```
@@ -138,26 +152,44 @@ registra** — assim, se a Marta fechar tudo e voltar amanhã, o `/sdk-next` sab
 
 ## Passo 4 — `/sdk-plan` + `/sdk-tasks`
 
-O plano consulta `engineering-standards.md` **e a biblioteca de lições por tag**. Trecho de
-`docs/plans/encomenda-de-bolo/plan.md`:
+O plano consulta `engineering-standards.md` **e a biblioteca de lições por tag**, e declara as provas que a
+feature exige. Trecho de `docs/plans/encomenda-de-bolo/plan.md`:
 
 ```
-## Tasks
-| ID | Descrição | Depende de | AC | Verificação reproduzível | Estado |
-|----|-----------|------------|----|--------------------------|--------|
-| T1 | Validar antecedência mínima de 3 dias | — | AC2 | `npm test -- antecedencia` na raiz via test runner → testes verdes | backlog |
-| T2 | Validar telefone | T1 | AC3 | `npm test -- telefone` na raiz via test runner → inválido recusado no servidor | backlog |
-| T3 | Criar encomenda "aguardando pagamento" | T1, T2 | AC1 | `npm test -- encomenda` na raiz via test runner → registro criado no estado esperado | backlog |
+## Perfis de prova
+| Perfil | Aplicabilidade | Motivo | ACs | Prova e critério objetivo de saída |
+|--------|----------------|--------|-----|------------------------------------|
+| visual | N/A | nenhum comportamento visual novo neste recorte | — | — |
+| logic | aplicável | antecedência, telefone e status são regras | AC1, AC2, AC3 | testes automatizados válidos e inválidos passam |
+| journey | aplicável | o pedido atravessa catálogo, formulário e persistência | AC1 | jornada cria a encomenda no estado esperado |
+| data-security | aplicável | telefone e endereço são dados pessoais | AC4 | acesso indevido é negado e logs não contêm PII |
+| operational | N/A | sem fila, cron ou integração assíncrona | — | — |
+| delivery | aplicável | a feature precisa integrar sem quebrar a aplicação | AC1, AC2, AC3, AC4 | lint, testes e build terminam com exit code 0 |
+
+Não há migração de dados nesta feature; por isso uma execução de rollback de schema não se aplica.
+```
+
+Depois da aprovação do plano, o `/sdk-tasks` grava a fonte canônica em
+`docs/plans/encomenda-de-bolo/tasks.md`:
+
+```
+| ID | Descrição | Depende de | AC | Perfis | Arquivo(s) | Verificação reproduzível | Estado |
+|----|-----------|------------|----|--------|------------|--------------------------|--------|
+| T1 | Validar antecedência mínima de 3 dias | — | AC2 | logic | `src/encomenda.ts` | `npm test -- antecedencia` na raiz via test runner → testes verdes | backlog |
+| T2 | Validar telefone | T1 | AC3 | logic | `src/encomenda.ts` | `npm test -- telefone` na raiz via test runner → inválido recusado no servidor | backlog |
+| T3 | Criar encomenda "aguardando pagamento" | T1, T2 | AC1 | journey, delivery | `src/encomenda.ts` | `npm test -- encomenda && npm run build` na raiz → registro esperado e build verde | backlog |
+| T4 | Proteger dados da encomenda | T3 | AC4 | data-security | `src/auth.ts`, `src/logger.ts` | `npm test -- encomenda-seguranca` → acesso indevido negado e logs sem PII | backlog |
 ```
 
 > Consulta a `lessons.md` por `#validação` lembrou: **validar no servidor, não só na UI** (lição L-005).
-> O plano já incorpora isso.
+> O plano e as tasks já incorporam isso; não existe uma segunda tabela de tasks inline para divergir.
 
 **Antes de codar, `/sdk-analyze`** confere que cada AC tem task e verificação, que nenhuma task ficou sem AC e
 que as dependências estão prontas:
 
 ```
-Veredito: consistente — pode implementar. (3 AC, 3 tasks, todas com verificação; sem [VERIFICAR] crítico.)
+Veredito: consistente — pode implementar. (4 AC, 4 tasks e 4 perfis aplicáveis cobertos; sem [VERIFICAR]
+crítico.)
 ```
 
 Ele grava `- **Analyze:** consistente — <data>` no plano — assim o `/sdk-next` não vai pedir a análise de
@@ -165,46 +197,50 @@ novo à toa numa próxima sessão.
 
 > 💡 **Voltando depois de uma pausa?** A Marta digita **`/sdk-next`**. Ele lê o ledger e os marcadores e
 > responde: *"Você está na **Encomenda de bolo**; o plano está aprovado e a análise deu consistente. Próximo
-> passo: **`/sdk-implement`** (a regra dos 3 dias é lógica crítica, então vai com teste primeiro)."* Ela não
+> passo: **`/sdk-implement`** (a feature trata dados pessoais; autorização e redação de logs começam pelo
+> teste que precisa falhar)."* Ela não
 > precisou lembrar de nada.
 
 ---
 
-## Passo 5 — `/sdk-implement` (TDD, porque a regra dos 3 dias é crítica)
+## Passo 5 — `/sdk-implement` (TDD na superfície crítica de dados)
 
 ```
-RED    → escreve teste: "encomenda com 2 dias de antecedência é rejeitada" → falha (função não existe)
-GREEN  → implementa a validação mínima → teste passa
+RED    → escreve teste: "outro cliente não lê a encomenda e o log não expõe telefone" → falha
+GREEN  → implementa autorização no servidor e redação de PII → teste passa
 REFACTOR → limpa o código, testes continuam verdes
 ```
 
-> 🤖 (explain-back) "Em linguagem simples: criei a regra que recusa datas com menos de 3 dias e cobri com um
-> teste que comprova. Rodei os testes: **3 passaram** e gravei comando, resultado e SHA em
-> `docs/plans/encomenda-de-bolo/evidence.md`. A task T1 está `verification-pending`: implementada e
+> 🤖 (explain-back) "Em linguagem simples: protegi os dados da encomenda e cobri acesso indevido e logs com
+> testes. Rodei as verificações e gravei comando, resultado e SHA em
+> `docs/plans/encomenda-de-bolo/evidence.md`. A task T4 está `verification-pending`: implementada e
 > verificada por mim, mas ainda não confirmada pelo revisor."
 
 ---
 
 ## Passo 6 — `/sdk-review` (contexto fresco, via subagente `sdk-reviewer`)
 
-Antes do veredito, o revisor lê o recibo de T1 e reroda o menor subconjunto citado que cobre seus AC. O
+Antes do veredito, o revisor lê o recibo de T4 e reroda o menor subconjunto citado que cobre seu AC. O
 novo comando, exit code, resultado e SHA entram como outra entrada em `evidence.md`; só esse recibo fresco
-permite mover T1 de `verification-pending` para `done`.
+permite mover T4 de `verification-pending` para `done`.
 
-> Para manter o walkthrough curto, os blocos de T2 e T3 foram omitidos do texto. No projeto real, **T1,
-> T2 e T3** precisam cada uma de recibo `implement` e depois recibo `review` satisfatório, em ordem
+> Para manter o walkthrough curto, os demais blocos foram omitidos do texto. No projeto real, **T1–T4**
+> precisam cada uma de recibo `implement` e depois recibo `review` satisfatório, em ordem
 > topológica, antes de a feature ser concluída.
 
 ```
 [ALTO]  app/encomenda.ts:42 — telefone validado só no front-end; falta validação no servidor (AC3). (L-005)
 [BAIXO] nome de variável pouco claro em encomenda.ts:31
-Veredito: aprovado com ressalvas — próximo passo: /sdk-implement para corrigir e reverificar; depois /sdk-review.
+Veredito: bloqueado — achado Alto impede aprovação. Próximo passo: /sdk-implement para corrigir e
+reverificar; depois /sdk-review em contexto fresco.
 ```
 
 **Fecho de ciclo:** o achado ALTO casa com a lição L-005 (input público sem validação no servidor). Como já
-existe, o agente **reforça** a lição em vez de duplicar. A Marta roda `/sdk-implement` para corrigir e
-reverificar T2; só depois roda `/sdk-review` novamente. Com T1, T2 e T3 em `done` e seus recibos presentes,
-o review grava `- **Review:** aprovado — <data>` no plano e muda o ledger para `concluída`.
+existe, o agente **reforça** a lição em vez de duplicar. A task afetada volta para correção; dependentes que
+perderam sua prova também são reclassificadas conforme o contrato. A Marta roda `/sdk-implement` para
+corrigir e reverificar; só depois roda `/sdk-review` novamente. O novo review repete as provas relevantes de
+`logic`, `journey`, `data-security` e `delivery`. Com T1–T4 em `done` e seus recibos presentes, grava
+`- **Review:** aprovado — <data>` no plano e muda o ledger para `concluída`.
 
 ---
 

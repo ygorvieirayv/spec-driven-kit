@@ -60,25 +60,26 @@ neste projeto, nem nos próximos. Antes de planejar/revisar, consultar as liçõ
 - **Em conflito entre princípios**, priorizar na ordem: honestidade (6) > spec como verdade (5) >
   verificação (4) > simplicidade (2). Ou seja: nunca mentir para parecer simples; nunca pular verificação
   para entregar rápido.
-- **Dois modos de rigor** (a escolha de qual usar fica no `project-context.md`): **PROTOTYPE** (rápido,
-  descartável) e **PRODUCTION** (mantido a sério). Os princípios valem nos dois — o que muda é o **nível de
-  rigor**, nunca a integridade. A matriz abaixo é a referência operacional que `/sdk-tasks`, `/sdk-analyze`,
-  `/sdk-implement` e `/sdk-review` seguem, para não depender de interpretação no momento.
+- Existe **uma única barra de integridade**. O rigor escala pelo **risco da mudança** e pelos **perfis de
+  prova aplicáveis**, nunca por uma classificação global do projeto.
+- Pedido de protótipo, demonstração, sandbox ou simulação define **limites de fidelidade da feature**. Não
+  reduz segurança, honestidade, rastreabilidade nem a obrigação de provar exatamente o que foi entregue.
 
-## Matriz de rigor por modo
+## Regra única de rigor
 
-| O que muda | PROTOTYPE | PRODUCTION |
-|---|---|---|
-| Barra "Sempre" da engenharia (segredos, PII, validação de entrada, AuthN/AuthZ no servidor) | **Inegociável — igual nos dois modos** | **Inegociável — igual nos dois modos** |
-| Lista de tasks | Pode ficar **inline** na tabela "Tasks" do `plan.md` — `/sdk-tasks` é opcional | `tasks.md` próprio, com estado rastreado por task |
-| ADR (`/sdk-decide`) | Só para decisões caras de reverter (ex.: trocar de banco depois de ter dados) | Toda decisão de arquitetura/infra com trade-off real |
-| Teste (critério de "lógica crítica" definido na seção abaixo) | Caminho feliz da lógica crítica + smoke test do fluxo principal | TDD (RED→GREEN→REFACTOR) na lógica crítica + edge cases |
-| `/sdk-analyze` | Roda as mesmas checagens; o que ainda não existe (NFR específico, brownfield) vira N/A, não bloqueio | Roda todas as checagens, incluindo NFRs herdados e brownfield quando aplicável |
-| `/sdk-review` — checklist de segurança/performance | **Roda sempre, sem exceção** — achado fora da barra "Sempre" pode virar dívida anotada em vez de bloqueio | **Roda sempre** — qualquer Crítico/Alto bloqueia |
-| Promoção de task para `done` | **Somente `/sdk-review`**, após reexecutar e registrar a verificação; `/sdk-implement` termina em `verification-pending` ou `blocked` | **Somente `/sdk-review`**, após reexecutar e registrar a verificação; `/sdk-implement` termina em `verification-pending` ou `blocked` |
+| Aspecto | Regra |
+|---|---|
+| Barra "Sempre" da engenharia | **Inegociável**: segredos, PII, validação de entrada e AuthN/AuthZ no servidor nunca são relaxados |
+| Lista de tasks | Toda feature formal (risco baixo, medio ou alto) usa `tasks.md`; mudança trivial fica fora do ciclo formal somente enquanto continuar trivial |
+| ADR (`/sdk-decide`) | Obrigatório para decisão cara/difícil de reverter, transversal ou com trade-off operacional real; escolha local e reversível fica no plano |
+| Testes e verificações | Seguem os perfis de prova; lógica crítica exige TDD (RED→GREEN→REFACTOR), edge cases e modos de falha aplicáveis |
+| `/sdk-analyze` | Executa todas as checagens; `N/A` só vale com inaplicabilidade explícita e motivo verificável |
+| `/sdk-review` | **Crítico e Alto bloqueiam sempre**; Médio/Baixo aceitos como dívida viram sub-feature `a fazer` no ledger sem reabrir escopo satisfeito |
+| Promoção de task para `done` | **Somente `/sdk-review`**, após reexecutar e registrar a prova; `/sdk-implement` termina em `verification-pending` ou `blocked` |
 
-> A coluna PROTOTYPE nunca abre exceção na linha "Sempre". É aqui que "modo rápido" para de ser desculpa
-> para vazar segredo, pular validação de entrada ou deixar uma rota sem autorização.
+Os seis perfis canônicos (`visual`, `logic`, `journey`, `data-security`, `operational`, `delivery`) vivem
+em `engineering-standards.md`. Eles são combináveis: risco define a profundidade; perfil define **o que**
+precisa ser provado.
 
 ## O que é lógica crítica / mudança de alto risco (definição única)
 
@@ -89,27 +90,39 @@ Trate como **crítico** qualquer trecho ou mudança que:
 - lê, grava ou apaga **dados pessoais** ou dado que **não pode ser perdido** (inclui migração de schema e
   deleção de dados);
 - integra com **serviço externo** do qual o fluxo principal depende;
-- já causou um **bug real** antes (ver `lessons.md` por tag) ou é algo de que **outra feature depende**.
+- já causou um **bug real relevante** antes (ver `lessons.md` por tag); ou altera contrato/invariante
+  compartilhado cuja falha possa causar corrupção, indisponibilidade ou efeito relevante nos dependentes.
 
-Esta é a definição que a régua abaixo, o `/sdk-implement` (TDD em PRODUCTION), o `/sdk-review` e o
+Esta é a definição que a régua abaixo, o `/sdk-implement`, o `/sdk-review` e o
 `/sdk-next` referenciam — não existe uma segunda lista em outro arquivo.
 
 ## Régua de cerimônia por risco da mudança
 
-> O **modo** (PROTOTYPE × PRODUCTION) dita o rigor **dentro** de cada passo (matriz acima). A régua abaixo
-> dita **quais passos entram**, conforme o risco da **mudança** — nem toda tarefa precisa do ciclo completo.
-> Em dúvida entre dois níveis, use o de cima. A barra "Sempre" da engenharia não se negocia em nível nenhum.
+> A régua abaixo dita **quais passos entram**, conforme o risco da **mudança**. Em dúvida entre dois níveis,
+> use o de cima. A barra "Sempre" da engenharia e os perfis aplicáveis não se negociam em nível nenhum.
 
 | Risco | Exemplos | Fluxo mínimo |
 |-------|----------|--------------|
-| **Trivial** | copy, ajuste visual pequeno, rename simples | implementar → review leve |
-| **Baixo** | tela simples, CRUD sem dado sensível, comportamento isolado | **spec curta** → `/sdk-implement` → `/sdk-review` |
+| **Trivial** | copy, ajuste visual pequeno, rename simples | implementar → review leve; sem lifecycle formal |
+| **Baixo** | tela simples, CRUD sem dado sensível, comportamento isolado | **spec curta** → plano/tasks compactos → `/sdk-analyze` → `/sdk-implement` → `/sdk-review` |
 | **Médio** | regra de negócio nova, integração simples, mudança em fluxo existente | `/sdk-spec` → `/sdk-plan` → `/sdk-tasks` → `/sdk-analyze` → `/sdk-implement` → `/sdk-review` |
-| **Alto** | qualquer item da definição de lógica crítica acima | ciclo completo + `/sdk-clarify` + TDD na lógica crítica |
+| **Alto** | qualquer item da definição de lógica crítica acima | ciclo completo + `/sdk-clarify` se restar ambiguidade/`[VERIFICAR]` + TDD na lógica crítica |
 
-**Spec curta** = só Contexto/objetivo + Critérios de aceitação + Fora de escopo (ver nota no
+**Spec curta** = Contexto/objetivo + Limites de fidelidade + Critérios de aceitação + Fora de escopo (ver nota no
 `spec-template.md`). A régua não é licença para rebaixar risco: se a mudança toca **um** item da lista de
 lógica crítica, ela é Alta, por menor que pareça.
+
+## Convergência da entrega (anti-loop de escopo)
+
+- Spec e plano aprovados congelam o escopo, os limites de fidelidade, os perfis e os critérios objetivos de
+  saída daquela rodada.
+- Durante implementação/review, só reabre trabalho uma violação de AC, perfil aplicável, barra inegociável
+  ou achado Crítico/Alto. Melhoria nova Médio/Baixo aceita como dívida vira sub-feature `a fazer` no ledger;
+  não se disfarça de correção obrigatória.
+- Duas tentativas consecutivas da mesma correção sem progresso observável acionam o disjuntor: não existe
+  terceira tentativa automática. Registre `blocked`, a causa observada e a condição objetiva para retomar.
+- A rodada termina quando todos os ACs e perfis aplicáveis têm recibos válidos de implementação e review,
+  sem achado Crítico/Alto aberto. "Continuar melhorando" não é critério de saída.
 
 ---
 

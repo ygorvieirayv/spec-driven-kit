@@ -18,22 +18,25 @@ correspondente. Estado que não está gravado não existe para os outros comando
 | Marcador | Arquivo | Formato exato da linha | Vocabulário permitido | Quem escreve, quando |
 |----------|---------|------------------------|----------------------|----------------------|
 | Status da spec | `docs/specs/<feature>/spec.md` | `- **Status:** <valor>` | `rascunho` · `em revisão` · `aprovada` | `/sdk-spec`: `rascunho` ao gravar; `aprovada` após o 🛑 aprovado. `/sdk-clarify` mantém/atualiza. |
+| Risco da feature | `docs/specs/<feature>/spec.md` | `- **Risco:** <valor>` | `baixo` · `medio` · `alto` | `/sdk-spec` classifica pela régua da constituição e grava antes da aprovação. Mudança trivial não cria spec; mudança posterior exige aprovação e invalida Analyze/plano afetado. |
 | Status do plano | `docs/plans/<feature>/plan.md` | `- **Status:** <valor>` | `rascunho` · `aprovado` | `/sdk-plan`: `rascunho` ao gravar; `aprovado` após o 🛑. |
-| Analyze | `docs/plans/<feature>/plan.md` | pendente: `- **Analyze:** pendente` · com veredito: `- **Analyze:** <valor> — <data>` | `pendente` · `consistente` · `ajustar` · `bloqueado` | `/sdk-analyze` grava o veredito (com data). `/sdk-plan` e `/sdk-tasks` **voltam para `pendente`** (sem data) se plano/tasks mudarem depois de uma análise. |
+| Analyze | `docs/plans/<feature>/plan.md` | pendente: `- **Analyze:** pendente` · com veredito: `- **Analyze:** <valor> — <data>` | `pendente` · `consistente` · `ajustar` · `bloqueado` | `/sdk-analyze` grava o veredito. `/sdk-spec`/`/sdk-clarify` resetam se a spec mudar; `/sdk-decide`, se nova ADR afetar o plano; `/sdk-plan`/`/sdk-tasks`, se seus artefatos mudarem. |
 | Review | `docs/plans/<feature>/plan.md` | pendente: `- **Review:** —` · com veredito: `- **Review:** <valor> — <data>` | `—` (pendente) · `aprovado` · `aprovado com ressalvas` · `bloqueado` | `/sdk-review` grava o veredito (com data). |
-| Estado da task | tabela de tasks (`tasks.md` ou inline no `plan.md`), linha `\| T<n> \| … \|` (coluna **Estado**, a última) | célula da coluna Estado | `backlog` · `ready` · `in-progress` · `verification-pending` · `done` · `blocked` | `/sdk-tasks` cria/ordena; `/sdk-implement` move até `verification-pending` ou `blocked`; somente `/sdk-review` promove para `done`. |
+| Estado da task | `docs/plans/<feature>/tasks.md`, linha `\| T<n> \| … \|` (coluna **Estado**, a última) | célula da coluna Estado | `backlog` · `ready` · `in-progress` · `verification-pending` · `done` · `blocked` | `/sdk-tasks` cria/ordena; `/sdk-implement` move até `verification-pending` ou `blocked`; somente `/sdk-review` promove para `done`. Tabela inline no plano não é fonte de task. |
 | Ativação do evidence | `plan.md` ou `tasks.md` | `- **Evidence:** docs/plans/<feature>/evidence.md` (crases opcionais no caminho) | caminho da própria feature | Templates novos gravam o marcador; sua presença ativa o contrato estrito mesmo antes de o arquivo nascer. |
 | Recibo de evidência | `docs/plans/<feature>/evidence.md` | `- **Registro:** T1 \| AC1, AC2 \| implement \| pass \| worktree@<SHA>` | fase `implement`/`review`; resultado `pass`/`fail`/`observed`/`not-run`/`unavailable`; ref `commit@<SHA>`/`worktree@<SHA>`/`unavailable` | `/sdk-implement` cria o arquivo na primeira observação e anexa cada rodada; `/sdk-review` anexa cada reexecução independente. Entradas são append-only. |
 | Bloqueio de task | `docs/plans/<feature>/evidence.md` | `- **Bloqueio:** T1 \| motivo observado \| condição objetiva para voltar a ready` | task, motivo e condição não vazios | O comando que observa o impedimento registra o marcador na mesma entrada que move a task para `blocked`. O histórico não é apagado após desbloqueio. |
 | Reclassificação | `docs/plans/<feature>/evidence.md` | `- **Reclassificacao:** T1 \| done \| ready \| <ISO-8601> \| motivo/referencia` | task, origem `done`, destino `ready`, data/hora e motivo/referência não vazios | `/sdk-review` registra no mesmo bloco `review | not-run` quando uma dependência que falhou invalida uma task já `done`; é append-only. |
-| Ledger da feature | `docs/epics.md`, tabela "Ordem de construção", coluna **Estado** | célula da coluna Estado | `a fazer` · `em spec` · `em plano` · `em construção` · `em review` · `concluída` | Cada comando avança, nunca rebaixa, a linha da feature: `/sdk-spec` → `em spec` · `/sdk-plan` → `em plano` · `/sdk-implement` → no mínimo `em construção` (preserva `em review` durante correção) · `/sdk-review` → `em review` e, se aprovado, `concluída`. O `/sdk-roadmap` reordena **sem rebaixar** Estado gravado. |
+| Ledger da feature | `docs/epics.md`, tabela "Ordem de construção", coluna **Estado** | célula da coluna Estado | `a fazer` · `em spec` · `em plano` · `em construção` · `em review` · `concluída` | Cada comando avança, nunca rebaixa, a linha da feature: `/sdk-spec` → `em spec` · `/sdk-plan` → `em plano` · `/sdk-implement` → no mínimo `em construção` (preserva `em review`) · `/sdk-review` → `em review` e, se aprovado, `concluída`; ressalva aceita nasce antes como nova sub-feature `a fazer`. `/sdk-roadmap` reordena sem rebaixar. |
 
 ## Regras transversais
 
 1. **Um marcador, um dono por transição.** Nenhum comando escreve marcador de etapa alheia (exceção: o
-   reset de `Analyze` para `pendente` por `/sdk-plan`/`/sdk-tasks`, que é invalidação, não veredito).
+   reset de `Analyze` para `pendente` por `/sdk-spec`/`/sdk-clarify`/`/sdk-decide`/`/sdk-plan`/`/sdk-tasks`,
+   que é invalidação, não veredito).
    `/sdk-implement` nunca escreve `done`; `/sdk-review` é o único dono dessa promoção.
-2. **Análise velha não vale para plano novo.** Mudou plano ou tasks → `Analyze: pendente`.
+2. **Análise velha não vale para contrato novo.** Mudou risco, limite de fidelidade, plano, perfis ou tasks
+   → `Analyze: pendente`.
 3. **Estado não anda para trás no ledger** — salvo decisão explícita do usuário (ex.: reabrir uma feature),
    e aí registra-se o porquê na conversa e o novo valor no arquivo.
 4. **Molde não é estado.** Linha ainda com o texto do template (ex.: `rascunho | em revisão | aprovada`)
@@ -48,11 +51,14 @@ correspondente. Estado que não está gravado não existe para os outros comando
    para a própria feature. Ausência ou caminho divergente é erro. O arquivo nasce somente na primeira
    observação real, mas `verification-pending`, `done` e `blocked` nunca têm exceção sem seus recibos.
 7. **Identidade comprovada é imutável:** depois do primeiro `Registro`, não apague nem reutilize o ID da
-   task, sua descrição/semântica, dependências, ACs ou verificação; os IDs e textos dos ACs citados também
+   task, sua descrição/semântica, dependências, ACs, perfis ou verificação; os IDs e textos dos ACs citados também
    ficam históricos. Mudança semântica ganha novo AC e nova task (ou delta feature). Uma task não concluída
    que saiu do escopo permanece na tabela em `backlog`, com o texto original seguido de
    `[DESCONTINUADA: <decisão/referência>]`; uma task `done` permanece histórica em `done`. Nunca altere o
    passado para fazer a prova antiga parecer cobrir um requisito novo.
+8. **Perfis não ampliam evidence:** o plano avalia `visual`, `logic`, `journey`, `data-security`,
+   `operational` e `delivery`; cada task cita os aplicáveis na coluna **Perfis**. O recibo continua ligando
+   task + AC. `/sdk-analyze` garante a cobertura e `/sdk-review` devolve o mapa perfil → task/AC → recibo.
 
 ## Ciclo normativo das tasks
 
@@ -76,7 +82,8 @@ backlog -> ready -> in-progress -> verification-pending -> done
   impedimento externo ou disjuntor leva a `blocked`.
 - `/sdk-review` processa as tasks em ordem topológica e usa por padrão revisor fresco; sem suporte a
   subagente, aceita inline apenas como exceção justificada que reexecute a mesma prova. Cada rerun vira
-  entrada `review`. Detecção mecânica de ciclos fica fora deste PR e permanece prevista para a F11/PR IV.
+  entrada `review`. O `/sdk-analyze` verifica ciclos semanticamente; detecção determinística no
+  `sdk-check` ainda não está disponível.
 - `done` exige que o `Registro review` mais recente cubra todos os ACs declarados na task, seja
   `pass`/`observed`, tenha ref `commit@SHA`/`worktree@SHA` e apareça depois do `Registro implement` mais
   recente.

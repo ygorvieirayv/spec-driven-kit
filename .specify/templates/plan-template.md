@@ -6,7 +6,6 @@
 
 - **Spec de referência:** `docs/specs/<feature>/spec.md`
 - **Status:** rascunho | aprovado
-- **Modo:** PROTOTYPE | PRODUCTION
 - **Analyze:** pendente _(atualizado pelo `/sdk-analyze`: `consistente | ajustar | bloqueado` — <data>)_
 - **Review:** — _(preenchido pelo `/sdk-review`: veredito e data)_
 - **Evidence:** `docs/plans/<feature>/evidence.md` _(criado na primeira observação de implementação)_
@@ -26,21 +25,28 @@
 - **Escolha:** <...>
 - **Consequência:** <trade-off aceito>
 
-## Tasks
-> Ordenadas por dependência. Cada task referencia o(s) AC que satisfaz e como será verificada.
-> A verificação precisa ser reproduzível: ação/comando exato, diretório, fonte/tool e resultado observável.
-> O review usa contexto fresco por padrão; inline é somente fallback justificado, com o mesmo rerun.
+## Alinhamento com os limites de fidelidade
+<Diga como a abordagem respeita cada limite da spec. Prova de comportamento real não pode depender apenas
+de mock; sandbox/simulação precisam ficar dentro do que a spec autorizou.>
 
-| ID | Descrição | Depende de | Arquivo(s) | AC | Verificação reproduzível | Estado |
-|----|-----------|------------|-----------|----|--------------------------|--------|
-| T1 | <...> | — | `<path>` | AC1 | `<comando>` em `<diretório>` via `<fonte/tool>` → `<resultado observável>` | backlog |
-| T2 | <...> | T1 | `<path>` | AC2 | `<ação manual exata>` em `<local>` via `<fonte/tool>` → `<resultado observável>` | backlog |
+## Perfis de prova
+> Avalie os **seis** perfis. Não remova linhas. Use `aplicável` ou `N/A`, sempre com motivo. Para perfil
+> aplicável, ligue ACs e defina a prova reproduzível com critério objetivo de saída. O `/sdk-tasks` fará o
+> vínculo com tasks; `tasks.md` é a única tabela canônica de tasks.
 
-## Estratégia de teste
-> Escala com o modo. PROTOTYPE: caminho feliz da lógica de risco. PRODUCTION: TDD na lógica crítica + edge
-> cases. Cada AC mapeia para ao menos uma verificação. A implementação registra cada rodada em
-> `evidence.md` e termina em `verification-pending`; somente `/sdk-review` pode promover para `done` após
-> reexecutar a verificação. Contexto fresco é o padrão; inline é exceção justificada com o mesmo rerun.
+| Perfil | Aplicabilidade | Motivo | ACs | Prova e critério objetivo de saída |
+|--------|----------------|--------|-----|------------------------------------|
+| visual | <aplicável \| N/A> | <...> | <AC... \| —> | <... \| —> |
+| logic | <aplicável \| N/A> | <...> | <AC... \| —> | <... \| —> |
+| journey | <aplicável \| N/A> | <...> | <AC... \| —> | <... \| —> |
+| data-security | <aplicável \| N/A> | <...> | <AC... \| —> | <... \| —> |
+| operational | <aplicável \| N/A> | <...> | <AC... \| —> | <... \| —> |
+| delivery | <aplicável \| N/A> | <...> | <AC... \| —> | <... \| —> |
+
+## Estratégia de verificação
+> Cada AC e perfil aplicável mapeia para ao menos uma verificação. A implementação registra cada rodada em
+> `evidence.md` e termina em `verification-pending`; somente `/sdk-review` promove para `done` após
+> reexecutar a prova. Contexto fresco é o padrão; inline é exceção justificada com o mesmo rerun.
 
 - **Acao/comando:** <comando exato ou passo manual exato>
 - **Diretorio:** <diretorio/local exato>
@@ -48,6 +54,11 @@
 - **Resultado observavel:** <saida, estado ou comportamento objetivo esperado>
 - **ACs cobertos:** <AC...>
 
+## Critérios de saída e convergência
+- **Pronto quando:** <ACs e critérios dos perfis aplicáveis satisfeitos, sem Crítico/Alto>
+- **Melhorias que não reabrem este escopo:** <itens opcionais que, se aceitos, virarão sub-features no ledger | nenhuma>
+- **Condição de parada:** <dependência/limite objetivo que leva a blocked em vez de tentativas repetidas>
+
 ## Riscos e rollback
 - **Risco:** <...> → **Mitigação:** <...>
-- **Rollback:** <como reverter com segurança se der errado>
+- **Rollback:** <como reverter; para migração/schema ou transformação destrutiva/em massa, como executar rollback/restore/forward-recovery em ambiente seguro>

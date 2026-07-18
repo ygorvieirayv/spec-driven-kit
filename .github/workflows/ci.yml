@@ -102,6 +102,69 @@ jobs:
           print(f"Manifest covers {len(tracked)} tracked files.")
           PY
 
+      - name: Validate unified rigor contract
+        if: runner.os == 'Linux'
+        shell: bash
+        run: |
+          python - <<'PY'
+          import re
+          import subprocess
+          from pathlib import Path
+
+          expected_profiles = [
+              "visual",
+              "logic",
+              "journey",
+              "data-security",
+              "operational",
+              "delivery",
+          ]
+
+          forbidden = []
+          legacy_modes = b"(?:" + b"PROTO" + b"TYPE|" + b"PRODUC" + b"TION)"
+          legacy_marker = b"- **" + b"Modo:**"
+          for name in subprocess.check_output(["git", "ls-files"], text=True).splitlines():
+              data = Path(name).read_bytes()
+              if re.search(rb"\b" + legacy_modes + rb"\b", data) or legacy_marker in data:
+                  forbidden.append(name)
+          if forbidden:
+              raise SystemExit("Legacy global mode found in: " + ", ".join(forbidden))
+
+          def read(path):
+              return Path(path).read_text(encoding="utf-8")
+
+          def section_profiles(text):
+              match = re.search(r"(?ms)^## Perfis de prova\s*$\n(.*?)(?=^## |\Z)", text)
+              if not match:
+                  return []
+              profiles = []
+              for line in match.group(1).splitlines():
+                  if not line.startswith("|"):
+                      continue
+                  first_cell = line.split("|", 2)[1].strip().strip("`")
+                  if first_cell not in {"Perfil", "--------"} and not set(first_cell) <= {"-"}:
+                      profiles.append(first_cell)
+              return profiles
+
+          standards = read(".specify/memory/engineering-standards.md")
+          spec = read(".specify/templates/spec-template.md")
+          plan = read(".specify/templates/plan-template.md")
+          tasks = read(".specify/templates/tasks-template.md")
+
+          if section_profiles(standards) != expected_profiles:
+              raise SystemExit("engineering-standards.md must define exactly the six proof profiles")
+          if "- **Risco:**" not in spec or "## Limites de fidelidade" not in spec:
+              raise SystemExit("spec-template.md is missing risk or fidelity limits")
+          if section_profiles(plan) != expected_profiles:
+              raise SystemExit("plan-template.md must preserve exactly the six proof profiles")
+          if re.search(r"(?m)^## Tasks\s*$", plan):
+              raise SystemExit("plan-template.md must not contain an inline Tasks section")
+          if "| ID | Descrição | Depende de | AC | Perfis |" not in tasks:
+              raise SystemExit("tasks-template.md is missing the Perfis column")
+
+          print("Unified rigor contract is coherent.")
+          PY
+
       - name: Linux checks
         if: runner.os == 'Linux'
         shell: bash
@@ -151,6 +214,18 @@ jobs:
             fi
           }
 
+          expect_both_pass() {
+            local target="$1" label="$2"
+            bash "$target/scripts/sdk-check.sh" || {
+              echo "$label unexpectedly failed in Bash"
+              exit 1
+            }
+            pwsh -NoProfile -File "$target/scripts/sdk-check.ps1" || {
+              echo "$label unexpectedly failed in PowerShell"
+              exit 1
+            }
+          }
+
           append_review_entry() {
             local file="$1" eid="$2" timestamp="$3" task="$4" acs="$5"
             local result="$6" ref="$7" exit_code="$8" output="$9"
@@ -166,6 +241,43 @@ jobs:
               '- **Branch:** fixture' \
               '- **Limitacoes:** nenhuma' >> "$file"
           }
+
+          for fault in missing-fidelity invalid-fidelity missing-profiles missing-profiles-column \
+            inline-tasks risk-suffix duplicate-risk missing-state-markers; do
+            target="$(mktemp -d)"
+            prepare_valid_copy "$target"
+            case "$fault" in
+              missing-fidelity) sed -i 's/^## Limites de fidelidade$/## Limites removidos/' "$target/docs/specs/sample/spec.md" ;;
+              invalid-fidelity) sed -i 's/Limites intencionais:\*\* nenhum/Limites intencionais:** talvez/' "$target/docs/specs/sample/spec.md" ;;
+              missing-profiles) sed -i 's/^## Perfis de prova$/## Provas removidas/' "$target/docs/plans/sample/plan.md" ;;
+              missing-profiles-column) sed -i 's/| Perfis |/| Provas |/' "$target/docs/plans/sample/tasks.md" ;;
+              inline-tasks) printf '\n## Tasks\n' >> "$target/docs/plans/sample/plan.md" ;;
+              risk-suffix) sed -i '/^- \*\*Risco:\*\*/s/medio/medio-extra/' "$target/docs/specs/sample/spec.md" ;;
+              duplicate-risk) printf '\n- **Risco:** medio\n' >> "$target/docs/specs/sample/spec.md" ;;
+              missing-state-markers) sed -i '/^- \*\*Analyze:\*\*/d; /^- \*\*Review:\*\*/d' "$target/docs/plans/sample/plan.md" ;;
+            esac
+            expect_both_fail "$target" "Unified contract fault: $fault"
+          done
+
+          ac_outside_column="$(mktemp -d)"
+          prepare_valid_copy "$ac_outside_column"
+          sed -i '/^| T1 |/s/Registrar verificacao/Registrar AC99 na descricao/' \
+            "$ac_outside_column/docs/plans/sample/tasks.md"
+          expect_both_pass "$ac_outside_column" "AC outside the AC column fixture"
+
+          plan_before_tasks="$(mktemp -d)"
+          prepare_valid_copy "$plan_before_tasks"
+          rm "$plan_before_tasks/docs/plans/sample/tasks.md" \
+            "$plan_before_tasks/docs/plans/sample/evidence.md"
+          sed -i 's/^- \*\*Analyze:\*\*.*/- **Analyze:** pendente/' \
+            "$plan_before_tasks/docs/plans/sample/plan.md"
+          expect_both_pass "$plan_before_tasks" "Plan awaiting canonical tasks fixture"
+
+          analyzed_without_tasks="$(mktemp -d)"
+          prepare_valid_copy "$analyzed_without_tasks"
+          rm "$analyzed_without_tasks/docs/plans/sample/tasks.md" \
+            "$analyzed_without_tasks/docs/plans/sample/evidence.md"
+          expect_both_fail "$analyzed_without_tasks" "Analyze without canonical tasks fixture"
 
           no_evidence="$(mktemp -d)"
           prepare_valid_copy "$no_evidence"
@@ -675,6 +787,24 @@ jobs:
           test ! -e "$target/scripts/kit-manifest.txt"
           test ! -e "$target/VERSION"
           test -f "$target/.specify/templates/evidence-template.md"
+          for path in \
+            .specify/memory/engineering-standards.md \
+            .specify/templates/spec-template.md \
+            .specify/templates/plan-template.md \
+            .specify/templates/tasks-template.md; do
+            cmp -s "$path" "$target/$path" || {
+              echo "Installed contract file differs from source: $path"
+              exit 1
+            }
+          done
+          bash "$target/scripts/new-feature.sh" "Smoke Feature"
+          if grep -E '<feature>|<Nome da Feature>' "$target/docs/specs/smoke-feature/spec.md"; then
+            echo "new-feature.sh left template identity placeholders"
+            exit 1
+          fi
+          test ! -e "$target/docs/plans/smoke-feature/plan.md"
+          test ! -e "$target/docs/plans/smoke-feature/tasks.md"
+          bash "$target/scripts/sdk-check.sh"
           test -f "$target/.specify/spec-driven-kit.version"
           test "$(cat "$target/.specify/spec-driven-kit.version")" = "$version"
 
@@ -742,6 +872,32 @@ jobs:
           if (-not (Test-Path (Join-Path $target ".specify\templates\evidence-template.md"))) {
             throw "Evidence template was not installed"
           }
+          foreach ($relative in @(
+            ".specify\memory\engineering-standards.md",
+            ".specify\templates\spec-template.md",
+            ".specify\templates\plan-template.md",
+            ".specify\templates\tasks-template.md"
+          )) {
+            $sourceHash = (Get-FileHash -Algorithm SHA256 -Path $relative).Hash
+            $installedHash = (Get-FileHash -Algorithm SHA256 -Path (Join-Path $target $relative)).Hash
+            if ($sourceHash -ne $installedHash) {
+              throw "Installed contract file differs from source: $relative"
+            }
+          }
+          powershell.exe -NoProfile -ExecutionPolicy Bypass -File (Join-Path $target "scripts\new-feature.ps1") "Smoke Feature"
+          if ($LASTEXITCODE -ne 0) { throw "new-feature.ps1 failed on a clean install" }
+          $generatedSpec = Join-Path $target "docs\specs\smoke-feature\spec.md"
+          if (Select-String -Path $generatedSpec -Pattern '<feature>|<Nome da Feature>') {
+            throw "new-feature.ps1 left template identity placeholders"
+          }
+          if (Test-Path (Join-Path $target "docs\plans\smoke-feature\plan.md")) {
+            throw "new-feature.ps1 created plan before sdk-plan"
+          }
+          if (Test-Path (Join-Path $target "docs\plans\smoke-feature\tasks.md")) {
+            throw "new-feature.ps1 created tasks before sdk-tasks"
+          }
+          powershell.exe -NoProfile -ExecutionPolicy Bypass -File (Join-Path $target "scripts\sdk-check.ps1")
+          if ($LASTEXITCODE -ne 0) { throw "Generated feature failed sdk-check" }
           $stamp = Join-Path $target ".specify\spec-driven-kit.version"
           if (-not (Test-Path $stamp)) { throw "Version stamp missing" }
           $stampValue = (Get-Content -Raw -Path $stamp).Trim()

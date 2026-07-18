@@ -7,10 +7,12 @@
 >
 > **Spec curta (risco baixo):** pela régua de cerimônia da `constitution.md`, mudança de baixo risco pode
 > preencher só **Contexto e objetivo**, **Critérios de aceitação** e **Fora de escopo** — apague as demais
-> seções em vez de deixá-las vazias. Se a mudança toca lógica crítica, não é baixo risco: spec completa.
+> seções opcionais em vez de deixá-las vazias. **Limites de fidelidade continua obrigatório**, e a feature
+> ainda passa por plano e tasks compactos para preservar o rastreio. Se toca lógica crítica, não é baixo
+> risco: use a spec completa.
 
 - **Status:** rascunho | em revisão | aprovada
-- **Modo:** PROTOTYPE | PRODUCTION
+- **Risco:** baixo | medio | alto
 - **Tipo:** greenfield (algo novo) | brownfield (muda algo que já existe)
 - **Autor / data:** <...>
 
@@ -29,6 +31,21 @@
 - **REMOVIDO:** <o que deixa de existir>
 - **Impacto / migração:** <dados a migrar, compatibilidade, o que pode quebrar, como reverter>
 - **Regressão:** <o que precisa continuar funcionando igual — vira teste de não-regressão>
+
+## Limites de fidelidade
+> Declare diferenças **intencionais** entre o que será entregue neste ciclo e o comportamento real. Isto
+> limita o escopo; não reduz rigor, segurança ou honestidade. Se não houver limite, mantenha somente a linha
+> canônica abaixo e remova a tabela. Se houver, troque `nenhum` por `declarados abaixo`, preencha a tabela e
+> transforme em AC qualquer sinalização necessária para ninguém confundir simulação com operação real.
+
+- **Limites intencionais:** nenhum
+
+| Superfície | Fidelidade neste ciclo | O que é real | O que não é real | Como o limite fica observável |
+|------------|-------------------------|--------------|------------------|--------------------------------|
+| <ex.: pagamento> | real | <...> | <nenhum> | <comportamento observável> |
+| <ex.: gateway> | sandbox | <contrato/ambiente exercitado> | <sem cobrança real> | <sinalização/recibo> |
+| <ex.: resposta externa> | simulada | <comportamento representado> | <integração não exercitada> | <sinalização/recibo> |
+| <ex.: estorno> | fora de escopo | <...> | <o que não será entregue> | <como a ausência fica clara> |
 
 ## Histórias / cenários de uso
 - Como <tipo de usuário>, quero <ação> para <benefício>.

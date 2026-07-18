@@ -1,5 +1,5 @@
 ---
-description: Cria o plano técnico de uma feature (COMO) por conversa guiada, consultando os padrões de engenharia, e quebra em tasks.
+description: Cria o plano técnico de uma feature (COMO), avalia os seis perfis de prova e prepara tasks rastreáveis.
 argument-hint: "[nome da feature ou caminho da spec]"
 ---
 
@@ -36,14 +36,21 @@ Carregue: a spec da feature (`docs/specs/<feature>/spec.md`), `.specify/memory/e
    segurança, testes, observabilidade. Verifique o que se aplica a esta feature.
    **E consulte a biblioteca de lições** (`.specify/memory/lessons.md`) por **tag** relevante (grep — não
    carregue o arquivo inteiro): aplique as prevenções já conhecidas ao plano (ex.: tem cache? veja `#cache`).
-5. **Quebre em tasks** na tabela do template: ID, descrição, dependências, arquivo(s), AC que satisfaz,
-   verificação e estado. Cada verificação precisa informar **ação/comando exato**, **diretório/local**,
-   **fonte/tool** e **resultado observável**. Passo manual legítimo segue a mesma precisão; “validar
-   manualmente” sozinho não é reproduzível. Ordene por dependência.
-6. **Estratégia de teste:** escala com o modo (PROTOTYPE: caminho feliz da lógica de risco; PRODUCTION: TDD
-   na lógica crítica + edge cases). Garanta que cada AC mapeia para ao menos uma verificação reproduzível
-   no formato acima, para que o review consiga rerodá-la sem depender da conversa anterior.
-7. **Riscos e rollback:** o que pode dar errado e como reverter.
+5. **Alinhe a fidelidade:** confronte a abordagem com `Limites de fidelidade` da spec. Comportamento `real`
+   não pode depender só de mock; `sandbox` exercita o ambiente de teste real; `simulada` prova apenas o que
+   a spec declarou. Divergência volta para `/sdk-spec` ou `/sdk-clarify`.
+6. **Avalie os seis perfis de prova:** preencha todas as linhas da tabela (`visual`, `logic`, `journey`,
+   `data-security`, `operational`, `delivery`). Marque `aplicável` ou `N/A`, sempre com motivo. Perfil
+   aplicável liga ACs a uma prova com ação/comando, diretório/local, fonte/tool e resultado objetivo. Não
+   crie tabela de tasks no plano; `tasks.md` será a única fonte canônica no próximo passo.
+7. **Estratégia de verificação:** lógica crítica usa TDD; os demais perfis usam a menor prova segura que
+   cobre seus ACs. Garanta que o revisor consiga rerodar tudo sem depender da conversa.
+8. **Riscos e rollback:** o que pode dar errado e como reverter. Se `data-security` envolver
+   migração/schema, transformação destrutiva/em massa ou operação que exige reversibilidade, o critério
+   exige forward e rollback/restore/forward-recovery executados em ambiente seguro — texto não basta.
+9. **Critérios de saída e convergência:** congele ACs, perfis e resultados objetivos que encerram a feature.
+   Só violação desses critérios, da barra ou da constituição reabre o trabalho; melhoria opcional vai para
+   backlog. Declare também a condição objetiva que vira `blocked` em vez de repetição sem progresso.
 
 ## Saída
 - Grave `docs/plans/<feature>/plan.md` (`Status: rascunho`) e atualize a linha da feature no ledger
@@ -52,7 +59,9 @@ Carregue: a spec da feature (`docs/specs/<feature>/spec.md`), `.specify/memory/e
   preserve o marker `- **Evidence:**` do template; ele ativa o contrato estrito, mas o arquivo só nasce na
   primeira observação. Ao atualizar uma feature que já tem recibos, preserve IDs e significados históricos;
   mudança semântica vira novo AC/task ou delta feature, nunca reescrita do que já foi provado.
-- Resuma a abordagem, as decisões e a lista de tasks.
+- Em baixo risco, mantenha o plano compacto, mas preserve alinhamento de fidelidade, as seis linhas de
+  perfis e critérios de saída. Resuma a abordagem, as decisões e os perfis aplicáveis — as tasks vêm no
+  `/sdk-tasks`.
 - 🛑 **Peça aprovação.** Aprovado? Atualize a linha `Status:` do plano para `aprovado` (**conversa aprova,
   arquivo registra**). Depois siga: `/sdk-tasks` (refinar a lista) → `/sdk-analyze` (conferir
   consistência) → `/sdk-implement`.

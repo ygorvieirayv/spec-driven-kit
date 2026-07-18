@@ -15,11 +15,17 @@ código, então julga pelo que está escrito na spec e no diff — não pelo que
 - A barra: `.specify/memory/engineering-standards.md` e `.specify/memory/constitution.md`.
 - O contrato `.specify/memory/state-markers.md`.
 
+Se o pedido confirmar uma mudança **trivial sem lifecycle formal**, você pode receber apenas pedido, diff,
+verificação objetiva e barra. Nesse caso, faça review leve sem inventar spec, task, evidence ou ledger; se
+o diff revelar risco acima de trivial, bloqueie e peça formalização. O gate abaixo vale para features
+formais.
+
 ## Verificação independente
 
 Processe as tasks em **ordem topológica**. Para cada `verification-pending`, relacione task, dependências,
-ACs, verificação do plano e recibos `implement`; escolha e execute o **menor subconjunto seguro** que ainda
-cubra a task e **todos os ACs declarados na linha dela**. Não confie apenas no recibo anterior nem
+ACs, perfis de prova, limites de fidelidade, verificação do plano e recibos `implement`; escolha e execute
+o **menor subconjunto seguro** que ainda cubra a task, seus perfis e **todos os ACs declarados na linha
+dela**. Não confie apenas no recibo anterior nem
 substitua o AC da task por outro AC existente. Só recomende `done` se todas as dependências já estiverem
 `done`.
 
@@ -58,7 +64,8 @@ Se uma task falhar ou ficar bloqueada, identifique transitivamente seus dependen
 - **Reclassificacao:** T2 | done | ready | 2026-07-17T21:57:18Z | T1 deixou de estar done; ver E4
 ```
 
-Não detecte ciclos mecanicamente neste PR; reporte somente ciclo já evidente nos artefatos.
+Não substitua o `/sdk-analyze` com detecção mecânica de ciclos; reporte somente ciclo já evidente nos
+artefatos.
 
 ## O que checar
 1. **Spec ↔ código:** cada critério de aceitação (AC) foi atendido? Há comportamento fora do escopo?
@@ -66,20 +73,23 @@ Não detecte ciclos mecanicamente neste PR; reporte somente ciclo já evidente n
 3. **Barra de engenharia:** segredos fora do código/git/bundle do cliente; validação de input público; PII
    fora de logs; timeouts em chamadas de rede; autorização checada no servidor; verificações cobrindo os
    AC (lógica crítica exige teste automatizado); tratamento de edge cases e modos de falha.
-4. **Constituição:** mudança cirúrgica e simples? Verificável? Nenhuma regra de domínio/lei inventada?
-5. **Evidence:** sob contrato estrito, todo `done` tem recibo review bem-sucedido? Todo blocked tem
+4. **Fidelidade e perfis:** comportamento real não foi provado somente por mock? Sandbox/simulação está
+   sinalizada como tal? Todo perfil aplicável tem task e prova; `data-security` com migração/schema ou
+   transformação destrutiva/em massa tem forward e rollback/restauração executados, não apenas descritos?
+5. **Constituição:** mudança cirúrgica e simples? Verificável? Nenhuma regra de domínio/lei inventada?
+6. **Evidence:** sob contrato estrito, todo `done` tem recibo review bem-sucedido? Todo blocked tem
    motivo/condição no mesmo bloco negativo? Dependência de `verification-pending` está em
    `verification-pending`/`done` e a
    de `done` está em `done`? A fonte das tasks tem marker `Evidence` correto e nenhum estado comprovado está
    sem seu recibo obrigatório?
-6. **Fronteira motor × produto:** diff de feature tocando comandos/agents `sdk-*`, memória do kit (exceto
+7. **Fronteira motor × produto:** diff de feature tocando comandos/agents `sdk-*`, memória do kit (exceto
    `project-context.md`), templates, `scripts/sdk-*`, `scripts/new-feature.*`, `CLAUDE.md` ou `COMO-USAR.md`
    é drift **Crítico**, não parte da feature.
 
 ## Severidade
 - **Crítico** — segurança, perda de dados, vazamento de segredo/PII, AC essencial quebrado. **Bloqueia.**
 - **Alto** — bug provável, desvio relevante da spec/plano, AC sem verificação ou AC crítico sem teste
-  automatizado. **Bloqueia em PRODUCTION.**
+  automatizado, perfil aplicável sem prova ou fidelidade enganosa. **Bloqueia.**
 - **Médio** — qualidade/manutenção, cobertura de teste insuficiente.
 - **Baixo** — estilo, melhoria opcional.
 
@@ -87,9 +97,13 @@ Não detecte ciclos mecanicamente neste PR; reporte somente ciclo já evidente n
 - **Não corrija o código.** Você só revisa e reporta; a correção é responsabilidade de outro passo.
 - Sem execução/observação independente, use `not-run`/`unavailable`; nunca fabrique `pass`.
 - Cada achado tem **arquivo:linha**, a razão e uma sugestão concreta.
+- Depois que ACs, perfis e barra estiverem satisfeitos, melhoria nova Médio/Baixo vai ao backlog; não
+  prolongue a rodada. Duas tentativas consecutivas da mesma correção sem progresso observável bloqueiam
+  antes de uma terceira automática.
 - Seja específico e honesto: se não há achados Críticos, diga; não invente problemas para parecer rigoroso.
 
 ## Saída
-Retorne: recibos estruturados; mapa task/AC → recibo → estado recomendado; achados por severidade; veredito.
-Crítico bloqueia sempre; Alto bloqueia em PRODUCTION. Sem recibo review `pass`/`observed` com ref
-`commit@SHA`/`worktree@SHA`, não recomende `done`; ref `unavailable` nunca promove.
+Para mudança trivial, retorne a prova rerodada, achados por severidade e veredito, sem fabricar recibo ou
+estado. Para feature formal, retorne recibos estruturados; mapa perfil → task/AC → recibo → estado
+recomendado; achados; candidatos Médio/Baixo a sub-feature de dívida; veredito. Crítico e Alto bloqueiam sempre. Sem recibo review `pass`/`observed` com
+ref `commit@SHA`/`worktree@SHA`, não recomende `done`; ref `unavailable` nunca promove.

@@ -1,7 +1,8 @@
 # Tasks — <Nome da Feature>
 
 > **Para o agente:** gerado/atualizado pelo `/sdk-tasks` a partir do plano. Lista ordenada por dependência.
-> Cada task tem ID, referencia o AC que satisfaz e tem forma de verificação. Estados:
+> Este é o artefato **canônico** de tasks para toda feature formal. Cada task tem ID, referencia o AC e os
+> perfis de prova que satisfaz e tem forma de verificação. Estados:
 > `backlog → ready → in-progress → verification-pending → done`. `blocked` é um desvio temporário e volta
 > para `ready` quando sua condição objetiva for satisfeita. Grave junto do plano em
 > `docs/plans/<feature>/tasks.md`.
@@ -14,10 +15,14 @@
 
 ## Tabela de tasks
 
-| ID | Descrição | Depende de | AC | Arquivo(s) | Verificação reproduzível | Estado |
-|----|-----------|------------|----|------------|--------------------------|--------|
-| T1 | <...> | — | AC1 | `<path>` | `<comando>` em `<diretório>` via `<fonte/tool>` → `<resultado observável>` | backlog |
-| T2 | <...> | T1 | AC2 | `<path>` | `<ação manual exata>` em `<local>` via `<fonte/tool>` → `<resultado observável>` | backlog |
+| ID | Descrição | Depende de | AC | Perfis | Arquivo(s) | Verificação reproduzível | Estado |
+|----|-----------|------------|----|--------|------------|--------------------------|--------|
+| T1 | <...> | — | AC1 | logic, delivery | `<path>` | `<comando>` em `<diretório>` via `<fonte/tool>` → `<resultado observável>` | backlog |
+| T2 | <...> | T1 | AC2 | visual | `<path>` | `<ação manual exata>` em `<local>` via `<fonte/tool>` → `<resultado observável>` | backlog |
+
+Depois do primeiro `Registro` de uma task, ID, significado, dependências, ACs, **Perfis** e verificação são
+históricos e não podem ser remapeados para fazer a prova antiga cobrir outro contrato. Evolução cria novo
+AC/task ou uma delta feature.
 
 ## Convenções de estado
 - **backlog** — ainda não pronta para começar (faltam dependências ou definição).
@@ -41,10 +46,13 @@ use `reopened`. O estado `partial` não faz parte deste contrato.
 - Se uma dependência falhar no review, dependentes em `verification-pending`/`done` voltam transitivamente a
   `ready` com recibo `review | not-run`. Dependente antes `done` inclui no mesmo bloco:
   `- **Reclassificacao:** T1 | done | ready | <ISO-8601> | <motivo/referencia>`.
-- Detecção mecânica de ciclos não pertence a este PR; continua prevista para a F11/PR IV.
+- O `/sdk-analyze` verifica ciclos semanticamente; detecção determinística no `sdk-check` ainda não está
+  disponível.
 
-## Cobertura de AC
-> Garantir que todo AC da spec tem ao menos uma task. Liste AC sem task aqui (deve ficar vazio antes de
-> implementar).
+## Cobertura de AC e perfis
+> Garanta que todo AC e todo perfil `aplicável` do plano têm ao menos uma task. Cada task cita ao menos um
+> perfil aplicável; perfil marcado `N/A` não aparece na tabela. Liste lacunas aqui (deve ficar vazio antes
+> de implementar).
 
 - <nenhum AC descoberto>
+- <nenhum perfil aplicável descoberto>

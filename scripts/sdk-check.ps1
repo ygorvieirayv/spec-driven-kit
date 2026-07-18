@@ -34,6 +34,18 @@ foreach ($d in @($specDirs)) {
   if (-not $m.Success) { Erro "${r}: sem a linha '- **Status:**' (contrato: state-markers.md)" }
   elseif ($m.Groups[1].Value -match 'rascunho \| em revis.o \| aprovada') { Aviso "${r}: Status ainda no molde (nao preenchido)" }
   elseif ($m.Groups[1].Value -notmatch '^(rascunho|em revis.o|aprovada)\b') { Erro "${r}: Status fora do vocabulario (rascunho | em revisao | aprovada)" }
+
+  $riskMatches = [regex]::Matches($t, '(?m)^- \*\*Risco:\*\* (.+)$')
+  $m = if ($riskMatches.Count -gt 0) { $riskMatches[0] } else { $null }
+  if ($riskMatches.Count -eq 0) { Erro "${r}: sem a linha '- **Risco:**'" }
+  elseif ($riskMatches.Count -ne 1) { Erro "${r}: exige exatamente uma linha '- **Risco:**'" }
+  elseif ($m.Groups[1].Value -match 'baixo \| medio \| alto') { Aviso "${r}: Risco ainda no molde (nao preenchido)" }
+  elseif ($m.Groups[1].Value -notmatch '^(baixo|medio|alto)[ \t]*\r?$') { Erro "${r}: Risco fora do vocabulario (baixo | medio | alto)" }
+
+  $fidelityHeadingCount = [regex]::Matches($t, '(?m)^## Limites de fidelidade[ \t]*\r?$').Count
+  $fidelityMarkerCount = [regex]::Matches($t, '(?m)^- \*\*Limites intencionais:\*\* (nenhum|declarados abaixo)[ \t]*\r?$').Count
+  if ($fidelityHeadingCount -ne 1) { Erro "${r}: exige exatamente uma secao '## Limites de fidelidade'" }
+  if ($fidelityMarkerCount -ne 1) { Erro "${r}: Limites intencionais deve ser 'nenhum' ou 'declarados abaixo'" }
 }
 
 # ------------------------------------------- planos: Status, Analyze, Review
@@ -50,12 +62,22 @@ foreach ($d in @($planDirs)) {
   elseif ($m.Groups[1].Value -notmatch '^(rascunho|aprovado)\b') { Erro "${r}: Status fora do vocabulario (rascunho | aprovado)" }
 
   $m = [regex]::Match($t, '(?m)^- \*\*Analyze:\*\* (.+)$')
-  if (-not $m.Success) { Aviso "${r}: sem a linha '- **Analyze:**' (plano anterior ao contrato? adicione-a)" }
+  if (-not $m.Success) { Erro "${r}: sem a linha obrigatoria '- **Analyze:**'" }
   elseif ($m.Groups[1].Value -notmatch '^(pendente|consistente|ajustar|bloqueado)\b') { Erro "${r}: Analyze fora do vocabulario (pendente | consistente | ajustar | bloqueado)" }
 
   $m = [regex]::Match($t, '(?m)^- \*\*Review:\*\* (.+)$')
-  if (-not $m.Success) { Aviso "${r}: sem a linha '- **Review:**' (plano anterior ao contrato? adicione-a)" }
+  if (-not $m.Success) { Erro "${r}: sem a linha obrigatoria '- **Review:**'" }
   elseif ($m.Groups[1].Value -notmatch ('^(' + [char]0x2014 + '|aprovado( com ressalvas)?|bloqueado)')) { Erro "${r}: Review fora do vocabulario (- | aprovado | aprovado com ressalvas | bloqueado)" }
+
+  $profileHeadingCount = [regex]::Matches($t, '(?m)^## Perfis de prova[ \t]*\r?$').Count
+  if ($profileHeadingCount -ne 1) { Erro "${r}: exige exatamente uma secao '## Perfis de prova'" }
+  foreach ($profile in @('visual', 'logic', 'journey', 'data-security', 'operational', 'delivery')) {
+    $profilePattern = '(?m)^\|[ \t]*' + [regex]::Escape($profile) + '[ \t]*\|'
+    if ([regex]::Matches($t, $profilePattern).Count -ne 1) {
+      Erro "${r}: perfil '$profile' deve aparecer exatamente uma vez na matriz"
+    }
+  }
+  if ($t -match '(?m)^## Tasks[ \t]*\r?$') { Erro "${r}: secao inline '## Tasks' e proibida; use tasks.md" }
 }
 
 # ------------------------- tasks + evidence: fonte autoritativa e estados validos
@@ -97,11 +119,28 @@ foreach ($d in @($planDirs)) {
   $tasks    = Join-Path $d.FullName "tasks.md"
   $evidence = Join-Path $d.FullName "evidence.md"
 
-  # tasks.md vence quando existe; plan.md so e fonte quando nao ha tasks.md.
-  $taskFile = $null
-  if (Test-Path $tasks) { $taskFile = $tasks }
-  elseif (Test-Path $plan) { $taskFile = $plan }
-  if ($null -eq $taskFile) { continue }
+  if (-not (Test-Path $plan)) {
+    if (Test-Path $tasks) { Erro "docs/plans/${feature}: existe tasks.md sem plan.md" }
+    continue
+  }
+
+  $spec = Join-Path $Root "docs/specs/$feature/spec.md"
+  if (-not (Test-Path $spec)) {
+    Erro "docs/plans/${feature}: existe plano mas nao existe docs/specs/$feature/spec.md"
+    continue
+  }
+
+  if (-not (Test-Path $tasks)) {
+    if (Test-Path $evidence) { Erro "docs/plans/${feature}: evidence.md existe sem tasks.md canonico" }
+    $planText = Get-Text $plan
+    $analyze = [regex]::Match($planText, '(?m)^- \*\*Analyze:\*\* (.+)$')
+    if ($analyze.Success -and $analyze.Groups[1].Value -notmatch '^pendente\b') {
+      Erro "docs/plans/${feature}: Analyze nao pode avancar sem tasks.md canonico"
+    }
+    continue
+  }
+
+  $taskFile = $tasks
 
   $taskRel = Rel $taskFile
   $taskIds = @{}
@@ -112,6 +151,7 @@ foreach ($d in @($planDirs)) {
   $taskLines = @(Get-Content -Encoding UTF8 $taskFile)
   $acColumnIndex = $null
   $depColumnIndex = $null
+  $profilesColumnIndex = $null
   foreach ($line in $taskLines) {
     if ($line -notmatch '^\|') { continue }
     $headerCells = $line -split '\|'
@@ -122,9 +162,13 @@ foreach ($d in @($planDirs)) {
       if ($headerCells[$cellIndex].Trim() -eq 'Depende de') {
         $depColumnIndex = $cellIndex
       }
+      if ($headerCells[$cellIndex].Trim() -eq 'Perfis') {
+        $profilesColumnIndex = $cellIndex
+      }
     }
     if ($null -ne $acColumnIndex) { break }
   }
+  if ($null -eq $profilesColumnIndex) { Erro "${taskRel}: tabela de tasks exige a coluna 'Perfis'" }
 
   foreach ($line in $taskLines) {
     $tm = [regex]::Match($line, '^\| *(T[0-9]+) *\|')
@@ -159,11 +203,8 @@ foreach ($d in @($planDirs)) {
   }
   $taskAcs = @($taskAcs | Sort-Object -Unique)
 
-  $spec = Join-Path $Root "docs/specs/$feature/spec.md"
   $specAcs = @()
-  if (-not (Test-Path $spec)) {
-    Erro "docs/plans/${feature}: existe plano mas nao existe docs/specs/$feature/spec.md"
-  } else {
+  if (Test-Path $spec) {
     $canonicalAcMatches = @([regex]::Matches(
       (Get-Text $spec),
       '(?m)^- \*\*(AC[0-9]+)\*\*[ \t]+\u2014[ \t]+.+$'

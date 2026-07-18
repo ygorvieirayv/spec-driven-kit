@@ -28,6 +28,23 @@ for spec in "$ROOT"/docs/specs/*/spec.md; do
   elif ! echo "$line" | grep -qE '^- \*\*Status:\*\* (rascunho|em revisão|aprovada)\b'; then
     erro "$r: Status fora do vocabulário (rascunho | em revisão | aprovada)"
   fi
+
+  risk_count="$(grep -cE '^- \*\*Risco:\*\*' "$spec" || true)"
+  line="$(grep -m1 -E '^- \*\*Risco:\*\*' "$spec" || true)"
+  if [ "$risk_count" -eq 0 ]; then
+    erro "$r: sem a linha '- **Risco:**'"
+  elif [ "$risk_count" -ne 1 ]; then
+    erro "$r: exige exatamente uma linha '- **Risco:**'"
+  elif echo "$line" | grep -q 'baixo | medio | alto'; then
+    aviso "$r: Risco ainda no molde (não preenchido)"
+  elif ! echo "$line" | grep -qE '^- \*\*Risco:\*\* (baixo|medio|alto)[[:space:]]*$'; then
+    erro "$r: Risco fora do vocabulário (baixo | medio | alto)"
+  fi
+
+  fidelity_heading_count="$(grep -cE '^## Limites de fidelidade[[:space:]]*$' "$spec" || true)"
+  fidelity_marker_count="$(grep -cE '^- \*\*Limites intencionais:\*\* (nenhum|declarados abaixo)[[:space:]]*$' "$spec" || true)"
+  [ "$fidelity_heading_count" -eq 1 ] || erro "$r: exige exatamente uma seção '## Limites de fidelidade'"
+  [ "$fidelity_marker_count" -eq 1 ] || erro "$r: Limites intencionais deve ser 'nenhum' ou 'declarados abaixo'"
 done
 
 # ------------------------------------------- planos: Status, Analyze, Review
@@ -46,21 +63,32 @@ for plan in "$ROOT"/docs/plans/*/plan.md; do
 
   line="$(grep -m1 -E '^- \*\*Analyze:\*\*' "$plan" || true)"
   if [ -z "$line" ]; then
-    aviso "$r: sem a linha '- **Analyze:**' (plano anterior ao contrato? adicione-a)"
+    erro "$r: sem a linha obrigatória '- **Analyze:**'"
   elif ! echo "$line" | grep -qE '^- \*\*Analyze:\*\* (pendente|consistente|ajustar|bloqueado)\b'; then
     erro "$r: Analyze fora do vocabulário (pendente | consistente | ajustar | bloqueado)"
   fi
 
   line="$(grep -m1 -E '^- \*\*Review:\*\*' "$plan" || true)"
   if [ -z "$line" ]; then
-    aviso "$r: sem a linha '- **Review:**' (plano anterior ao contrato? adicione-a)"
+    erro "$r: sem a linha obrigatória '- **Review:**'"
   elif ! echo "$line" | grep -qE '^- \*\*Review:\*\* (—|aprovado( com ressalvas)?|bloqueado)'; then
     erro "$r: Review fora do vocabulário (— | aprovado | aprovado com ressalvas | bloqueado)"
+  fi
+
+  profile_heading_count="$(grep -cE '^## Perfis de prova[[:space:]]*$' "$plan" || true)"
+  [ "$profile_heading_count" -eq 1 ] || erro "$r: exige exatamente uma seção '## Perfis de prova'"
+  for profile in visual logic journey data-security operational delivery; do
+    profile_count="$(grep -cE "^\|[[:space:]]*$profile[[:space:]]*\|" "$plan" || true)"
+    [ "$profile_count" -eq 1 ] || erro "$r: perfil '$profile' deve aparecer exatamente uma vez na matriz"
+  done
+  if grep -qE '^## Tasks[[:space:]]*$' "$plan"; then
+    erro "$r: seção inline '## Tasks' é proibida; use tasks.md"
   fi
 done
 
 # -------------------------------- tasks, AC <-> task e evidência (por feature)
-# Se tasks.md existe, ele é a fonte autoritativa. A tabela inline do plano só vale na ausência dele.
+# tasks.md é a única fonte de tasks. Plano aprovado pode existir brevemente sem tasks enquanto /sdk-tasks
+# ainda não rodou; nesse intervalo Analyze precisa continuar pendente e evidence não pode existir.
 trim() {
   printf '%s' "$1" | sed 's/^[[:space:]]*//; s/[[:space:]]*$//'
 }
@@ -802,17 +830,29 @@ for plandir in "$ROOT"/docs/plans/*/; do
   spec="$ROOT/docs/specs/$feature/spec.md"
   [ -e "$plan" ] || [ -e "$tasks" ] || continue
 
-  if [ -e "$tasks" ]; then
-    task_source="$tasks"
-  else
-    task_source="$plan"
+  if [ ! -e "$plan" ]; then
+    erro "docs/plans/$feature: existe tasks.md sem plan.md"
+    continue
   fi
-  task_source_rel="$(rel "$task_source")"
 
   if [ ! -e "$spec" ]; then
     erro "docs/plans/$feature: existe plano mas não existe docs/specs/$feature/spec.md"
     continue
   fi
+
+  if [ ! -e "$tasks" ]; then
+    analyze_line="$(grep -m1 -E '^- \*\*Analyze:\*\*' "$plan" || true)"
+    if [ -e "$evidence" ]; then
+      erro "docs/plans/$feature: evidence.md existe sem tasks.md canônico"
+    fi
+    if [ -n "$analyze_line" ] && ! echo "$analyze_line" | grep -qE '^- \*\*Analyze:\*\* pendente\b'; then
+      erro "docs/plans/$feature: Analyze não pode avançar sem tasks.md canônico"
+    fi
+    continue
+  fi
+
+  task_source="$tasks"
+  task_source_rel="$(rel "$task_source")"
 
   evidence_input="$evidence"
   evidence_tmp=""
@@ -838,7 +878,14 @@ for plandir in "$ROOT"/docs/plans/*/; do
     [ -n "$duplicate_task" ] || continue
     erro "$task_source_rel: ID de task duplicado: $duplicate_task"
   done <<< "$duplicate_task_ids"
-  task_acs="$(grep -E '^\| *T[0-9]+' "$task_source" | grep -oE 'AC[0-9]+' | sort -u || true)"
+  task_acs="$(while IFS= read -r task_id; do
+    [ -n "$task_id" ] || continue
+    task_declared_acs "$task_source" "$task_id"
+  done <<< "$task_ids" | sort -u)"
+
+  if ! grep -qE '^\|.*\|[[:space:]]*Perfis[[:space:]]*\|' "$task_source"; then
+    erro "$task_source_rel: tabela de tasks exige a coluna 'Perfis'"
+  fi
 
   # O marker continua sendo validado como ponte explícita para evidence.md.
   expected_evidence_path="docs/plans/$feature/evidence.md"
