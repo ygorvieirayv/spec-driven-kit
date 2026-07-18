@@ -65,8 +65,28 @@ frase quanto um despejo de ideias:
   comandos do projeto (rodar/testar/build/lint).
 - **Do zero:** se o usuário é técnico, pergunte a preferência; se não, **recomende** um stack explicando o
   porquê em linguagem simples e ofereça alternativa.
-- Registre no `project-context.md` (identidade, stack, comandos e restrições conhecidas relevantes).
-- 🛑 **Checkpoint 1** — confirme produto, restrições relevantes e stack antes de seguir.
+- Antes de propor CI, inventarie manifests/workspaces, arquivos de versão, gerenciador, lockfile,
+  diretórios e workflows existentes. Dois lockfiles, múltiplas linguagens/workspaces, script ausente ou CI
+  divergente são ambiguidade a confirmar — nunca escolha o primeiro arquivo encontrado.
+- Proponha o contrato fail-closed dos seis gates (`install`, `lint`, `typecheck`, `test`, `build`,
+  `dependency-audit`), o runner de quality e o setup de runtime compatíveis com o stack. Cada gate terá
+  comando/diretório real ou N/A estrutural com motivo; a coluna `Contrato` usa exatamente `required` ou
+  `N/A`. Não aceite como N/A "ainda sem scaffold", comando futuro ou ferramenta não instalada: isso
+  permanece vermelho até existir. Action de setup é fixada por SHA completo.
+- Prepare a proposta para o `project-context.md` (identidade, stack, comandos, fontes observadas, gates e
+  restrições conhecidas relevantes), sem gravar antes da aprovação.
+- 🛑 **Checkpoint 1** — confirme produto, restrições, stack **e matriz de gates** antes de gravar/gerar CI.
+- Depois da aprovação, grave o `project-context.md`, crie exatamente um
+  `.specify/ci/gates/<gate>.sh` ou `<gate>.skip` para cada gate e **renderize**
+  `.specify/templates/consumer-ci-template.yml` em `.github/workflows/sdk-quality.yml`: substitua
+  `__SDK_QUALITY_RUNNER__`, materialize/remova o bloco `SDK-SETUP` aprovado e não deixe marcador de template
+  no arquivo final. Rode `.\scripts\sdk-ci.ps1 -Validate` no Windows ou `bash scripts/sdk-ci.sh --validate`
+  nos demais sistemas. Em repo com workflow existente, preserve-o; mostre o diff da integração e peça
+  aprovação antes de alterar. Nunca use `--if-present`, `continue-on-error`, `|| true`, `hashFiles` como
+  condição de sucesso ou fallback de instalação não reprodutível.
+- Explique que `Quality gates` e `Secret scan` só ficam resistentes à remoção quando exigidos por branch
+  protection/ruleset. Configurar via `gh` é mutação externa: apenas proponha e execute após aprovação explícita;
+  enquanto pendente, mantenha `[VERIFICAR]` e não prometa proteção contra bypass.
 
 ### C. Descoberta de domínio
 - Pergunte **país de operação** e **países dos usuários** (explique por que importa: leis, impostos,

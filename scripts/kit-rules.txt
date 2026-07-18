@@ -16,6 +16,7 @@ prova que o motor distribuído não perdeu ou contradisse a instrução.
 | KR-07 | ENGINE é motor; SEED/MERGE são dados do projeto | `scripts/kit-manifest.txt` e `CLAUDE.md` | implement, review, reviewer e doctor |
 | KR-08 | Duas tentativas iguais sem progresso acionam o disjuntor | `.specify/memory/constitution.md` | CLAUDE, implement, review, reviewer e doctor |
 | KR-09 | Mudança de contrato invalida Analyze | `.specify/memory/state-markers.md` | spec, clarify, decide, plan e tasks |
+| KR-10 | CI do consumidor é fail-closed e prova somente o SHA observado | `.specify/memory/engineering-standards.md` | bootstrap, runner, secret scan, workflow, review e doctor |
 
 Regras para evoluir este índice:
 

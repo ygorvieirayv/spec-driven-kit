@@ -72,7 +72,7 @@ check_rule_index() {
   local id count expected actual
   require_file "KR-INDEX" "scripts/kit-rules.txt"
   [ -f "$ROOT/scripts/kit-rules.txt" ] || return
-  expected="$(printf '%s\n' KR-01 KR-02 KR-03 KR-04 KR-05 KR-06 KR-07 KR-08 KR-09)"
+  expected="$(printf '%s\n' KR-01 KR-02 KR-03 KR-04 KR-05 KR-06 KR-07 KR-08 KR-09 KR-10)"
   actual="$(awk -F'|' '
     /^\| KR-[0-9]+ \|/ {
       id = $2
@@ -83,7 +83,7 @@ check_rule_index() {
   if [ "$actual" != "$expected" ]; then
     rule_error "KR-INDEX" "scripts/kit-rules.txt: conjunto de IDs diverge das asserções implementadas"
   fi
-  for id in KR-01 KR-02 KR-03 KR-04 KR-05 KR-06 KR-07 KR-08 KR-09; do
+  for id in KR-01 KR-02 KR-03 KR-04 KR-05 KR-06 KR-07 KR-08 KR-09 KR-10; do
     count="$(grep -cE "^\\| $id \\|" "$ROOT/scripts/kit-rules.txt" || true)"
     [ "$count" -eq 1 ] || rule_error "KR-INDEX" "scripts/kit-rules.txt: $id deve aparecer exatamente uma vez"
   done
@@ -169,9 +169,11 @@ require_match "KR-07" "scripts/kit-manifest.txt" '^SEED \.specify/memory/project
 require_match "KR-07" "scripts/kit-manifest.txt" '^MERGE \.specify/memory/lessons\.md$' "lessons deve ser MERGE"
 require_match "KR-07" "scripts/kit-manifest.txt" '^ENGINE \.specify/memory/constitution\.md$' "constituição deve ser ENGINE puro"
 reject_match "KR-07" ".specify/memory/constitution.md" '^## Princípios específicos deste projeto' "constituição ENGINE contém dados do projeto"
+reject_match "KR-07" ".specify/memory/engineering-standards.md" '^## Padrões específicos deste projeto' "engineering-standards ENGINE contém dados do projeto"
 require_match "KR-07" ".specify/memory/project-context.md" '^## Princípios específicos deste projeto' "contexto não possui princípios do projeto"
 require_match "KR-07" "CLAUDE.md" 'project-context.md' "inventário instalado omite project-context"
-require_match "KR-07" "CLAUDE.md" 'lessons.md.*não são motor|lessons.md.*nao sao motor' "inventário instalado não separa dados do projeto"
+require_match "KR-07" "CLAUDE.md" 'lessons.md.*são dados|lessons.md.*sao dados' "inventário instalado não classifica lessons como dado do projeto"
+require_match "KR-07" "CLAUDE.md" 'não são motor|nao sao motor' "inventário instalado não separa dados do motor"
 for consumer in .claude/commands/sdk-implement.md .claude/commands/sdk-review.md .claude/commands/sdk-doctor.md .claude/agents/sdk-reviewer.md; do
   require_match "KR-07" "$consumer" 'Motor × produto.*CLAUDE.md|motor × produto.*CLAUDE.md|fronteira.*CLAUDE.md' "consumidor não referencia a fronteira canônica"
 done
@@ -187,6 +189,42 @@ require_match "KR-09" ".specify/memory/state-markers.md" 'Análise velha não va
 for consumer in .claude/commands/sdk-spec.md .claude/commands/sdk-clarify.md .claude/commands/sdk-decide.md .claude/commands/sdk-plan.md .claude/commands/sdk-tasks.md; do
   require_match "KR-09" "$consumer" 'Analyze.*pendente|pendente.*Analyze' "comando não invalida Analyze quando altera contrato"
 done
+
+# KR-10 - CI do consumidor falha fechado e atesta apenas o snapshot executado.
+require_match "KR-10" ".specify/memory/engineering-standards.md" '^## CI do consumidor \(fail-closed\)' "fonte normativa de CI ausente"
+for gate in install lint typecheck test build dependency-audit; do
+  require_match "KR-10" ".specify/memory/engineering-standards.md" "\`$gate\`" "gate $gate ausente da fonte normativa"
+done
+require_match "KR-10" ".claude/commands/sdk-bootstrap.md" 'consumer-ci-template.yml.*sdk-quality.yml' "bootstrap não gera o workflow aprovado"
+require_match "KR-10" ".claude/commands/sdk-bootstrap.md" 'sdk-ci.sh --validate' "bootstrap não valida o contrato antes de seguir"
+for engine in scripts/sdk-ci.sh scripts/sdk-ci.ps1 scripts/sdk-secrets.sh .specify/templates/consumer-ci-template.yml; do
+  require_match "KR-10" "scripts/kit-manifest.txt" "^ENGINE ${engine//./\\.}$" "$engine precisa viajar como ENGINE"
+done
+require_match "KR-10" "scripts/sdk-ci.sh" 'CANONICAL_GATES=\(install lint typecheck test build dependency-audit\)' "runner perdeu o catálogo canônico"
+require_match "KR-10" "scripts/sdk-ci.sh" 'nenhum gate foi executado' "runner não valida tudo antes de executar"
+require_match "KR-10" "scripts/sdk-ci.sh" 'project-context.md' "runner não compara gates com o contrato aprovado"
+require_match "KR-10" "scripts/sdk-ci.ps1" 'sdk-ci.sh' "entrada PowerShell não delega à fonte canônica"
+require_match "KR-10" "scripts/sdk-secrets.sh" 'GITLEAKS_VERSION="8\.30\.1"' "versão do scanner não está fixada"
+require_match "KR-10" "scripts/sdk-secrets.sh" 'GITLEAKS_SHA256="551f6fc83ea457d62a0d98237cbad105af8d557003051f41f3e7ca7b3f2470eb"' "checksum oficial do scanner divergiu"
+require_match "KR-10" "scripts/sdk-secrets.sh" 'shallow checkout is forbidden' "scanner aceita histórico parcial"
+require_match "KR-10" "scripts/sdk-secrets.sh" 'disabledRules nao pode remover regras padrao' "scanner permite desativar defaults"
+require_match "KR-10" "scripts/sdk-secrets.sh" '^"\$binary" git ' "scanner deixou de varrer o histórico"
+require_match "KR-10" "scripts/sdk-secrets.sh" '^"\$binary" dir ' "scanner deixou de varrer a árvore atual"
+require_match "KR-10" ".specify/templates/consumer-ci-template.yml" 'runs-on: __SDK_QUALITY_RUNNER__' "workflow não permite runner aprovado por stack"
+require_match "KR-10" ".specify/templates/consumer-ci-template.yml" 'SDK-SETUP-START' "workflow perdeu o ponto de setup aprovado por stack"
+require_match "KR-10" ".specify/templates/consumer-ci-template.yml" 'run: \./scripts/sdk-check.ps1' "workflow não valida estado"
+require_match "KR-10" ".specify/templates/consumer-ci-template.yml" 'run: \./scripts/sdk-ci.ps1' "workflow não executa os gates"
+require_match "KR-10" ".specify/templates/consumer-ci-template.yml" 'fetch-depth: 0' "secret scan não recebe histórico completo"
+require_match "KR-10" ".specify/templates/consumer-ci-template.yml" 'run: bash scripts/sdk-secrets.sh' "workflow não executa secret scan"
+reject_match "KR-10" ".specify/templates/consumer-ci-template.yml" 'continue-on-error|pull_request_target' "workflow contém bypass ou evento privilegiado"
+if grep -E '^[[:space:]]*(-[[:space:]]*)?uses:' "$ROOT/.specify/templates/consumer-ci-template.yml" | \
+   grep -Ev '@[0-9a-f]{40}([[:space:]]*#.*)?$' >/dev/null; then
+  rule_error "KR-10" ".specify/templates/consumer-ci-template.yml: action sem SHA completo"
+fi
+require_match "KR-10" ".claude/commands/sdk-review.md" 'head_sha.*exatamente o commit' "review pode reutilizar CI de outro SHA"
+require_match "KR-10" ".claude/agents/sdk-reviewer.md" 'project-context.md' "reviewer não recebe a matriz aprovada"
+require_match "KR-10" ".claude/commands/sdk-review.md" 'gate.*externo.*não anexe novo recibo|gate.*externo.*nao anexe novo recibo' "review cria ciclo de atestação por SHA"
+require_match "KR-10" ".claude/commands/sdk-doctor.md" 'sdk-ci.sh --validate' "doctor não valida o contrato de CI"
 
 echo "----------------------------------------"
 echo "kit-rules: $ERRORS erro(s)."

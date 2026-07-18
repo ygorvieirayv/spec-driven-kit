@@ -31,6 +31,7 @@ SEED .specify/memory/project-context.md
 ENGINE .specify/memory/state-markers.md
 ENGINE .specify/templates/agents-md-template.md
 ENGINE .specify/templates/context-template.md
+ENGINE .specify/templates/consumer-ci-template.yml
 ENGINE .specify/templates/evidence-template.md
 ENGINE .specify/templates/plan-template.md
 ENGINE .specify/templates/spec-template.md
@@ -54,12 +55,18 @@ SKIP scripts/kit-rules.sh
 SKIP scripts/kit-rules.txt
 ENGINE scripts/new-feature.ps1
 ENGINE scripts/new-feature.sh
+ENGINE scripts/sdk-ci.ps1
+ENGINE scripts/sdk-ci.sh
 ENGINE scripts/sdk-check.ps1
 ENGINE scripts/sdk-check.sh
+ENGINE scripts/sdk-secrets.sh
 SKIP scripts/kit-manifest.txt
 SKIP .github/workflows/ci.yml
 SKIP tests/kit-rules-negative.sh
+SKIP tests/sdk-ci-consumer.sh
+SKIP tests/sdk-ci-wrapper.ps1
 SKIP tests/sdk-check-graph.sh
+SKIP tests/sdk-secrets.sh
 SKIP tests/fixtures/broken/docs/epics.md
 SKIP tests/fixtures/broken/docs/plans/broken/plan.md
 SKIP tests/fixtures/broken/docs/plans/broken/tasks.md

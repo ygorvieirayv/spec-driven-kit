@@ -1,0 +1,46 @@
+name: SDK Quality
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  quality:
+    name: Quality gates
+    runs-on: __SDK_QUALITY_RUNNER__
+    timeout-minutes: 30
+    steps:
+      - name: Checkout without persisted credentials
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          persist-credentials: false
+
+      # SDK-SETUP-START: bootstrap renders approved, SHA-pinned setup steps here when required.
+      # SDK-SETUP-END
+
+      - name: Validate SDD state
+        shell: pwsh
+        run: ./scripts/sdk-check.ps1
+
+      - name: Run declared quality gates
+        shell: pwsh
+        run: ./scripts/sdk-ci.ps1
+
+  secrets:
+    name: Secret scan
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - name: Checkout complete history without persisted credentials
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Scan history and current tree
+        shell: bash
+        run: bash scripts/sdk-secrets.sh

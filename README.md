@@ -123,9 +123,10 @@ subagente e precisa executar exatamente o mesmo rerun. Se um review falhar, a co
 3. Responda às perguntas (uma de cada vez). O agente vai:
    - preparar a estrutura e o `.gitignore`;
    - confirmar/recomendar o **stack** a partir das restrições reais (orçamento, escala, operação e prazo);
+   - confirmar seis **gates de CI** e gerar um workflow que falha se algum check esperado estiver ausente;
    - fazer a **descoberta de domínio** (país, leis, pagamentos…) com fontes;
    - conduzir as **decisões de arquitetura** com trade-offs;
-   - propor as **regras de negócio** (constituição do projeto);
+   - propor os **princípios de negócio** registrados no contexto do projeto;
    - montar o **escopo do MVP** (epics) e a **ordem de construção** (por dependências).
 4. A cada checkpoint 🛑, revise e aprove.
 5. Rode **`/sdk-roadmap`** para ver qual feature está **pronta para começar** (🟢) — comece por ela.
@@ -179,6 +180,19 @@ No plano, os perfis de prova são independentes e combináveis:
 Uma alteração visual pode exigir apenas `visual`; uma mudança de autenticação pode combinar `logic`,
 `data-security`, `journey` e `delivery`. A régua de risco decide a cerimônia mínima, o plano declara os perfis
 aplicáveis e o `/sdk-review` cobra as provas correspondentes. Achados **Crítico** e **Alto** bloqueiam sempre.
+
+### CI do produto sem "verde por ausência"
+
+O bootstrap renderiza `.github/workflows/sdk-quality.yml` somente depois de você aprovar stack, lockfile,
+runner, setup, diretórios e comandos. `scripts/sdk-ci.sh` exige exatamente seis gates (`install`, `lint`, `typecheck`,
+`test`, `build`, `dependency-audit`): cada um possui um script real ou N/A estrutural justificado. Gate
+ausente, divergente do `project-context.md`, placeholder e atalhos como `--if-present`/`|| true` falham antes
+de qualquer execução. No Windows, `sdk-ci.ps1` localiza o Git Bash e usa o mesmo contrato.
+
+O job `Secret scan` usa o CLI MIT do Gitleaks fixado por versão e SHA-256, sem licença da Action, e examina
+histórico completo + árvore atual com redaction. Os checks remotos estáveis são `Quality gates` e
+`Secret scan`. Para impedir bypass pela remoção do workflow, torne ambos obrigatórios em branch
+protection/ruleset; sem essa configuração externa, a garantia honesta é "fail-closed quando executado".
 
 ---
 
@@ -278,7 +292,7 @@ spec-driven-kit/
 │   │   ├── lessons.md                 # ★ biblioteca de lições generalizadas (erros → prevenção)
 │   │   ├── state-markers.md           # ★ contrato dos marcadores de estado (valida o /sdk-check e /sdk-doctor)
 │   │   └── project-context.md         # GERADO na descoberta (país, leis, decisões)
-│   └── templates/                     # moldes de context / spec / plan / tasks / evidence
+│   └── templates/                     # moldes de context / spec / plan / tasks / evidence / CI consumidor
 │       └── agents-md-template.md      # ★ adaptador p/ ferramentas sem slash commands (ex.: Codex CLI)
 │
 ├── .claude/
@@ -295,9 +309,10 @@ spec-driven-kit/
 ├── scripts/
 │   ├── kit-manifest.txt               # classificação ENGINE/SEED/MERGE/SKIP para o instalador
 │   ├── kit-rules.*                    # contrato/check interno do próprio kit (SKIP no bundle)
+│   ├── sdk-ci.* + sdk-secrets.sh      # gates portáveis do produto + Gitleaks fixado para CI Ubuntu
 │   └── new-feature + sdk-check        # scaffolding + validação de estado, bash + PowerShell
 │
-└── tests/fixtures/                    # fixtures valid/broken para testar o sdk-check e o CI
+└── tests/                             # fixtures, mutações, gates e secret scan sintético real
 ```
 
 > **Compatibilidade:** `.specify/memory/constitution.md` e `.specify/templates/` seguem os caminhos do Spec

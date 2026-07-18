@@ -47,6 +47,12 @@ token. Se o script não existir (instalação parcial), diga isso e faça as mes
 - **Restos de atualização do kit:** existem arquivos `*.sdk-new` ou `*.sdk-bak.*` esquecidos? → AVISO:
   compare o original com o sidecar, incorpore conscientemente o que deve permanecer e só então apague o
   sidecar. Nunca escolha automaticamente entre dado do projeto e atualização de motor.
+- **Contrato de CI do consumidor:** se `scripts/sdk-ci.sh` existir, rode `.\scripts\sdk-ci.ps1 -Validate` no
+  Windows ou `bash scripts/sdk-ci.sh --validate` nos demais sistemas. Ausência, divergência com o
+  `project-context.md`, duplicidade ou placeholder nos seis gates é drift Alto. Confirme que
+  `.github/workflows/sdk-quality.yml` chama `sdk-check.ps1`, `sdk-ci.ps1` e `sdk-secrets.sh`, sem marcador
+  `__SDK_`/`SDK-SETUP`, `continue-on-error`, checkout raso no scan ou condição de existência. Não execute
+  os gates no doctor.
 
 ### T2 — leitura dirigida (só dos arquivos suspeitos de T1)
 - **Plano × ADRs:** alguma decisão do plano contradiz um ADR de `docs/decisions/` ou o resumo de decisões
@@ -77,7 +83,9 @@ token. Se o script não existir (instalação parcial), diga isso e faça as mes
 - **Reabertura:** `Reclassificacao` tem prova anterior de `done`? Todo implement posterior a um `done` tem
   um bloco `review | not-run` + `Reclassificacao` entre as duas fases? Sem isso, houve reabertura direta.
 
-A ref SHA registra só proveniência. Não compare com HEAD nem classifique `current`/`historical` nesta versão.
+A ref SHA registra só proveniência. O doctor não compara evidence comum com HEAD nem classifica
+`current`/`historical`; a exceção é o `/sdk-review` ao atestar CI remoto, que exige `head_sha` igual ao
+commit revisado porque o provedor só executou aquele snapshot.
 
 ### T3 — código × artefatos (git; só a pedido ou com suspeita concreta)
 - Branch de feature com arquivos alterados **fora** dos declarados na coluna Arquivo(s) do plano/tasks.

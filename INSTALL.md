@@ -37,7 +37,8 @@ cd spec-driven-kit
 
 O instalador segue o manifesto `scripts/kit-manifest.txt`:
 
-- **ENGINE** (motor do kit): comandos, agentes, templates, `CLAUDE.md`, `COMO-USAR.md` e scripts. Se o
+- **ENGINE** (motor do kit): comandos, agentes, templates, `CLAUDE.md`, `COMO-USAR.md` e scripts, incluindo
+  `sdk-ci.sh`/`.ps1` e `sdk-secrets.sh`. Se o
   arquivo não existe, copia. Se existe e diverge, **não sobrescreve por padrão**: grava `<arquivo>.sdk-new`
   para você comparar. Com `--force`/`-Force`, atualiza somente arquivos ENGINE depois de criar backup
   `<arquivo>.sdk-bak.<data>`.
@@ -68,6 +69,11 @@ recursivamente não é caminho suportado: isso levaria CI, fixtures e documenta�
 
 Depois da instalação, abra a ferramenta de IA no projeto e rode `/sdk-bootstrap`. Em brownfield, o comando
 lê o stack e o comportamento existentes antes de propor qualquer mudança.
+
+Depois que você aprovar stack, runner/setup e a matriz dos seis gates no Checkpoint 1, o bootstrap cria
+`.github/workflows/sdk-quality.yml` e um contrato explícito em `.specify/ci/gates/`. Esses arquivos são
+dados do produto, ficam fora do manifesto e não são sobrescritos nem mesmo por uma atualização com
+`--force`/`-Force`.
 
 ---
 
@@ -106,7 +112,7 @@ ls .claude/commands     # sdk-next, sdk-bootstrap, sdk-roadmap, sdk-spec, sdk-cl
 ls .claude/agents       # sdk-domain-researcher.md, sdk-reviewer.md, sdk-lesson-curator.md
 ls .specify/memory      # constitution.md, engineering-standards.md, decision-guide.md, lessons.md,
                         # state-markers.md, project-context.md
-ls scripts              # new-feature.sh/.ps1, sdk-check.sh/.ps1 (validação de estado)
+ls scripts              # new-feature.*, sdk-check.*, sdk-ci.* e sdk-secrets.sh
 cat .specify/spec-driven-kit.version  # versão do Spec Driven Kit instalada neste projeto
 ```
 
@@ -125,11 +131,13 @@ Para puxar melhorias do kit sem perder seus artefatos:
   o instalador mostra a transição de versão, por exemplo `installed: 0.1.0 -> 0.2.0`.
 - **Seguro de sobrescrever** (são o "motor" do kit): `.claude/commands/`, `.claude/agents/`,
   `.specify/templates/`, `.specify/memory/decision-guide.md`, `.specify/memory/engineering-standards.md`,
-  `.specify/memory/state-markers.md`, `scripts/sdk-check.*`, `scripts/new-feature.*`, `CLAUDE.md`, `COMO-USAR.md` e
-  `.specify/memory/constitution.md`. Princípios específicos ficam no `project-context.md`, nunca na
+  `.specify/memory/state-markers.md`, `scripts/sdk-check.*`, `scripts/sdk-ci.*`, `scripts/sdk-secrets.sh`,
+  `scripts/new-feature.*`, `CLAUDE.md`, `COMO-USAR.md` e `.specify/memory/constitution.md`. Princípios
+  específicos ficam no `project-context.md`, nunca na
   constituição atualizável do motor.
-- **Nunca sobrescreva** (são **seus**): `.specify/memory/project-context.md`, `docs/specs/`, `docs/plans/`,
-  `docs/decisions/`, `docs/epics.md`, e o `AGENTS.md` na raiz **se você usa o adaptador** (ele foi preenchido
+- **Nunca sobrescreva** (são **seus**): `.specify/memory/project-context.md`, `.specify/ci/gates/`,
+  `.github/workflows/sdk-quality.yml`, `docs/specs/`, `docs/plans/`, `docs/decisions/`, `docs/epics.md`, e o
+  `AGENTS.md` na raiz **se você usa o adaptador** (ele foi preenchido
   com dados do seu projeto — só o molde em `.specify/templates/agents-md-template.md` é seguro de atualizar).
 - **Evidence é estrito:** plan/tasks exige marker `- **Evidence:**` para a própria feature. O arquivo só
   nasce na primeira observação real, mas `verification-pending`, `done` e `blocked` não são aceitos sem os
