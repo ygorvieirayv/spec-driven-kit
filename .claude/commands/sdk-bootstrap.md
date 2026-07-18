@@ -35,7 +35,9 @@ Carregue antes de começar: `.specify/memory/constitution.md`, `.specify/memory/
 Prepare a base e avise em 1 frase o que fez:
 - Garanta a árvore de pastas (`.specify/`, `.claude/`, `docs/specs|plans|decisions`).
 - Crie/atualize `.gitignore` incluindo `.env` e segredos.
-- Se ainda não houver repo git, rode `git init`.
+- Se ainda não houver repo git, rode `git init`. O contrato de evidence precisa de um SHA real; depois
+  que os artefatos do bootstrap forem aprovados, garanta um commit baseline antes da primeira
+  implementação.
 > Diga: "Preparei a estrutura do projeto e o `.gitignore` (com `.env` protegido). Vamos ao produto."
 
 ### B. Projeto + stack
@@ -113,5 +115,7 @@ se o sinal existe, proponha. Para cada decisão, conduza a lógica do **/sdk-dec
   com `/sdk-spec`? (Ou rode `/sdk-roadmap` para rever a ordem.)"
 - **Não** inicie spec nem código sem o usuário escolher.
 
-> Ao terminar, faça um commit dos artefatos gerados (memória + epics + decisões) com mensagem clara, se o
-> usuário desejar versionar.
+> Ao terminar, rode `git rev-parse --verify HEAD`. Se o repositório ainda estiver sem commit, explique que
+> `worktree@SHA` exige uma base real e crie, com a aprovação do usuário, o commit baseline dos artefatos
+> aprovados (memória + epics + decisões). Se identidade/permissão impedir o commit, registre o bloqueio e
+> não comece `/sdk-implement`; `unavailable` não promove task.

@@ -36,16 +36,22 @@ Carregue: a spec da feature (`docs/specs/<feature>/spec.md`), `.specify/memory/e
    segurança, testes, observabilidade. Verifique o que se aplica a esta feature.
    **E consulte a biblioteca de lições** (`.specify/memory/lessons.md`) por **tag** relevante (grep — não
    carregue o arquivo inteiro): aplique as prevenções já conhecidas ao plano (ex.: tem cache? veja `#cache`).
-5. **Quebre em tasks** na tabela do template: ID, descrição, arquivo(s), AC que satisfaz, verificação,
-   estado. Ordene por dependência.
+5. **Quebre em tasks** na tabela do template: ID, descrição, dependências, arquivo(s), AC que satisfaz,
+   verificação e estado. Cada verificação precisa informar **ação/comando exato**, **diretório/local**,
+   **fonte/tool** e **resultado observável**. Passo manual legítimo segue a mesma precisão; “validar
+   manualmente” sozinho não é reproduzível. Ordene por dependência.
 6. **Estratégia de teste:** escala com o modo (PROTOTYPE: caminho feliz da lógica de risco; PRODUCTION: TDD
-   na lógica crítica + edge cases). Garanta que cada AC mapeia para ao menos uma verificação.
+   na lógica crítica + edge cases). Garanta que cada AC mapeia para ao menos uma verificação reproduzível
+   no formato acima, para que o review consiga rerodá-la sem depender da conversa anterior.
 7. **Riscos e rollback:** o que pode dar errado e como reverter.
 
 ## Saída
 - Grave `docs/plans/<feature>/plan.md` (`Status: rascunho`) e atualize a linha da feature no ledger
   (`docs/epics.md`, "Ordem de construção") para `em plano`. Se o plano **mudou** depois de uma análise,
-  volte a linha `**Analyze:**` para `pendente` — análise velha não vale para plano novo.
+  volte a linha `**Analyze:**` para `pendente` — análise velha não vale para plano novo. Em plano novo,
+  preserve o marker `- **Evidence:**` do template; ele ativa o contrato estrito, mas o arquivo só nasce na
+  primeira observação. Ao atualizar uma feature que já tem recibos, preserve IDs e significados históricos;
+  mudança semântica vira novo AC/task ou delta feature, nunca reescrita do que já foi provado.
 - Resuma a abordagem, as decisões e a lista de tasks.
 - 🛑 **Peça aprovação.** Aprovado? Atualize a linha `Status:` do plano para `aprovado` (**conversa aprova,
   arquivo registra**). Depois siga: `/sdk-tasks` (refinar a lista) → `/sdk-analyze` (conferir

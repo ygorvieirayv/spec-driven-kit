@@ -49,8 +49,8 @@ ideia vaga
    ▼  /sdk-plan        ── plano técnico (COMO) + tasks
    ▼  /sdk-tasks       ── lista de tasks rastreáveis
    ▼  /sdk-analyze     ── confere consistência spec ↔ plano ↔ tasks ↔ AC (antes de codar)
-   ▼  /sdk-implement   ── implementação (TDD em PRODUCTION)
-   ▼  /sdk-review      ── revisão do código + QA (risco e rastreabilidade de testes)
+   ▼  /sdk-implement   ── implementação + recibos persistidos em evidence.md
+   ▼  /sdk-review      ── revisão fresca + reexecução da verificação antes de done
    │   ──────────────────────────────────────────────────────────────
    │
    ▼  (volta ao /sdk-roadmap para a próxima feature pronta)
@@ -83,8 +83,12 @@ algo não bate?             /sdk-doctor — diagnostica drift (read-only) e reco
 | `/sdk-plan` | Cria o plano técnico (COMO), consultando os padrões de engenharia e as lições. |
 | `/sdk-tasks` | Quebra/atualiza a lista de tasks rastreáveis. |
 | `/sdk-analyze` | Confere a **consistência** spec ↔ plano ↔ tasks ↔ AC (read-only), antes de codar. |
-| `/sdk-implement` | Implementa seguindo o plano; TDD na lógica crítica em modo PRODUCTION. |
-| `/sdk-review` | Revisa o código contra spec + plano + padrões; inclui QA (risco e rastreabilidade de testes). |
+| `/sdk-implement` | Implementa seguindo o plano, registra cada verificação em `evidence.md` e deixa a task `verification-pending`; TDD na lógica crítica em PRODUCTION. |
+| `/sdk-review` | Revisa em contexto fresco e reroda o subconjunto de verificação citado; somente um novo recibo satisfatório confirma `done`. |
+
+O contexto fresco é o **padrão** do review. Revisão inline é apenas fallback justificado para ambiente sem
+subagente e precisa executar exatamente o mesmo rerun. Se um review falhar, a correção volta primeiro ao
+`/sdk-implement`; só depois se roda `/sdk-review` novamente.
 
 **Apoio (use quando precisar):**
 
@@ -259,7 +263,7 @@ spec-driven-kit/
 │   │   ├── lessons.md                 # ★ biblioteca de lições generalizadas (erros → prevenção)
 │   │   ├── state-markers.md           # ★ contrato dos marcadores de estado (valida o /sdk-check e /sdk-doctor)
 │   │   └── project-context.md         # GERADO na descoberta (país, leis, decisões)
-│   └── templates/                     # moldes de context / spec / plan / tasks
+│   └── templates/                     # moldes de context / spec / plan / tasks / evidence
 │       └── agents-md-template.md      # ★ adaptador p/ ferramentas sem slash commands (ex.: Codex CLI)
 │
 ├── .claude/
@@ -268,7 +272,7 @@ spec-driven-kit/
 │
 ├── docs/
 │   ├── specs/                         # specs aprovadas (uma pasta por feature)
-│   ├── plans/                         # planos e tasks
+│   ├── plans/                         # planos, tasks e evidência acumulada
 │   ├── decisions/                     # ADRs (decisões de arquitetura)
 │   ├── example/                       # walkthrough opcional e ilustrativo (não muda o kit)
 │   └── epics.md                       # escopo do MVP + ledger de estado (coluna Estado)

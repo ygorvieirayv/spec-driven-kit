@@ -23,23 +23,28 @@ Carregue (somente leitura): a spec (`docs/specs/<feature>/spec.md`), o plano e a
 1. **Cobertura de AC:** todo critério de aceitação (AC) da spec tem ≥1 task **e** ≥1 forma de verificação?
    (Vale tanto para `tasks.md` quanto para a tabela inline do `plan.md`.) (AC sem task = vai ficar de fora.)
 2. **Tasks válidas:** toda task referencia um AC que **existe** na spec? (Task sem AC = trabalho sem motivo.)
-3. **Dependências coerentes:** a ordem das tasks respeita as dependências (sem ciclo)? As dependências
+3. **Verificação reproduzível:** cada task/AC informa ação ou comando **exato**, diretório/local,
+   fonte/tool e resultado observável? Passo manual é legítimo, mas precisa ser igualmente exato. Se o
+   revisor não conseguir rerodar a prova só com os artefatos, marque **bloqueado** até o plano/tasks ser
+   corrigido; narrativa genérica (“testar”, “validar manualmente”) não passa.
+4. **Dependências coerentes:** a ordem das tasks respeita as dependências (sem ciclo)? As dependências
    externas/de outras features citadas na spec **existem/estão prontas**? (Se não, aponte e sugira
    `/sdk-roadmap`.)
-4. **Decisões alinhadas:** o plano respeita as decisões de arquitetura do `project-context.md`/`docs/decisions`?
+5. **Decisões alinhadas:** o plano respeita as decisões de arquitetura do `project-context.md`/`docs/decisions`?
    Nada no plano contradiz um ADR?
-5. **NFRs herdados:** os requisitos não-funcionais da spec batem com os globais do `project-context.md`
+6. **NFRs herdados:** os requisitos não-funcionais da spec batem com os globais do `project-context.md`
    (ou explicam por que mudam)? Em PROTOTYPE sem NFR definido ainda, marque N/A — não é bloqueio.
-6. **Pendências críticas:** sobrou algum `[VERIFICAR]` que **bloqueia** a implementação (ex.: compliance,
+7. **Pendências críticas:** sobrou algum `[VERIFICAR]` que **bloqueia** a implementação (ex.: compliance,
    fonte de dado essencial)?
-7. **Escopo:** há algo no plano/tasks que **não** está na spec (escopo inflado), ou algo da spec **fora** do
+8. **Escopo:** há algo no plano/tasks que **não** está na spec (escopo inflado), ou algo da spec **fora** do
    plano (lacuna)?
-8. **Brownfield (se Tipo = brownfield):** a seção de delta (ADICIONADO/MODIFICADO/REMOVIDO) está preenchida?
+9. **Brownfield (se Tipo = brownfield):** a seção de delta (ADICIONADO/MODIFICADO/REMOVIDO) está preenchida?
    O que **não pode quebrar** virou **teste de não-regressão** nas tasks? Há plano de migração/rollback para
    o que muda em dados existentes?
 
 ## Severidade
-- **Crítico** — vai quebrar ou implementar a coisa errada (AC sem task, ADR contrariado, dependência ausente).
+- **Crítico** — vai quebrar ou implementar a coisa errada (AC sem task, ADR contrariado, dependência ausente,
+  verificação que não pode ser rerodada).
 - **Alto** — provável retrabalho (escopo divergente, NFR ignorado).
 - **Médio/Baixo** — ajustes de clareza/rastreio.
 

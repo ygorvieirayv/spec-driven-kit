@@ -1,5 +1,5 @@
 ---
-description: Gera ou atualiza a lista de tasks rastreáveis de uma feature (estado backlog→ready→in-progress→done), cada task ligada a um AC.
+description: Gera ou atualiza tasks rastreáveis no ciclo backlog→ready→in-progress→verification-pending→done, com blocked como desvio, cada task ligada a um AC.
 argument-hint: "[nome da feature]"
 ---
 
@@ -14,22 +14,42 @@ Carregue: o plano (`docs/plans/<feature>/plan.md`), a spec (`docs/specs/<feature
 `project-context.md` (para confirmar o modo) e, se for gerar arquivo separado,
 `.specify/templates/tasks-template.md`.
 
+Leia também `.specify/memory/state-markers.md`; ele é normativo para estados e transições.
+
 ## O que fazer
 
 0. **Confira o modo.** Se PROTOTYPE e a tabela inline do `plan.md` já cobre o que falta, atualize-a ali
    mesmo e pare por aqui. Se PRODUCTION — ou o usuário quer rastreio mais forte mesmo em PROTOTYPE — siga os
    passos abaixo.
 1. **Derive as tasks** do plano. Cada task precisa de: ID, descrição, dependências, **AC que satisfaz**,
-   arquivo(s) afetado(s), forma de **verificação** e **estado**.
-2. **Ordene por dependência** (uma task só fica `ready` quando suas dependências estão `done`).
+   arquivo(s) afetado(s), forma de **verificação** e **estado**. A verificação traz ação/comando exato,
+   diretório/local, fonte/tool e resultado observável. Passo manual precisa ser igualmente reproduzível.
+2. **Ordene por dependência.** Para implementar, dependências internas em `verification-pending` ou `done`
+   satisfazem a ordem; para uma task ficar `done`, todas precisam estar `done`.
 3. **Cobertura de AC:** confira que **todo** AC da spec tem ao menos uma task. Liste AC sem task — deve ficar
    vazio antes de implementar.
-4. **Atualização:** se já existir `tasks.md`, atualize estados e adicione/remova tasks conforme o plano
-   mudou, preservando o histórico de IDs.
+4. **Atualização:** se já existir `tasks.md`, atualize estados e adicione/remova somente tasks que ainda não
+   têm `Registro`, preservando o histórico de IDs. Depois do primeiro recibo, ID, descrição/semântica,
+   dependências, ACs e verificação não são apagados nem reutilizados. Mudança semântica ganha novo AC/task
+   ou delta feature.
+   Uma task não concluída retirada do escopo fica em `backlog`, com o texto original seguido de
+   `[DESCONTINUADA: <decisão/referência>]`; `done` permanece histórica. Não reclassifique silenciosamente
+   task `done`: sob contrato
+   estrito, mande o caso ao `/sdk-review`, que grava bloco `review | not-run` + `Reclassificacao` e então a
+   move para `ready`; depois o fluxo segue `/sdk-implement` → `/sdk-review`.
+5. **Evidence ainda não nasce aqui.** Em artefato novo, registre o marker para
+   `docs/plans/<feature>/evidence.md`; somente `/sdk-implement` cria o arquivo na primeira observação real.
+   O marker é obrigatório na fonte das tasks e precisa apontar para a própria feature.
 
 ## Estados
-`backlog` (não pronta) → `ready` (desbloqueada) → `in-progress` (em execução) → `done` (implementada **e
-verificada**).
+`backlog` → `ready` → `in-progress` → `verification-pending` → `done`.
+
+- `blocked` é desvio temporário e volta para `ready` quando a condição objetiva registrada for satisfeita.
+- `/sdk-implement` move até `verification-pending` ou `blocked`; nunca para `done`.
+- Somente `/sdk-review`, em ordem topológica, promove para `done` após reexecução independente com recibo.
+- Falha de uma dependência reclassifica transitivamente dependentes `verification-pending`/`done` para
+  `ready`; os recibos e o marker `Reclassificacao` seguem `state-markers.md`.
+- `partial` e `reopened` são inválidos.
 
 ## Saída
 - Grave/atualize `docs/plans/<feature>/tasks.md` (ou a tabela inline do `plan.md`, se ficou em PROTOTYPE).
