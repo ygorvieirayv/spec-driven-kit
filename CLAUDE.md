@@ -43,7 +43,10 @@ queimando token é falha, não esforço.
 
 ## Depois de implementar
 Explique, em **linguagem simples**, o que mudou e por quê — o usuário não deve aceitar código que não
-entende. Mostre a verificação que comprova (teste/checagem que passou).
+entende. Mostre a verificação que comprova e grave o recibo em `docs/plans/<feature>/evidence.md`. O
+implementador encerra em `verification-pending`; somente o `/sdk-review`, após rerodar a verificação,
+confirma `done`. Revisão em contexto fresco é o padrão; inline é somente exceção justificada com o mesmo
+rerun. Se o review falhar, corrija e reverifique via `/sdk-implement` antes de rodar `/sdk-review` de novo.
 
 ## Comandos
 - **Perdido? `/sdk-next`** — lê o estado (ledger + artefatos + git) e diz o próximo passo. Não executa nada.

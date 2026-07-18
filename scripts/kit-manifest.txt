@@ -31,6 +31,7 @@ SEED .specify/memory/project-context.md
 ENGINE .specify/memory/state-markers.md
 ENGINE .specify/templates/agents-md-template.md
 ENGINE .specify/templates/context-template.md
+ENGINE .specify/templates/evidence-template.md
 ENGINE .specify/templates/plan-template.md
 ENGINE .specify/templates/spec-template.md
 ENGINE .specify/templates/tasks-template.md
@@ -61,5 +62,6 @@ SKIP tests/fixtures/broken/docs/plans/broken/tasks.md
 SKIP tests/fixtures/broken/docs/specs/broken/spec.md
 SKIP tests/fixtures/valid/docs/epics.md
 SKIP tests/fixtures/valid/docs/plans/sample/plan.md
+SKIP tests/fixtures/valid/docs/plans/sample/evidence.md
 SKIP tests/fixtures/valid/docs/plans/sample/tasks.md
 SKIP tests/fixtures/valid/docs/specs/sample/spec.md

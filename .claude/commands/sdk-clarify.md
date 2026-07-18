@@ -15,7 +15,8 @@ ambígua vira plano errado vira retrabalho — este passo é a rede de proteçã
 - Confirmar antes de gravar; nunca avançar no escuro.
 
 Carregue: a spec (`docs/specs/<feature>/spec.md`) e o `project-context.md` (para não reperguntar o que já é
-global).
+global). Se `evidence.md` existir, leia por grep os `Registro`: AC já citado não pode ser apagado, renumerado
+ou reinterpretado. Esclarecimento que muda seu significado cria novo AC/task ou delta feature.
 
 ---
 

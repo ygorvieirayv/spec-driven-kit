@@ -30,6 +30,14 @@ token. Se o script não existir (instalação parcial), diga isso e faça as mes
   `aprovado` com `Analyze: bloqueado`?
 - **Pendências críticas:** `[VERIFICAR]` em aberto no `project-context.md` ou em spec de feature `em
   construção`/`concluída`.
+- **Estado de task:** aceite só `backlog`, `ready`, `in-progress`, `verification-pending`, `done`, `blocked`.
+  `partial`/`reopened` são drift. `verification-pending` só depende de
+  `verification-pending`/`done`; `done`, somente de
+  `done`. Não detecte ciclos mecanicamente neste PR (guarda prevista para F11/PR IV).
+- **Estado × evidence (contrato estrito):** a fonte das tasks exige marker `Evidence` para a própria
+  feature; ausência/caminho divergente é erro. `verification-pending` exige `Registro implement` válido;
+  `done`, `Registro review` `pass`/`observed`; `blocked`, `Bloqueio` no mesmo bloco negativo. Evidence vazio
+  antes da primeira observação é drift. Não há modo legado nem fabricação de evidência retrospectiva.
 - **Restos de atualização do kit:** existem arquivos `*.sdk-new` ou `*.sdk-bak.*` esquecidos? → AVISO:
   reconcilie (compare, incorpore o que quiser e apague o sidecar) — o passo está documentado no
   `INSTALL.md`, "Atualizando o kit".
@@ -40,6 +48,23 @@ token. Se o script não existir (instalação parcial), diga isso e faça as mes
 - **Brownfield:** spec com Tipo brownfield tem o delta (ADICIONADO/MODIFICADO/REMOVIDO) preenchido? O que
   "não pode quebrar" virou teste de não-regressão nas tasks?
 - **README × autoridade:** o README/docs explicativos prometem algo que os artefatos de cima contradizem?
+- **Evidence:** os blocos começam em `E1`, avançam de um em um e usam
+  `### E<n> - <ISO-8601> - T<n> - <implement|review>`; cada um contém exatamente um
+  `Registro` de cinco campos e os labels ASCII `Acao/comando`, `Diretorio`, `Fonte`, `Exit code`,
+  `Saida/referencia`, `Branch`, `Limitacoes`, todos preenchidos? Task/fase do cabeçalho coincidem com o
+  registro? Não há `Registro` fora de bloco? Task/AC existem? Ref é
+  `commit@<7-40 hex>|worktree@<7-40 hex>|unavailable`? Entradas antigas são append-only; só o resumo muda.
+- **Exit code:** `pass=0`; `fail=inteiro não zero`; `observed|not-run=not-applicable`;
+  `unavailable=unavailable`.
+- **Dependências:** review ocorreu em ordem topológica? Se upstream falhou, dependentes
+  `verification-pending`/`done` foram
+  transitivamente para `ready` com bloco `review | not-run`? Quem estava `done` tem
+  `Reclassificacao: Tn | done | ready | ISO-8601 | motivo/referencia` no mesmo bloco?
+- **Promoção:** recibo implement nunca justifica `done`; somente rerun review bem-sucedido.
+- **Reabertura:** `Reclassificacao` tem prova anterior de `done`? Todo implement posterior a um `done` tem
+  um bloco `review | not-run` + `Reclassificacao` entre as duas fases? Sem isso, houve reabertura direta.
+
+A ref SHA registra só proveniência. Não compare com HEAD nem classifique `current`/`historical` nesta versão.
 
 ### T3 — código × artefatos (git; só a pedido ou com suspeita concreta)
 - Branch de feature com arquivos alterados **fora** dos declarados na coluna Arquivo(s) do plano/tasks.
@@ -67,12 +92,17 @@ recomendação:
   `/sdk-decide` se houver trade-off real, e registre o porquê no artefato alterado.
 - **C) Registrar como débito** — criar task/pendência e seguir, com o risco anotado.
 
+Quando uma task comprovada precisar ser reclassificada, o doctor **propõe encaminhar ao `/sdk-review`**:
+ele cria o bloco real `review | not-run` com o fato observado e `Reclassificacao`, move para `ready` e então o fluxo é
+`/sdk-implement` → `/sdk-review`. O doctor não se passa pelo revisor nem fabrica o recibo.
+
 Regras da reconciliação:
 1. **Uma correção por vez**: aplique, mostre o diff, rode a checagem daquele item (re-rode o `sdk-check` se
    foi marcador), e só então passe ao próximo.
 2. Sem aprovação explícita do item, **não toque em nada** — inclusive nos "óbvios".
 3. Atualize os marcadores afetados pela correção (**conversa aprova, arquivo registra**).
 4. **Disjuntor anti-loop:** a mesma reconciliação falhou 2–3 vezes? Pare e devolva ao usuário com opções.
+5. Não reescreva evidence; recibo novo só nasce de execução real em `/sdk-implement` ou `/sdk-review`.
 
 ## Fecho
 - Resumo: o que foi diagnosticado, o que foi reconciliado, o que ficou como débito.

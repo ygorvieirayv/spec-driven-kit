@@ -75,6 +75,7 @@ neste projeto, nem nos próximos. Antes de planejar/revisar, consultar as liçõ
 | Teste (critério de "lógica crítica" definido na seção abaixo) | Caminho feliz da lógica crítica + smoke test do fluxo principal | TDD (RED→GREEN→REFACTOR) na lógica crítica + edge cases |
 | `/sdk-analyze` | Roda as mesmas checagens; o que ainda não existe (NFR específico, brownfield) vira N/A, não bloqueio | Roda todas as checagens, incluindo NFRs herdados e brownfield quando aplicável |
 | `/sdk-review` — checklist de segurança/performance | **Roda sempre, sem exceção** — achado fora da barra "Sempre" pode virar dívida anotada em vez de bloqueio | **Roda sempre** — qualquer Crítico/Alto bloqueia |
+| Promoção de task para `done` | **Somente `/sdk-review`**, após reexecutar e registrar a verificação; `/sdk-implement` termina em `verification-pending` ou `blocked` | **Somente `/sdk-review`**, após reexecutar e registrar a verificação; `/sdk-implement` termina em `verification-pending` ou `blocked` |
 
 > A coluna PROTOTYPE nunca abre exceção na linha "Sempre". É aqui que "modo rápido" para de ser desculpa
 > para vazar segredo, pular validação de entrada ou deixar uma rota sem autorização.

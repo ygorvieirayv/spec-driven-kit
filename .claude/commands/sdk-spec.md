@@ -22,6 +22,10 @@ fica no plano). Preencha o `spec-template.md` e grave em `docs/specs/<feature>/s
 Carregue: `.specify/memory/constitution.md`, `.specify/memory/project-context.md` (NFRs e decisões herdam
 daqui), `.specify/templates/spec-template.md` e `docs/epics.md` (para situar a feature no escopo).
 
+Se estiver atualizando uma feature que já possui `evidence.md`, leia por grep somente os `Registro`: ID e
+texto de AC já citados são históricos e não podem ser apagados, renumerados ou ganhar outro significado.
+Evolução semântica vira novo AC e nova task (ou uma delta feature), preservando a prova anterior.
+
 ---
 
 ## Pré-checagem de dependências (antes de detalhar)

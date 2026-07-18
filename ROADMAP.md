@@ -39,20 +39,22 @@ histórico das decisões ficam nas seções seguintes.
 | PR | Conteúdo | Estado |
 |----|----------|--------|
 | I — Coerência e honestidade | Alto bloqueia em PRODUCTION (review) · verificação vs teste alinhados · reviewer em contexto fresco como **padrão** · fronteira motor×produto (CLAUDE/implement/review/doctor) · handoff ao parar no meio · reconciliação de sidecars documentada + doctor avisa · auto-relato de carga · nota Codex/AGENTS.md | ✅ |
-| II — Evidência e estados | `evidence.md` por feature (com SHA — evita evidência velha) · estados de task novos: `blocked` e `verification-pending` · review reroda o subconjunto de verificação citado antes de confirmar `done` · contrato/sdk-check/fixtures atualizados | planejada |
+| II — Evidência e estados | `evidence.md` por feature (com referência ao SHA observado) · estados de task novos: `blocked` e `verification-pending` · review reroda o subconjunto de verificação citado antes de confirmar `done` · contrato/sdk-check/fixtures atualizados | ✅ |
 | III — Perfis de prova | Perfis independentes (visual · logic · journey · data-security · operational · delivery) no `engineering-standards.md`, declarados no plano e cobrados no review · rollback de `data-security` exige verificação **executada** | planejada |
 | IV — Integridade do kit | Contrato executável das instruções (`kit-rules` texto+shell, sem JSON/node) com **teste negativo** no CI · detecção de ciclo de dependências no `sdk-check` | planejada |
 | V — CI do consumidor | Bootstrap gera workflow fail-closed por stack (PRODUCTION: check esperado ausente = falha) + varredura de segredos (gitleaks ou equivalente) | planejada |
 | VI — Portabilidade | Export dos comandos para OpenCode via **script sob demanda** (fonte única = `.claude/commands/`) · `/sdk-cycle`: encadeia só o mecânico (`tasks → analyze`; roadmap pós-review), **para** em todo 🛑, em implement/review e em qualquer veredito não-limpo | planejada |
 
 **Decisões registradas:** estados novos = só `blocked` + `verification-pending` (rejeitados `partial` —
-task parcial é task mal fatiada — e `reopened` — volta a `ready` com nota) · evidência em arquivo próprio
+task parcial é task mal fatiada — e `reopened` — volta a `ready` com registro canônico) · evidência em arquivo próprio
 por feature (não seção do plano: evidência acumula) · contrato de regras no idioma do kit (texto + shell) ·
 export OpenCode gerado sob demanda, nunca cópia commitada (fonte dupla = fábrica de drift) · `/sdk-cycle`
 será o 14º comando — exceção consciente à regra "13 e nada além", por ser orquestrador dos existentes.
 
-**Adiado com gatilho:** SCHEMA_VERSION por artefato (gatilho: primeira mudança **não-aditiva** de
-template) · marcador "claimed by" para sessões concorrentes (gatilho: uso multi-agente real) · evals com
+**Adiado com gatilho:** SCHEMA_VERSION por artefato (gatilho: existir uma base instalada que precise de
+migração entre contratos). O PR II pode ser estrito porque o kit ainda não possui consumidores legados; a
+primeira necessidade real de migração acionará versionamento de schema. · marcador
+"claimed by" para sessões concorrentes (gatilho: uso multi-agente real) · evals com
 modelo/e2e — níveis 4–5 da pirâmide (P3; os níveis 1–3 saem do PR IV + fixtures existentes).
 
 ### Fora do próximo ciclo
@@ -67,9 +69,9 @@ modelo/e2e — níveis 4–5 da pirâmide (P3; os níveis 1–3 saem do PR IV + 
 O kit não precisa de mais comandos nem mais Markdown — precisa ficar **orientado por estado**: saber onde o
 projeto está, qual o risco da mudança em curso e qual o próximo passo, sem o usuário decorar o fluxo.
 
-A boa notícia: o substrato de estado **já existe pela metade** — `spec.md` e `plan.md` têm linha `Status:`,
-as tasks têm estados (`backlog → ready → in-progress → done`), e o `epics.md` tem a tabela "Ordem de
-construção" com coluna Estado. O que falta é fechar o circuito:
+A boa notícia: o substrato de estado nasceu desses marcadores — `spec.md` e `plan.md` têm linha `Status:`,
+as tasks usam o ciclo validado em `state-markers.md`, e o `epics.md` tem a tabela "Ordem de construção" com
+coluna Estado. A evolução fechou o circuito ao fazer:
 
 1. os comandos **escreverem de volta** o estado nos checkpoints (hoje o 🛑 aprova em conversa e o arquivo
    continua `rascunho` para sempre);
@@ -93,7 +95,7 @@ fixo de estado não é estado.
 | F8 | Instalador seguro + CI do kit | produto | P2 ✅ |
 | F9 | Versionamento do kit | produto | P2 ✅ |
 | F10 | Decisões de produto no decision-guide · exemplos por nicho · starter packs como sementes · distribuição npm | produto | P2/P3 |
-| F11 | Trilha de rigor: coerência, evidência persistida, estados honestos, perfis de prova, integridade do kit, CI do consumidor (PRs I–V acima) | edições + scripts | PR I ✅ · II–V planejados |
+| F11 | Trilha de rigor: coerência, evidência persistida, estados honestos, perfis de prova, integridade do kit, CI do consumidor (PRs I–V acima) | edições + scripts | PRs I–II ✅ · III–V planejados |
 | F12 | Trilha de portabilidade: export OpenCode + `/sdk-cycle` (PR VI acima) | script + comando novo | planejada |
 
 Total de comandos: 11 → **13**. Única exceção futura aprovada: `/sdk-cycle` (14º, na F12) — orquestrador
@@ -112,7 +114,9 @@ não leitura integral de arquivo):
 2. **Status do artefato** — `spec.md` e `plan.md` já têm a linha `Status:`; após o "ok" do usuário no 🛑,
    o comando atualiza para `aprovada`/`aprovado`. O `/sdk-review` grava o veredito no plano
    (`**Review:** aprovado — <data>`). *(É o detalhe local.)*
-3. **Estados de task** — já existem; nada muda.
+3. **Estados de task** — o implementador avança até `verification-pending`; somente o review que reroda a
+   verificação promove a `done`. `blocked` registra impedimento externo real com condição de desbloqueio.
+   Os recibos acumulam em `docs/plans/<feature>/evidence.md` com referência ao SHA observado.
 4. **Git** — branch atual e `git status` dizem o que está em curso; o `/sdk-next` usa como **sinal**, nunca
    como verdade da spec.
 

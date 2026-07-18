@@ -1,5 +1,5 @@
 ---
-description: Revisa o diff contra a spec, o plano e os padrões de engenharia. Severidade Crítico/Alto/Médio/Baixo; Crítico bloqueia sempre, Alto bloqueia em PRODUCTION.
+description: Revisa o diff e reexecuta verificações em contexto fresco. Só esta etapa promove verification-pending para done; Crítico sempre e Alto em PRODUCTION bloqueiam.
 argument-hint: "[nome da feature, opcional]"
 ---
 
@@ -8,20 +8,77 @@ argument-hint: "[nome da feature, opcional]"
 Revise o trabalho feito contra a **spec**, o **plano** e a **barra de engenharia**. O objetivo é pegar
 divergências, regressões e riscos antes de considerar pronto.
 
-## Contexto fresco (padrão, não sugestão)
-A melhor revisão acontece com **contexto limpo** — sem o viés de quem escreveu o código (autorrevisão é um
-viés documentado). O caminho **padrão** é delegar ao subagente **`sdk-reviewer`** (via Task), passando
-apenas: a spec, o plano e o diff. Ele revisa de fora e retorna os achados. Revisar **inline é exceção
-justificada** (ex.: ambiente sem suporte a subagentes) — registre o motivo junto do veredito, e siga o
-mesmo roteiro abaixo.
+## Contexto fresco (padrão)
+A promoção usa por padrão o `sdk-reviewer` com contexto limpo, recebendo spec, plano/tasks, evidence, diff e
+barra normativa. Se o ambiente não suportar subagente, revisão inline pode promover somente como exceção
+justificada: registre o motivo e reexecute a mesma prova independente exigida abaixo, gerando recibo `review`.
 
 ## Insumos
 - O **diff** a revisar (`git diff` da branch/feature, ou as mudanças não commitadas).
 - A spec: `docs/specs/<feature>/spec.md`.
 - O plano: `docs/plans/<feature>/plan.md`.
+- As tasks e `docs/plans/<feature>/evidence.md`, se existir.
 - A barra: `.specify/memory/engineering-standards.md` e a `constitution.md`.
+- O contrato: `.specify/memory/state-markers.md` e `.specify/templates/evidence-template.md`.
 
 Ao começar, atualize a linha da feature no ledger (`docs/epics.md`, "Ordem de construção") para `em review`.
+
+## Gate de verificação independente
+
+Processe as tasks em **ordem topológica**. Para cada task em `verification-pending`:
+
+1. confirme que todas as dependências internas já estão `done`; uma task só pode ficar `done` nessa
+   condição;
+2. relacione a verificação citada, os recibos `implement` e os ACs;
+3. peça ao revisor fresco para reexecutar o **menor subconjunto seguro** que cubra task e ACs;
+4. receba recibo completo que liste todos os ACs declarados na task e anexe um novo bloco append-only:
+
+```md
+### E4 - 2026-07-17T21:57:18Z - T1 - review
+- **Registro:** T1 | AC1, AC2 | review | pass | worktree@abcdef1
+- **Acao/comando:** npm test -- --runInBand
+- **Diretorio:** C:/repo
+- **Fonte:** test runner do projeto
+- **Exit code:** 0
+- **Saida/referencia:** 12 testes passaram; log em artifacts/test.log
+- **Branch:** feat/exemplo
+- **Limitacoes:** nenhuma
+```
+
+5. se a reexecução for satisfatória **e não houver achado que bloqueie a task**, aplique:
+   `pass`/`observed` completo **com ref `commit@SHA` ou `worktree@SHA`** → `done`; `fail` → `ready`;
+   dependência externa `unavailable` →
+   `blocked` com `- **Bloqueio:** T1 | motivo observado | condição objetiva para voltar a ready`;
+   `not-run` não promove e mantém `verification-pending` salvo bloqueio observado. Recibo incompleto é
+   inválido e não altera estado.
+
+O bloco usa cabeçalho `### E<n> - <ISO-8601> - T<n> - <implement|review>`, exatamente um `Registro` e os
+sete labels ASCII do exemplo, sem placeholders. `Exit code`: `pass=0`; `fail=inteiro diferente de zero`;
+`observed|not-run=not-applicable`; `unavailable=unavailable`. Cada rerun gera entrada nova. Sem recibo
+`review` bem-sucedido, não há `done`.
+
+### Falha, bloqueio e cascata de dependências
+
+- `fail` manda a task para `ready`; a correção obrigatoriamente passa por `/sdk-implement` e só depois por
+  novo `/sdk-review`.
+- `unavailable` que bloqueia usa `Bloqueio` e handoff no **mesmo bloco negativo**.
+- Quando uma task falhar ou ficar bloqueada, encontre transitivamente seus dependentes em
+  `verification-pending` ou `done` e reclassifique-os para `ready`, em ordem topológica. Para cada
+  dependente, anexe bloco completo `review | not-run` explicando em `Saida/referencia` que a prova não foi
+  rerodada porque a dependência deixou de estar `done`.
+- Se o dependente estava `done`, inclua no mesmo bloco:
+
+```md
+- **Reclassificacao:** T2 | done | ready | 2026-07-17T21:57:18Z | T1 deixou de estar done; ver E4
+```
+
+Não faça detecção mecânica de ciclos neste PR; essa guarda permanece prevista para a F11/PR IV.
+
+### Contrato estrito
+
+Plan/tasks precisa conter `- **Evidence:**` apontando para a própria feature. O arquivo nasce na primeira
+observação real; quando um estado exige prova, ausência de recibo é erro. Não há modo legado nem evidência
+retrospectiva.
 
 ## O que checar
 1. **Spec ↔ código:** cada AC foi atendido? Há comportamento fora do escopo declarado?
@@ -39,7 +96,7 @@ Ao começar, atualize a linha da feature no ledger (`docs/epics.md`, "Ordem de c
    - [ ] Sem N+1 óbvio; paginação em listagem que pode crescer
    - [ ] Trabalho pesado (mídia, e-mail, IA) fora do caminho do request
    - [ ] Cache, se houver, tem plano de invalidação
-   - [ ] Testes cobrindo os AC (ver QA abaixo)
+   - [ ] Verificações cobrindo os AC; lógica crítica com teste automatizado (ver QA abaixo)
 
    O que não se aplica, marque **N/A com 1 linha do porquê** — nunca pule em silêncio.
 4. **Constituição:** mudança cirúrgica? Simples? Verificável? Sem regra de domínio inventada?
@@ -51,6 +108,10 @@ Ao começar, atualize a linha da feature no ledger (`docs/epics.md`, "Ordem de c
    `scripts/sdk-*`, `scripts/new-feature.*`, `CLAUDE.md`, `COMO-USAR.md`)? Isso **não** é parte da feature:
    reporte como drift **Crítico** e trate a mudança do kit como evolução separada — nunca como efeito
    colateral corrigido em silêncio.
+7. **Evidence ↔ estados:** todo `done` tem recibo `review` completo
+   e bem-sucedido? Todo `blocked` tem motivo/condição no mesmo bloco negativo? `verification-pending` depende
+   apenas de `verification-pending`/`done` e `done` apenas de `done`? Entradas antigas permaneceram
+   intactas? IDs e significados já citados por recibos permaneceram históricos e imutáveis?
 
 ## QA — risco e rastreabilidade de testes
 Além de achar bugs, faça uma leitura de QA (no espírito de um "test architect", mas simples):
@@ -78,14 +139,17 @@ Mantenha leve: o objetivo é direcionar atenção para o que é arriscado, não 
 
 ## Saída
 - Lista de achados **agrupada por severidade**, cada um com arquivo:linha e sugestão de correção.
+- Mapa task/AC → check reexecutado → recibo → estado.
 - Veredito: **aprovado** / **aprovado com ressalvas** / **bloqueado**. Crítico bloqueia sempre; **Alto
   bloqueia em PRODUCTION** — só em PROTOTYPE um Alto pode descer para "aprovado com ressalvas", com a
-  dívida anotada.
+  dívida anotada. Task sem recibo bem-sucedido impede `aprovado`.
 - **Registre o veredito no plano** (**conversa aprova, arquivo registra**): atualize a linha `**Review:**`
-  do cabeçalho de `docs/plans/<feature>/plan.md` com `<veredito> — <data>`. Se **aprovado**, atualize a
-  linha da feature no ledger (`docs/epics.md`) para `concluída`; senão, ela continua `em review` até a
-  correção passar por nova revisão.
+  do cabeçalho de `docs/plans/<feature>/plan.md` com `<veredito> — <data>`. Só marque o ledger como
+  `concluída` se todas as tasks essenciais estiverem `done`, todos os ACs tiverem recibo e o veredito for
+  **aprovado**; senão, mantenha `em review`.
 - Não conserte em silêncio durante a revisão — reporte; a correção é um passo à parte.
+- Se o veredito exigir correção, indique explicitamente `/sdk-implement` como próximo passo e somente depois
+  um novo `/sdk-review`.
 
 ## Fecho de ciclo (alimentar a biblioteca de lições)
 Se algum achado revelou um erro **generalizável** — um padrão que poderia acontecer em qualquer projeto, não

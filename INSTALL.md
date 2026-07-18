@@ -72,7 +72,7 @@ cd meu-projeto
 rm -rf .git          # Windows (PowerShell): Remove-Item -Recurse -Force .git
 git init
 
-# 3) primeiro commit do seu projeto (quando quiser)
+# 3) primeiro commit do seu projeto (necessário antes de /sdk-implement registrar evidence)
 git add -A && git commit -m "chore: inicia projeto a partir do Spec Driven Kit"
 
 # 4) abra o Claude Code e rode o onboarding guiado
@@ -181,6 +181,9 @@ Para puxar melhorias do kit sem perder seus artefatos:
 - **Nunca sobrescreva** (são **seus**): `.specify/memory/project-context.md`, `docs/specs/`, `docs/plans/`,
   `docs/decisions/`, `docs/epics.md`, e o `AGENTS.md` na raiz **se você usou a Opção 3** (ele foi preenchido
   com dados do seu projeto — só o molde em `.specify/templates/agents-md-template.md` é seguro de atualizar).
+- **Evidence é estrito:** plan/tasks exige marker `- **Evidence:**` para a própria feature. O arquivo só
+  nasce na primeira observação real, mas `verification-pending`, `done` e `blocked` não são aceitos sem os
+  recibos correspondentes. Nunca invente recibos para satisfazer o checker.
 - **`.specify/memory/lessons.md`** — caso à parte: as **sementes** vêm do kit, mas o arquivo **acumula** as
   suas lições. Faça **merge**, não sobrescreva. (Se usar a biblioteca como submodule, ela é versionada à
   parte e não há conflito.)

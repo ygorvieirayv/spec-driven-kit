@@ -143,11 +143,11 @@ O plano consulta `engineering-standards.md` **e a biblioteca de lições por tag
 
 ```
 ## Tasks
-| ID | Descrição | AC | Verificação | Estado |
-|----|-----------|----|-------------|--------|
-| T1 | Validar antecedência mínima de 3 dias | AC2 | teste unitário | backlog |
-| T2 | Validar telefone | AC3 | teste unitário | backlog |
-| T3 | Criar encomenda "aguardando pagamento" | AC1 | teste de integração | backlog |
+| ID | Descrição | Depende de | AC | Verificação reproduzível | Estado |
+|----|-----------|------------|----|--------------------------|--------|
+| T1 | Validar antecedência mínima de 3 dias | — | AC2 | `npm test -- antecedencia` na raiz via test runner → testes verdes | backlog |
+| T2 | Validar telefone | T1 | AC3 | `npm test -- telefone` na raiz via test runner → inválido recusado no servidor | backlog |
+| T3 | Criar encomenda "aguardando pagamento" | T1, T2 | AC1 | `npm test -- encomenda` na raiz via test runner → registro criado no estado esperado | backlog |
 ```
 
 > Consulta a `lessons.md` por `#validação` lembrou: **validar no servidor, não só na UI** (lição L-005).
@@ -179,21 +179,32 @@ REFACTOR → limpa o código, testes continuam verdes
 ```
 
 > 🤖 (explain-back) "Em linguagem simples: criei a regra que recusa datas com menos de 3 dias e cobri com um
-> teste que comprova. Rodei os testes: **3 passaram**. A task T1 está `done`."
+> teste que comprova. Rodei os testes: **3 passaram** e gravei comando, resultado e SHA em
+> `docs/plans/encomenda-de-bolo/evidence.md`. A task T1 está `verification-pending`: implementada e
+> verificada por mim, mas ainda não confirmada pelo revisor."
 
 ---
 
 ## Passo 6 — `/sdk-review` (contexto fresco, via subagente `sdk-reviewer`)
 
+Antes do veredito, o revisor lê o recibo de T1 e reroda o menor subconjunto citado que cobre seus AC. O
+novo comando, exit code, resultado e SHA entram como outra entrada em `evidence.md`; só esse recibo fresco
+permite mover T1 de `verification-pending` para `done`.
+
+> Para manter o walkthrough curto, os blocos de T2 e T3 foram omitidos do texto. No projeto real, **T1,
+> T2 e T3** precisam cada uma de recibo `implement` e depois recibo `review` satisfatório, em ordem
+> topológica, antes de a feature ser concluída.
+
 ```
 [ALTO]  app/encomenda.ts:42 — telefone validado só no front-end; falta validação no servidor (AC3). (L-005)
 [BAIXO] nome de variável pouco claro em encomenda.ts:31
-Veredito: aprovado com ressalvas — corrigir o ALTO antes do merge.
+Veredito: aprovado com ressalvas — próximo passo: /sdk-implement para corrigir e reverificar; depois /sdk-review.
 ```
 
 **Fecho de ciclo:** o achado ALTO casa com a lição L-005 (input público sem validação no servidor). Como já
-existe, o agente **reforça** a lição em vez de duplicar — e segue. Corrigido o ALTO, o `/sdk-review` grava
-`- **Review:** aprovado — <data>` no plano e muda o ledger da feature para `concluída`.
+existe, o agente **reforça** a lição em vez de duplicar. A Marta roda `/sdk-implement` para corrigir e
+reverificar T2; só depois roda `/sdk-review` novamente. Com T1, T2 e T3 em `done` e seus recibos presentes,
+o review grava `- **Review:** aprovado — <data>` no plano e muda o ledger para `concluída`.
 
 ---
 

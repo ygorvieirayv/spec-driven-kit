@@ -40,10 +40,16 @@ Depois, para a feature escolhida, siga a trilha:
 | **`/sdk-plan`** | Escreve **como** construir e divide em tarefinhas. |
 | **`/sdk-tasks`** | Organiza a lista de tarefas rastreáveis. |
 | **`/sdk-analyze`** | Confere se spec, plano e tarefas **batem** — antes de codar. |
-| **`/sdk-implement`** | **Constrói** e te explica em português, mostrando que funciona. |
-| **`/sdk-review`** | **Confere** o que foi feito (bugs, risco, testes) e aponta problemas. |
+| **`/sdk-implement`** | **Constrói**, executa a verificação e grava o recibo em `evidence.md`. |
+| **`/sdk-review`** | **Confere** o trabalho e reroda a parte relevante da verificação antes de confirmar `done`. |
 
 Terminou? **Volte ao `/sdk-roadmap`** para a próxima feature desbloqueada.
+
+O implementador não aprova o próprio trabalho: uma task verificada por ele fica
+`verification-pending`. O `/sdk-review` usa **contexto fresco por padrão** e repete a verificação citada no
+recibo; inline só vale como exceção justificada, com o mesmo rerun. Só então a task vira `done`. Se uma
+dependência externa impedir o trabalho, a task fica `blocked` com o motivo e a condição para retomar. Se a
+revisão encontrar falha, volte ao `/sdk-implement` para corrigir/reverificar e depois rode `/sdk-review`.
 
 > 💡 **Planeja uma feature por vez.** O mapa geral (a ordem) é feito uma vez no início; o **detalhe** de cada
 > feature acontece só quando chega a vez dela — não se planeja tudo de uma vez de propósito (a feature 1
