@@ -46,8 +46,9 @@ use `reopened`. O estado `partial` não faz parte deste contrato.
 - Se uma dependência falhar no review, dependentes em `verification-pending`/`done` voltam transitivamente a
   `ready` com recibo `review | not-run`. Dependente antes `done` inclui no mesmo bloco:
   `- **Reclassificacao:** T1 | done | ready | <ISO-8601> | <motivo/referencia>`.
-- O `/sdk-analyze` verifica ciclos semanticamente; detecção determinística no `sdk-check` ainda não está
-  disponível.
+- **Depende de** aceita somente `—` ou IDs internos separados por vírgula (`T1` ou `T1, T2`). Referência
+  inexistente/repetida, texto livre, célula vazia e ciclo falham no `sdk-check` em qualquer estado. Relação
+  com outra feature/serviço fica na spec/roadmap, não nessa coluna.
 
 ## Cobertura de AC e perfis
 > Garanta que todo AC e todo perfil `aplicável` do plano têm ao menos uma task. Cada task cita ao menos um

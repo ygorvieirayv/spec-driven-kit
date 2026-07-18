@@ -15,9 +15,11 @@ decisões, lições) são a **fonte da verdade** e ficam no disco — não na me
   verdade da **mudança desejada**. Divergência nunca se resolve em silêncio — aponte ao usuário.
 - **Conversa aprova, arquivo registra:** todo checkpoint 🛑 aprovado vira escrita de estado (`Status:` no
   artefato e/ou a linha da feature no ledger `docs/epics.md`). Estado que não está gravado não existe.
-- **Motor × produto:** os arquivos do kit (comandos/agents `sdk-*`, `.specify/memory/` exceto
-  `project-context.md`, `.specify/templates/`, `scripts/sdk-*`, este arquivo) **nunca** mudam como efeito
-  colateral de uma feature. Diff de feature tocando o motor = drift **Crítico**: pare e avise.
+- **Motor × produto:** o motor instalado é formado por comandos/agents `sdk-*`, memórias normativas
+  (`constitution`, `decision-guide`, `engineering-standards`, `state-markers`), templates,
+  `scripts/sdk-check.*`, `scripts/new-feature.*`, `CLAUDE.md` e `COMO-USAR.md`. `project-context.md` e
+  `lessons.md` são dados do projeto e não são motor. Uma feature nunca altera o motor como efeito colateral;
+  se o diff tocar esse inventário, é drift **Crítico**: pare e avise.
 
 ## Princípios (resumo — detalhe em `.specify/memory/constitution.md`)
 1. Pensar antes de codar · 2. Simples/YAGNI · 3. Mudanças cirúrgicas · 4. Critério de sucesso + verificação ·
@@ -61,7 +63,7 @@ corrija e reverifique via `/sdk-implement` antes de rodar `/sdk-review` de novo.
   formal usa `tasks.md`).
 - **Apoio:** `/sdk-decide` (escolha com trade-offs) · `/sdk-clarify` (tirar ambiguidade da spec) ·
   `/sdk-lesson` (registrar lição) · `/sdk-doctor` (diagnóstico global de drift + reconciliação aprovada).
-  Veja o `README.md`.
+  Veja o `COMO-USAR.md`.
 
 > **Contrato do estado:** onde cada marcador (`Status:`, `Analyze:`, `Review:`, coluna Estado do ledger)
 > mora, seu vocabulário e quem o escreve está em `.specify/memory/state-markers.md`. `scripts/sdk-check`

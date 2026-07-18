@@ -115,9 +115,9 @@ Nunca marque `done`; essa promoção pertence somente a `/sdk-review` em context
   `Limitacoes` do mesmo bloco negativo que contém `Bloqueio`. Use entrada separada somente para uma pausa
   não bloqueante (por decisão do usuário), ainda com bloco canônico completo. Junto da task, no máximo deixe
   uma referência curta; não duplique narrativa fora do evidence.
-- **Não toque no motor do kit** durante uma feature (comandos/agents `sdk-*`, `.specify/memory/` exceto
-  `project-context.md`, templates, `scripts/sdk-*`, `CLAUDE.md`): se uma task parecer exigir isso, **pare e
-  avise** — mudança no kit é evolução separada, nunca efeito colateral de feature.
+- **Motor × produto — siga o inventário canônico do `CLAUDE.md`:** se uma task parecer exigir alteração
+  de arquivo do motor, **pare e avise**. Mudança no kit é evolução separada, nunca efeito colateral de
+  feature; `project-context.md` e `lessons.md` continuam sendo dados legítimos do projeto.
 - Antes de codar lógica de risco, dê uma olhada nas **lições** (`lessons.md`) por tag — evite repetir um erro
   já catalogado.
 - Rode os comandos do projeto (test/lint/build). Em feature formal, registre cada rodada, inclusive falha,

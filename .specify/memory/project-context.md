@@ -17,6 +17,12 @@
 - **Restrições conhecidas:** _(prazo, orçamento, carga esperada, durabilidade/criticidade dos dados,
   capacidade operacional e recuperação — somente o que for relevante)_
 
+## Princípios específicos deste projeto
+> Regras globais de negócio e operação, propostas durante o bootstrap e aprovadas pelo usuário. Precisam
+> ser concretas e verificáveis; regra que pertence a uma única feature fica na respectiva spec.
+
+- _(ainda não definido)_
+
 ## Jurisdição e usuários
 - **País de operação:** `[VERIFICAR]`
 - **Países dos usuários:** `[VERIFICAR]`

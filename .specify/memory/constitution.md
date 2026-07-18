@@ -123,14 +123,3 @@ lógica crítica, ela é Alta, por menor que pareça.
   terceira tentativa automática. Registre `blocked`, a causa observada e a condição objetiva para retomar.
 - A rodada termina quando todos os ACs e perfis aplicáveis têm recibos válidos de implementação e review,
   sem achado Crítico/Alto aberto. "Continuar melhorando" não é critério de saída.
-
----
-
-## Princípios específicos deste projeto
-
-> **Editável.** Esta seção é preenchida durante o `/sdk-bootstrap` (etapa de regras de negócio) com os
-> princípios próprios deste projeto — sempre **explicados** e **aprovados** pelo usuário. Mantenha-os
-> concretos e verificáveis. Não duplique aqui regras que pertencem a uma feature específica (essas vão na
-> spec).
-
-_(Ainda não definido. Será preenchido na descoberta guiada.)_

@@ -79,8 +79,8 @@ sete labels ASCII do exemplo, sem placeholders. `Exit code`: `pass=0`; `fail=int
 - **Reclassificacao:** T2 | done | ready | 2026-07-17T21:57:18Z | T1 deixou de estar done; ver E4
 ```
 
-Não tente substituir o `/sdk-analyze` com detecção mecânica de ciclos; o `sdk-check` ainda não oferece essa
-guarda.
+O `sdk-check` já rejeita ciclos e referências inválidas no grafo interno de `tasks.md`. Isso não substitui
+o `/sdk-analyze`, que continua responsável pelas dependências semânticas entre features, serviços e dados.
 
 ### Contrato estrito
 
@@ -113,11 +113,9 @@ retrospectiva.
 5. **Lições conhecidas:** consulte `.specify/memory/lessons.md` por tag relevante (grep) e verifique se o
    diff cai em algum padrão já catalogado (ex.: `#cache`, `#segredos`, `#integração`). Se um erro novo
    aparecer aqui, sugira registrá-lo com `/sdk-lesson` depois de corrigido.
-6. **Fronteira motor × produto:** o diff toca arquivos do **motor do kit** (`.claude/commands/sdk-*`,
-   `.claude/agents/sdk-*`, `.specify/memory/` — exceto `project-context.md` —, `.specify/templates/`,
-   `scripts/sdk-*`, `scripts/new-feature.*`, `CLAUDE.md`, `COMO-USAR.md`)? Isso **não** é parte da feature:
-   reporte como drift **Crítico** e trate a mudança do kit como evolução separada — nunca como efeito
-   colateral corrigido em silêncio.
+6. **Motor × produto — confronte com o inventário canônico do `CLAUDE.md`:** arquivo de motor no diff da
+   feature é drift **Crítico** e evolução separada, nunca efeito colateral. `project-context.md` e
+   `lessons.md` são dados do projeto; editá-los pelos comandos donos não é drift do motor.
 7. **Evidence ↔ estados:** todo `done` tem recibo `review` completo
    e bem-sucedido? Todo `blocked` tem motivo/condição no mesmo bloco negativo? `verification-pending` depende
    apenas de `verification-pending`/`done` e `done` apenas de `done`? Entradas antigas permaneceram

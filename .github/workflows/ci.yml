@@ -73,6 +73,7 @@ jobs:
           manifest = Path("scripts/kit-manifest.txt")
           allowed = {"ENGINE", "SEED", "MERGE", "SKIP"}
           seen = {}
+          categories = {}
           errors = []
 
           for lineno, raw in enumerate(manifest.read_text(encoding="utf-8").splitlines(), 1):
@@ -89,6 +90,7 @@ jobs:
               if path in seen:
                   errors.append(f"{manifest}:{lineno}: duplicate path {path} (first at {seen[path]})")
               seen[path] = lineno
+              categories[path] = category
 
           manifest_paths = set(seen)
           missing = sorted(tracked - manifest_paths)
@@ -97,73 +99,34 @@ jobs:
               errors.append("Tracked files missing from manifest: " + ", ".join(missing))
           if extra:
               errors.append("Manifest paths not tracked by git: " + ", ".join(extra))
+          for path, category in categories.items():
+              if path.startswith(("tests/", ".github/", "docs/example/")) and category != "SKIP":
+                  errors.append(f"Internal-only path must be SKIP: {path} ({category})")
+          expected_categories = {
+              "scripts/kit-rules.sh": "SKIP",
+              "scripts/kit-rules.txt": "SKIP",
+              ".specify/memory/constitution.md": "ENGINE",
+              ".specify/memory/project-context.md": "SEED",
+              ".specify/memory/lessons.md": "MERGE",
+          }
+          for path, expected in expected_categories.items():
+              if categories.get(path) != expected:
+                  errors.append(f"{path} must be {expected}, got {categories.get(path)!r}")
           if errors:
               raise SystemExit("\n".join(errors))
           print(f"Manifest covers {len(tracked)} tracked files.")
           PY
 
-      - name: Validate unified rigor contract
+      - name: Validate executable kit rules
         if: runner.os == 'Linux'
         shell: bash
         run: |
-          python - <<'PY'
-          import re
-          import subprocess
-          from pathlib import Path
-
-          expected_profiles = [
-              "visual",
-              "logic",
-              "journey",
-              "data-security",
-              "operational",
-              "delivery",
-          ]
-
-          forbidden = []
-          legacy_modes = b"(?:" + b"PROTO" + b"TYPE|" + b"PRODUC" + b"TION)"
-          legacy_marker = b"- **" + b"Modo:**"
-          for name in subprocess.check_output(["git", "ls-files"], text=True).splitlines():
-              data = Path(name).read_bytes()
-              if re.search(rb"\b" + legacy_modes + rb"\b", data) or legacy_marker in data:
-                  forbidden.append(name)
-          if forbidden:
-              raise SystemExit("Legacy global mode found in: " + ", ".join(forbidden))
-
-          def read(path):
-              return Path(path).read_text(encoding="utf-8")
-
-          def section_profiles(text):
-              match = re.search(r"(?ms)^## Perfis de prova\s*$\n(.*?)(?=^## |\Z)", text)
-              if not match:
-                  return []
-              profiles = []
-              for line in match.group(1).splitlines():
-                  if not line.startswith("|"):
-                      continue
-                  first_cell = line.split("|", 2)[1].strip().strip("`")
-                  if first_cell not in {"Perfil", "--------"} and not set(first_cell) <= {"-"}:
-                      profiles.append(first_cell)
-              return profiles
-
-          standards = read(".specify/memory/engineering-standards.md")
-          spec = read(".specify/templates/spec-template.md")
-          plan = read(".specify/templates/plan-template.md")
-          tasks = read(".specify/templates/tasks-template.md")
-
-          if section_profiles(standards) != expected_profiles:
-              raise SystemExit("engineering-standards.md must define exactly the six proof profiles")
-          if "- **Risco:**" not in spec or "## Limites de fidelidade" not in spec:
-              raise SystemExit("spec-template.md is missing risk or fidelity limits")
-          if section_profiles(plan) != expected_profiles:
-              raise SystemExit("plan-template.md must preserve exactly the six proof profiles")
-          if re.search(r"(?m)^## Tasks\s*$", plan):
-              raise SystemExit("plan-template.md must not contain an inline Tasks section")
-          if "| ID | Descrição | Depende de | AC | Perfis |" not in tasks:
-              raise SystemExit("tasks-template.md is missing the Perfis column")
-
-          print("Unified rigor contract is coherent.")
-          PY
+          set -euo pipefail
+          bash -n scripts/kit-rules.sh
+          bash -n tests/kit-rules-negative.sh
+          bash -n tests/sdk-check-graph.sh
+          bash scripts/kit-rules.sh
+          bash tests/kit-rules-negative.sh
 
       - name: Linux checks
         if: runner.os == 'Linux'
@@ -174,6 +137,7 @@ jobs:
           bash -n install.sh
           bash scripts/sdk-check.sh
           pwsh -NoProfile -File scripts/sdk-check.ps1
+          bash tests/sdk-check-graph.sh
 
           valid="$(mktemp -d)"
           cp -R tests/fixtures/valid/. "$valid"
@@ -781,22 +745,29 @@ jobs:
           target="$(mktemp -d)"
           bash install.sh --target "$target" --yes
           bash "$target/scripts/sdk-check.sh"
-          test ! -e "$target/README.md"
-          test ! -e "$target/ROADMAP.md"
-          test ! -e "$target/install.sh"
-          test ! -e "$target/scripts/kit-manifest.txt"
-          test ! -e "$target/VERSION"
-          test -f "$target/.specify/templates/evidence-template.md"
-          for path in \
-            .specify/memory/engineering-standards.md \
-            .specify/templates/spec-template.md \
-            .specify/templates/plan-template.md \
-            .specify/templates/tasks-template.md; do
-            cmp -s "$path" "$target/$path" || {
-              echo "Installed contract file differs from source: $path"
-              exit 1
-            }
-          done
+          while read -r category path; do
+            [ -n "$category" ] || continue
+            path="${path%$'\r'}"
+            case "$category" in \#*) continue ;; esac
+            case "$category" in
+              SKIP)
+                test ! -e "$target/$path" || {
+                  echo "SKIP path leaked into clean install: $path"
+                  exit 1
+                }
+                ;;
+              ENGINE|SEED|MERGE)
+                test -f "$target/$path" || {
+                  echo "Manifest path missing from clean install: $category $path"
+                  exit 1
+                }
+                cmp -s "$path" "$target/$path" || {
+                  echo "Installed manifest file differs from source: $category $path"
+                  exit 1
+                }
+                ;;
+            esac
+          done < scripts/kit-manifest.txt
           bash "$target/scripts/new-feature.sh" "Smoke Feature"
           if grep -E '<feature>|<Nome da Feature>' "$target/docs/specs/smoke-feature/spec.md"; then
             echo "new-feature.sh left template identity placeholders"
@@ -864,24 +835,24 @@ jobs:
           $target = Join-Path $env:RUNNER_TEMP "sdk-install-target"
           powershell.exe -NoProfile -ExecutionPolicy Bypass -File install.ps1 -Target $target -Yes
           powershell.exe -NoProfile -ExecutionPolicy Bypass -File (Join-Path $target "scripts\sdk-check.ps1")
-          if (Test-Path (Join-Path $target "README.md")) { throw "README.md should not be installed" }
-          if (Test-Path (Join-Path $target "ROADMAP.md")) { throw "ROADMAP.md should not be installed" }
-          if (Test-Path (Join-Path $target "install.ps1")) { throw "install.ps1 should not be installed" }
-          if (Test-Path (Join-Path $target "scripts\kit-manifest.txt")) { throw "manifest should not be installed" }
-          if (Test-Path (Join-Path $target "VERSION")) { throw "VERSION should not be installed at project root" }
-          if (-not (Test-Path (Join-Path $target ".specify\templates\evidence-template.md"))) {
-            throw "Evidence template was not installed"
-          }
-          foreach ($relative in @(
-            ".specify\memory\engineering-standards.md",
-            ".specify\templates\spec-template.md",
-            ".specify\templates\plan-template.md",
-            ".specify\templates\tasks-template.md"
-          )) {
+          foreach ($manifestLine in Get-Content scripts\kit-manifest.txt) {
+            $trimmed = $manifestLine.Trim()
+            if (-not $trimmed -or $trimmed.StartsWith('#')) { continue }
+            $parts = $trimmed -split '\s+', 2
+            $category = $parts[0]
+            $relative = $parts[1]
+            $installed = Join-Path $target ($relative -replace '/', '\')
+            if ($category -eq 'SKIP') {
+              if (Test-Path $installed) { throw "SKIP path leaked into clean install: $relative" }
+              continue
+            }
+            if (-not (Test-Path $installed -PathType Leaf)) {
+              throw "Manifest path missing from clean install: $category $relative"
+            }
             $sourceHash = (Get-FileHash -Algorithm SHA256 -Path $relative).Hash
-            $installedHash = (Get-FileHash -Algorithm SHA256 -Path (Join-Path $target $relative)).Hash
+            $installedHash = (Get-FileHash -Algorithm SHA256 -Path $installed).Hash
             if ($sourceHash -ne $installedHash) {
-              throw "Installed contract file differs from source: $relative"
+              throw "Installed manifest file differs from source: $category $relative"
             }
           }
           powershell.exe -NoProfile -ExecutionPolicy Bypass -File (Join-Path $target "scripts\new-feature.ps1") "Smoke Feature"
@@ -939,8 +910,39 @@ jobs:
         run: |
           set -euo pipefail
           bash -n scripts/sdk-check.sh
+          bash -n scripts/kit-rules.sh
           bash -n install.sh
+          bash scripts/kit-rules.sh
           bash scripts/sdk-check.sh
+          bash tests/kit-rules-negative.sh
+          bash tests/sdk-check-graph.sh
+
+          target="$(mktemp -d)"
+          bash install.sh --target "$target" --yes
+          bash "$target/scripts/sdk-check.sh"
+          while read -r category path; do
+            [ -n "$category" ] || continue
+            path="${path%$'\r'}"
+            case "$category" in \#*) continue ;; esac
+            case "$category" in
+              SKIP)
+                test ! -e "$target/$path" || {
+                  echo "SKIP path leaked into Windows Git Bash install: $path"
+                  exit 1
+                }
+                ;;
+              ENGINE|SEED|MERGE)
+                test -f "$target/$path" || {
+                  echo "Manifest path missing from Windows Git Bash install: $category $path"
+                  exit 1
+                }
+                cmp -s "$path" "$target/$path" || {
+                  echo "Windows Git Bash install differs from source: $category $path"
+                  exit 1
+                }
+                ;;
+            esac
+          done < scripts/kit-manifest.txt
 
           valid="$(mktemp -d)"
           cp -R tests/fixtures/valid/. "$valid"

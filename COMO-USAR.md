@@ -1,7 +1,7 @@
 # Como usar (guia rápido)
 
-> Guia de bolso para usar o Spec Driven Kit no dia a dia. Sem jargão. Para a visão completa, veja o
-> [`README.md`](./README.md); para instalar, o [`INSTALL.md`](./INSTALL.md).
+> Guia de bolso autossuficiente para usar o Spec Driven Kit no dia a dia. A documentação completa e de
+> instalação fica no repositório oficial: https://github.com/ygorvieirayv/spec-driven-kit.
 
 ## A ideia em uma frase
 Você **conversa**, o assistente **pergunta e propõe**, você **aprova**. Os arquivos vão sendo criados

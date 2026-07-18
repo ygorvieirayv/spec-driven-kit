@@ -15,5 +15,5 @@
 | T3 | Confirmar verificacao em review | — | AC3 | logic | `scripts/sdk-check.*` | `scripts/sdk-check` | done |
 
 ## Cobertura de AC e perfis
-- <nenhum AC descoberto>
-- <nenhum perfil aplicável descoberto>
+- Nenhuma lacuna de AC.
+- Nenhuma lacuna de perfil aplicável.

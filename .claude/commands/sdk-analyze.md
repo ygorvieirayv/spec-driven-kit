@@ -35,9 +35,9 @@ prova" de `.specify/memory/engineering-standards.md` e o `docs/epics.md`.
    fonte/tool e resultado observável? Passo manual é legítimo, mas precisa ser igualmente exato. Se o
    revisor não conseguir rerodar a prova só com os artefatos, marque **bloqueado** até o plano/tasks ser
    corrigido; narrativa genérica (“testar”, “validar manualmente”) não passa.
-7. **Dependências coerentes:** a ordem das tasks respeita as dependências (sem ciclo)? As dependências
-   externas/de outras features citadas na spec **existem/estão prontas**? (Se não, aponte e sugira
-   `/sdk-roadmap`.)
+7. **Dependências coerentes:** confirme que o `sdk-check` aceitou o grafo interno de `tasks.md` (gramática,
+   referências e ausência de ciclo). Depois avalie semanticamente se dependências externas/de outras
+   features citadas na spec **existem/estão prontas**; se não, aponte e sugira `/sdk-roadmap`.
 8. **Decisões alinhadas:** o plano respeita as decisões de arquitetura do `project-context.md`/`docs/decisions`?
    Nada no plano contradiz um ADR?
 9. **NFRs herdados:** os requisitos não-funcionais da spec batem com os globais do `project-context.md`

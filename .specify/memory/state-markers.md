@@ -80,10 +80,13 @@ backlog -> ready -> in-progress -> verification-pending -> done
   declarados na task, ser `pass`/`observed` e usar ref
   `commit@SHA`/`worktree@SHA`; `unavailable` nunca promove. `fail` corrigível mantém `in-progress`;
   impedimento externo ou disjuntor leva a `blocked`.
+- A célula **Depende de** aceita somente `—` ou IDs internos separados por vírgula (`T1` ou `T1, T2`).
+  Referência inexistente, repetida, texto livre, célula vazia, coluna ausente e ciclo são erros em qualquer
+  estado; o `sdk-check` detecta o grafo deterministicamente. Dependências entre features/serviços continuam
+  na spec e no roadmap, onde o `/sdk-analyze` faz a validação semântica.
 - `/sdk-review` processa as tasks em ordem topológica e usa por padrão revisor fresco; sem suporte a
   subagente, aceita inline apenas como exceção justificada que reexecute a mesma prova. Cada rerun vira
-  entrada `review`. O `/sdk-analyze` verifica ciclos semanticamente; detecção determinística no
-  `sdk-check` ainda não está disponível.
+  entrada `review`.
 - `done` exige que o `Registro review` mais recente cubra todos os ACs declarados na task, seja
   `pass`/`observed`, tenha ref `commit@SHA`/`worktree@SHA` e apareça depois do `Registro implement` mais
   recente.

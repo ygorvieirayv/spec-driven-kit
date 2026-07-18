@@ -94,11 +94,12 @@ se o sinal existe, proponha. Para cada decisão, conduza a lógica do **/sdk-dec
 - Não pergunte tudo de uma vez: uma decisão por vez, na ordem de impacto.
 - 🛑 **Checkpoint 3** — confirme o conjunto de decisões antes de seguir.
 
-### E. Regras de negócio (constituição)
+### E. Regras globais do projeto
 - A partir da descoberta e das decisões, **proponha** princípios de negócio próprios do projeto, explicando
   cada um e por que importa.
-- Grave os aprovados na seção "Princípios específicos deste projeto" da `constitution.md`. Mantenha-os
-  concretos e verificáveis. Não coloque aqui regras que pertencem a uma feature.
+- Grave os aprovados na seção "Princípios específicos deste projeto" do `project-context.md`. A
+  `constitution.md` é motor neutro e nunca guarda dados mutáveis do produto. Mantenha os princípios
+  concretos e verificáveis; não coloque aqui regras que pertencem a uma feature.
 - 🛑 **Checkpoint 4** — usuário aprova os princípios.
 
 ### F. Brief + epics + ordem de construção
