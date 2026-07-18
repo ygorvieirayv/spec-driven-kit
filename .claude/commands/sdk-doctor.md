@@ -25,15 +25,20 @@ token. Se o script não existir (instalação parcial), diga isso e faça as mes
 
 ### T1 — marcadores × disco (grep, barato)
 - **Ledger × artefatos:** feature com pasta em `docs/specs/` mas Estado `a fazer` no ledger? Estado
-  `concluída` sem `**Review:** aprovado` no plano? Estado `em plano` mas sem `plan.md`?
+  `concluída` sem `**Review:** aprovado`/`aprovado com ressalvas` no plano? Estado `em plano` mas sem
+  `plan.md`?
 - **Aprovação fantasma:** spec `aprovada` sem nenhum `- **AC` no formato Dado/Quando/Então? Plano
   `aprovado` com `Analyze: bloqueado`?
+- **Risco persistido:** toda spec formal tem `- **Risco:** baixo|medio|alto` preenchido? A descrição
+  toca lógica crítica mas o marker a rebaixa? Não recalcule silenciosamente — reporte a divergência.
+- **Fonte de tasks:** feature formal com plano aprovado precisa de `tasks.md` antes de Analyze/implement;
+  tabela inline no plano não é fonte de tasks.
 - **Pendências críticas:** `[VERIFICAR]` em aberto no `project-context.md` ou em spec de feature `em
   construção`/`concluída`.
 - **Estado de task:** aceite só `backlog`, `ready`, `in-progress`, `verification-pending`, `done`, `blocked`.
   `partial`/`reopened` são drift. `verification-pending` só depende de
-  `verification-pending`/`done`; `done`, somente de
-  `done`. Não detecte ciclos mecanicamente neste PR (guarda prevista para F11/PR IV).
+  `verification-pending`/`done`; `done`, somente de `done`. O `sdk-check` ainda não detecta ciclos;
+  encaminhe suspeita concreta ao `/sdk-analyze`.
 - **Estado × evidence (contrato estrito):** a fonte das tasks exige marker `Evidence` para a própria
   feature; ausência/caminho divergente é erro. `verification-pending` exige `Registro implement` válido;
   `done`, `Registro review` `pass`/`observed`; `blocked`, `Bloqueio` no mesmo bloco negativo. Evidence vazio
@@ -47,6 +52,13 @@ token. Se o script não existir (instalação parcial), diga isso e faça as mes
   do `project-context.md`?
 - **Brownfield:** spec com Tipo brownfield tem o delta (ADICIONADO/MODIFICADO/REMOVIDO) preenchido? O que
   "não pode quebrar" virou teste de não-regressão nas tasks?
+- **Fidelidade:** a spec declara `Limites intencionais: nenhum` ou descreve cada superfície
+  real/sandbox/simulada/fora de escopo? O plano/código apresenta como real algo limitado? Simulação que
+  pode confundir usuário/operador tem sinalização observável e AC?
+- **Perfis:** o plano avaliou os seis perfis canônicos com `aplicável` ou `N/A` justificado? Todo perfil
+  aplicável aparece em ao menos uma task, nenhuma task cita perfil `N/A` e a prova é compatível com a
+  fidelidade? `data-security` com migração/schema ou transformação destrutiva/em massa tem execução de
+  forward e rollback/restauração registrada?
 - **README × autoridade:** o README/docs explicativos prometem algo que os artefatos de cima contradizem?
 - **Evidence:** os blocos começam em `E1`, avançam de um em um e usam
   `### E<n> - <ISO-8601> - T<n> - <implement|review>`; cada um contém exatamente um
@@ -90,7 +102,9 @@ recomendação:
   obedece a realidade dos artefatos). **Default recomendado.**
 - **B) Mudar conscientemente o de cima** — é uma decisão de produto/arquitetura, não um conserto: sugira
   `/sdk-decide` se houver trade-off real, e registre o porquê no artefato alterado.
-- **C) Registrar como débito** — criar task/pendência e seguir, com o risco anotado.
+- **C) Registrar como débito** — somente para achado Médio/Baixo: criar sub-feature `a fazer` na tabela
+  "Ordem de construção" de `docs/epics.md`, com origem/risco anotados. Crítico/Alto precisa ser corrigido
+  ou permanece bloqueado.
 
 Quando uma task comprovada precisar ser reclassificada, o doctor **propõe encaminhar ao `/sdk-review`**:
 ele cria o bloco real `review | not-run` com o fato observado e `Reclassificacao`, move para `ready` e então o fluxo é
@@ -101,7 +115,8 @@ Regras da reconciliação:
    foi marcador), e só então passe ao próximo.
 2. Sem aprovação explícita do item, **não toque em nada** — inclusive nos "óbvios".
 3. Atualize os marcadores afetados pela correção (**conversa aprova, arquivo registra**).
-4. **Disjuntor anti-loop:** a mesma reconciliação falhou 2–3 vezes? Pare e devolva ao usuário com opções.
+4. **Disjuntor anti-loop:** duas tentativas consecutivas da mesma reconciliação sem progresso? Pare,
+   registre a condição objetiva para retomar e não faça uma terceira automaticamente.
 5. Não reescreva evidence; recibo novo só nasce de execução real em `/sdk-implement` ou `/sdk-review`.
 
 ## Fecho

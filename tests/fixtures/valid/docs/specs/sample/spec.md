@@ -1,7 +1,7 @@
 # Spec - Sample
 
 - **Status:** aprovada
-- **Modo:** PROTOTYPE
+- **Risco:** medio
 - **Tipo:** greenfield
 - **Autor / data:** fixture
 
@@ -9,6 +9,9 @@
 
 ## Contexto e objetivo
 Fixture valido para o contrato do Spec Driven Kit.
+
+## Limites de fidelidade
+- **Limites intencionais:** nenhum
 
 ## Critérios de aceitação (AC)
 - **AC1** — Dado um projeto fixture, quando uma implementacao e verificada, entao a task pode aguardar review.

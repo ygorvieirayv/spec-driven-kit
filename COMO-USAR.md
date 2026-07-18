@@ -37,8 +37,8 @@ Depois, para a feature escolhida, siga a trilha:
 |---|---|
 | **`/sdk-spec`** | Ele te entrevista e escreve **o que** essa parte faz. (Trava se faltarem dependências.) |
 | **`/sdk-clarify`** | *(Se ficou vago)* tira as dúvidas que faltam da spec. |
-| **`/sdk-plan`** | Escreve **como** construir e divide em tarefinhas. |
-| **`/sdk-tasks`** | Organiza a lista de tarefas rastreáveis. |
+| **`/sdk-plan`** | Escreve **como** construir e escolhe quais provas a mudança exige. |
+| **`/sdk-tasks`** | Organiza a lista rastreável em `tasks.md`, a fonte oficial das tarefas. |
 | **`/sdk-analyze`** | Confere se spec, plano e tarefas **batem** — antes de codar. |
 | **`/sdk-implement`** | **Constrói**, executa a verificação e grava o recibo em `evidence.md`. |
 | **`/sdk-review`** | **Confere** o trabalho e reroda a parte relevante da verificação antes de confirmar `done`. |
@@ -51,12 +51,22 @@ recibo; inline só vale como exceção justificada, com o mesmo rerun. Só entã
 dependência externa impedir o trabalho, a task fica `blocked` com o motivo e a condição para retomar. Se a
 revisão encontrar falha, volte ao `/sdk-implement` para corrigir/reverificar e depois rode `/sdk-review`.
 
+O rigor é decidido **por feature e por risco**, não por um modo geral do projeto. Na spec, o agente registra
+os **limites de fidelidade**: o que será real, o que será simulado ou usado em sandbox e o que não será
+construído. No plano, ele seleciona somente os perfis de prova que se aplicam: `visual`, `logic`, `journey`,
+`data-security`, `operational` e `delivery`. Os perfis podem ser combinados; um que não se aplica precisa de
+justificativa, não de trabalho artificial. Achado **Crítico** ou **Alto** bloqueia a conclusão até ser
+corrigido e revisado novamente.
+
 > 💡 **Planeja uma feature por vez.** O mapa geral (a ordem) é feito uma vez no início; o **detalhe** de cada
 > feature acontece só quando chega a vez dela — não se planeja tudo de uma vez de propósito (a feature 1
 > ensina coisas que mudam a 2).
 
 > 🛠️ **Mudando algo que já existe?** Diga isso ao `/sdk-spec` — em vez de reespecificar tudo, ele registra só
 > o que **muda** (adiciona / modifica / remove) e o que **não pode quebrar**. (É o "modo brownfield".)
+
+> 🧪 **É só uma demonstração?** Diga o que pode ser simulado. A IA registra esse limite na própria feature;
+> ela não reduz a segurança do projeto inteiro nem afirma que um mock executou uma operação real.
 
 ---
 

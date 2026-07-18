@@ -5,7 +5,6 @@
 > mais specs em `docs/specs/`.
 
 - **Produto:** _(preenchido no bootstrap)_
-- **Modo:** PROTOTYPE | PRODUCTION
 - **Atualizado em:** _(data)_
 
 ---

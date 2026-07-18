@@ -38,11 +38,11 @@ histórico das decisões ficam nas seções seguintes.
 
 | PR | Conteúdo | Estado |
 |----|----------|--------|
-| I — Coerência e honestidade | Alto bloqueia em PRODUCTION (review) · verificação vs teste alinhados · reviewer em contexto fresco como **padrão** · fronteira motor×produto (CLAUDE/implement/review/doctor) · handoff ao parar no meio · reconciliação de sidecars documentada + doctor avisa · auto-relato de carga · nota Codex/AGENTS.md | ✅ |
+| I — Coerência e honestidade | Alto bloqueia no review · verificação vs teste alinhados · reviewer em contexto fresco como **padrão** · fronteira motor×produto (CLAUDE/implement/review/doctor) · handoff ao parar no meio · reconciliação de sidecars documentada + doctor avisa · auto-relato de carga · nota Codex/AGENTS.md | ✅ |
 | II — Evidência e estados | `evidence.md` por feature (com referência ao SHA observado) · estados de task novos: `blocked` e `verification-pending` · review reroda o subconjunto de verificação citado antes de confirmar `done` · contrato/sdk-check/fixtures atualizados | ✅ |
-| III — Perfis de prova | Perfis independentes (visual · logic · journey · data-security · operational · delivery) no `engineering-standards.md`, declarados no plano e cobrados no review · rollback de `data-security` exige verificação **executada** | planejada |
+| III — Rigor unificado, fidelidade e perfis de prova | Remove o modo global · escala cerimônia pelo risco da feature · registra limites de fidelidade na spec · perfis independentes (`visual` · `logic` · `journey` · `data-security` · `operational` · `delivery`) declarados no plano e cobrados no review · rollback de `data-security` exige verificação **executada** · `tasks.md` vira fonte canônica de toda feature formal | ✅ |
 | IV — Integridade do kit | Contrato executável das instruções (`kit-rules` texto+shell, sem JSON/node) com **teste negativo** no CI · detecção de ciclo de dependências no `sdk-check` | planejada |
-| V — CI do consumidor | Bootstrap gera workflow fail-closed por stack (PRODUCTION: check esperado ausente = falha) + varredura de segredos (gitleaks ou equivalente) | planejada |
+| V — CI do consumidor | Bootstrap gera workflow fail-closed por stack (check esperado ausente = falha) + varredura de segredos (gitleaks ou equivalente) | planejada |
 | VI — Portabilidade | Export dos comandos para OpenCode via **script sob demanda** (fonte única = `.claude/commands/`) · `/sdk-cycle`: encadeia só o mecânico (`tasks → analyze`; roadmap pós-review), **para** em todo 🛑, em implement/review e em qualquer veredito não-limpo | planejada |
 
 **Decisões registradas:** estados novos = só `blocked` + `verification-pending` (rejeitados `partial` —
@@ -50,6 +50,11 @@ task parcial é task mal fatiada — e `reopened` — volta a `ready` com regist
 por feature (não seção do plano: evidência acumula) · contrato de regras no idioma do kit (texto + shell) ·
 export OpenCode gerado sob demanda, nunca cópia commitada (fonte dupla = fábrica de drift) · `/sdk-cycle`
 será o 14º comando — exceção consciente à regra "13 e nada além", por ser orquestrador dos existentes.
+
+**Simplificação registrada no PR III:** não existe mais modo global de rigor. Pedido de protótipo, mock ou
+sandbox vira **limite de fidelidade da feature**, nunca licença para reduzir integridade. O fluxo escala pelo
+risco; o plano combina os perfis de prova aplicáveis; achados Crítico/Alto bloqueiam sempre. Toda feature que
+entra no fluxo formal usa `tasks.md` como fonte canônica — não há tabela inline concorrente no plano.
 
 **Adiado com gatilho:** SCHEMA_VERSION por artefato (gatilho: existir uma base instalada que precise de
 migração entre contratos). O PR II pode ser estrito porque o kit ainda não possui consumidores legados; a
@@ -95,7 +100,7 @@ fixo de estado não é estado.
 | F8 | Instalador seguro + CI do kit | produto | P2 ✅ |
 | F9 | Versionamento do kit | produto | P2 ✅ |
 | F10 | Decisões de produto no decision-guide · exemplos por nicho · starter packs como sementes · distribuição npm | produto | P2/P3 |
-| F11 | Trilha de rigor: coerência, evidência persistida, estados honestos, perfis de prova, integridade do kit, CI do consumidor (PRs I–V acima) | edições + scripts | PRs I–II ✅ · III–V planejados |
+| F11 | Trilha de rigor: coerência, evidência persistida, estados honestos, fidelidade explícita, perfis de prova, integridade do kit, CI do consumidor (PRs I–V acima) | edições + scripts | PRs I–III ✅ · IV–V planejados |
 | F12 | Trilha de portabilidade: export OpenCode + `/sdk-cycle` (PR VI acima) | script + comando novo | planejada |
 
 Total de comandos: 11 → **13**. Única exceção futura aprovada: `/sdk-cycle` (14º, na F12) — orquestrador
@@ -128,7 +133,7 @@ Em conflito entre artefatos, vale a ordem (1 vence 6):
 2. `docs/decisions/*.md` — ADRs
 3. `docs/specs/<feature>/spec.md`
 4. `docs/plans/<feature>/plan.md`
-5. `tasks.md` / tabela de tasks do plano
+5. `tasks.md`
 6. `README.md` e documentação explicativa
 
 **Exceção brownfield:** o código existente é a verdade do comportamento **atual**; a spec (delta) é a
@@ -137,27 +142,28 @@ verdade da **mudança desejada**. Divergência nunca se resolve em silêncio —
 
 ## Régua de cerimônia por risco (F3)
 
-A definição de **lógica crítica / alto risco** (hoje dentro do `/sdk-implement`) sobe para a constituição e
-vira a definição única que implement, review, next e a régua referenciam. A régua é **por mudança**,
-ortogonal ao modo:
+A definição de **lógica crítica / alto risco** (antes duplicada no `/sdk-implement`) sobe para a constituição
+e vira a definição única que implement, review, next e a régua referenciam. A régua é **por feature** e
+substitui qualquer classificação global de rigor:
 
 | Risco | Exemplos | Fluxo mínimo |
 |-------|----------|--------------|
-| Trivial | copy, ajuste visual, rename simples | implementar → review leve |
-| Baixo | tela simples, CRUD sem dado sensível, comportamento isolado | **spec curta** → implement → review |
+| Trivial | copy, ajuste visual, rename simples | implementar → review leve; sem lifecycle formal |
+| Baixo | tela simples, CRUD sem dado sensível, comportamento isolado | **spec curta** → plano/tasks compactos → analyze → implement → review |
 | Médio | regra de negócio nova, integração, mudança em fluxo existente | spec → plan → tasks → analyze → implement → review |
-| Alto | dinheiro, auth, PII, migração, deleção de dados, integração crítica | ciclo completo + clarify + TDD + doctor antes do merge |
+| Alto | dinheiro, auth, PII, migração, deleção de dados, integração crítica | ciclo completo + clarify quando houver ambiguidade + TDD |
 
-- **Spec curta** = só Contexto/objetivo + AC + Fora de escopo (vira nota no `spec-template.md`).
-- O modo (PROTOTYPE × PRODUCTION) continua modulando o rigor **dentro** de cada passo (matriz de rigor
-  existente); a régua decide **quais passos** entram.
+- **Spec curta** = Contexto/objetivo + Limites de fidelidade + AC + Fora de escopo (vira nota no
+  `spec-template.md`).
+- A barra de integridade é única; a régua decide **quais passos** entram e os perfis de prova dizem **o que**
+  precisa ser demonstrado dentro deles.
 - Em dúvida entre dois níveis, usa-se o de cima. A barra "Sempre" da engenharia não se negocia em nenhum nível.
 
 ## `/sdk-next` (F4)
 
 Porta de entrada diária: "quero continuar". Lê **nesta ordem, e só isto** (economia de token):
 
-1. modo/identidade do `project-context.md` (linhas, não o arquivo inteiro);
+1. identidade/stack do `project-context.md` (linhas, não o arquivo inteiro);
 2. ledger do `epics.md`;
 3. branch atual e `git status`;
 4. linhas `Status:`/estados **só da feature ativa**.
@@ -283,9 +289,9 @@ ecossistema (Claude Code, GitHub, geradores de docs).
   do desenho acima. (O doctor pode gravar um relatório sob pedido, nunca por padrão.)
 - **Dividir `lessons.md` por domínio** — o índice de tags + consulta por grep já resolvem; dividir agora é
   estrutura especulativa (YAGNI).
-- **"Padronizar PT-BR"** — o kit já é 100% PT-BR; tokens de estado em inglês (`ready`, `done`, PROTOTYPE…)
+- **"Padronizar PT-BR"** — o kit já é 100% PT-BR; tokens de estado em inglês (`ready`, `done`…)
   são vocabulário fixo, não idioma.
-- **"Permitir tasks inline em PROTOTYPE" e "checkpoints verificáveis por task"** — já existem (matriz de
-  rigor da constituição; coluna Verificação das tasks + porta "done só com verificação passando").
+- **"Permitir duas fontes de tasks"** — rejeitado no PR III: toda feature formal usa `tasks.md`; a coluna
+  Verificação e a porta "done só após review com evidência" preservam o rastreio sem tabela inline concorrente.
 - **npx como P0** — clone/cópia funciona hoje; empacotar npm antes de ter demanda é custo de manutenção sem
   retorno. Primeiro o script de instalação (P2); npx quando houver tração.

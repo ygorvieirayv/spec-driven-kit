@@ -9,9 +9,10 @@
 
 ## Identidade
 - **Produto:** <o que faz, para quem>
-- **Modo:** PROTOTYPE | PRODUCTION
 - **Stack:** <linguagem / framework / banco>
 - **Comandos do projeto:** rodar `<...>` · testar `<...>` · build `<...>` · lint `<...>`
+- **Restrições conhecidas:** <prazo, orçamento, carga esperada, durabilidade/criticidade dos dados,
+  capacidade operacional e recuperação — somente o que for relevante>
 
 ## Jurisdição e usuários
 - **País de operação:** <...> `[VERIFICAR]`

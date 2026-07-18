@@ -24,6 +24,9 @@ decisões, lições) são a **fonte da verdade** e ficam no disco — não na me
 5. Spec é a verdade · 6. Honestidade epistêmica (não inventar; citar; `[VERIFICAR]`) · 7. Regras de domínio
 são descobertas, não assumidas · 8. Aprender com o erro **uma vez** e registrar de forma reutilizável.
 
+O rigor é único e escala por **risco da feature + perfis de prova**, nunca por um modo global. Pedido de
+protótipo/demo/sandbox vira limite de fidelidade explícito na spec; não reduz segurança nem prova.
+
 ## Higiene de contexto (economia de token — leia isto)
 - **Artefato no disco = memória.** Entre fases, o usuário pode `/clear`; recarregue só o arquivo da feature
   atual (a spec/plano), não o histórico inteiro do chat.
@@ -37,22 +40,25 @@ são descobertas, não assumidas · 8. Aprender com o erro **uma vez** e registr
   quê). Torna auditável a disciplina de carga sob demanda, em vez de só assumida.
 
 ## Disjuntor anti-loop (corta o maior ralo de token)
-Se você tentar resolver a **mesma** coisa **2–3 vezes sem progresso**: **pare**. Não insista no escuro.
-Resuma o que tentou, o que observou e onde travou, e **devolva ao usuário** com opções. Loop silencioso
-queimando token é falha, não esforço.
+Depois de **duas tentativas consecutivas da mesma correção sem progresso observável**, **pare** — não há
+terceira tentativa automática. Registre o bloqueio e a condição objetiva para retomar. Com spec/plano
+aprovados, melhoria nova Médio/Baixo vai ao backlog; só AC/perfil não atendido, barra inegociável ou achado
+Crítico/Alto reabre a rodada. Loop silencioso queimando token é falha, não esforço.
 
 ## Depois de implementar
 Explique, em **linguagem simples**, o que mudou e por quê — o usuário não deve aceitar código que não
-entende. Mostre a verificação que comprova e grave o recibo em `docs/plans/<feature>/evidence.md`. O
-implementador encerra em `verification-pending`; somente o `/sdk-review`, após rerodar a verificação,
-confirma `done`. Revisão em contexto fresco é o padrão; inline é somente exceção justificada com o mesmo
-rerun. Se o review falhar, corrija e reverifique via `/sdk-implement` antes de rodar `/sdk-review` de novo.
+entende. Em feature formal, mostre a verificação, grave o recibo em `docs/plans/<feature>/evidence.md` e
+encerre em `verification-pending`; somente o `/sdk-review`, após rerodar a prova, confirma `done`. Em
+mudança trivial sem lifecycle, mostre a verificação e siga para review leve sem fabricar artefatos. Revisão
+em contexto fresco é o padrão; inline é somente exceção justificada com o mesmo rerun. Se o review falhar,
+corrija e reverifique via `/sdk-implement` antes de rodar `/sdk-review` de novo.
 
 ## Comandos
 - **Perdido? `/sdk-next`** — lê o estado (ledger + artefatos + git) e diz o próximo passo. Não executa nada.
 - **Núcleo:** `/sdk-bootstrap` → `/sdk-roadmap` → `/sdk-spec` → `/sdk-plan` → `/sdk-tasks` →
   `/sdk-analyze` → `/sdk-implement` → `/sdk-review`. A **régua de cerimônia** da `constitution.md` diz
-  quais passos entram conforme o risco da mudança (trivial não precisa do ciclo inteiro).
+  quais passos entram conforme o risco da mudança (trivial não precisa do lifecycle formal; toda feature
+  formal usa `tasks.md`).
 - **Apoio:** `/sdk-decide` (escolha com trade-offs) · `/sdk-clarify` (tirar ambiguidade da spec) ·
   `/sdk-lesson` (registrar lição) · `/sdk-doctor` (diagnóstico global de drift + reconciliação aprovada).
   Veja o `README.md`.

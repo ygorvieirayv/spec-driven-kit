@@ -54,14 +54,19 @@ frase quanto um despejo de ideias:
   - **regras de negócio** (ex.: "quem é admin vê tudo") → guarde para a etapa E (constituição).
   Não re-pergunte o que o usuário já disse; só preencha lacunas.
 - **Se vier só uma frase**, siga normalmente — os detalhes emergem na conversa.
-- Defina o **modo** com o usuário: **PROTOTYPE** (rápido, descartável) ou **PRODUCTION** (mantido a sério).
-  Explique a diferença em 1 frase cada.
+- Extraia do que o usuário já disse as **restrições que realmente mudam uma decisão**: prazo, orçamento,
+  carga esperada, durabilidade/criticidade dos dados, capacidade operacional e recuperação necessária.
+  Pergunte somente pela lacuna que possa mudar o stack; não transforme isto em questionário.
+- Se o usuário disser "protótipo", "demo", "MVP" ou equivalente, trate como **objetivo/recorte** (o que
+  precisa ser validado e até quando), nunca como classificação global nem permissão para relaxar
+  integridade. Limites concretos de fidelidade — real, sandbox, mock ou fora de escopo — são definidos por
+  feature no `/sdk-spec`.
 - **Repo existente:** leia o stack (arquivos de manifesto, configs), confirme com o usuário e preencha os
   comandos do projeto (rodar/testar/build/lint).
 - **Do zero:** se o usuário é técnico, pergunte a preferência; se não, **recomende** um stack explicando o
   porquê em linguagem simples e ofereça alternativa.
-- Registre no `project-context.md` (identidade, modo, stack, comandos).
-- 🛑 **Checkpoint 1** — confirme produto, modo e stack antes de seguir.
+- Registre no `project-context.md` (identidade, stack, comandos e restrições conhecidas relevantes).
+- 🛑 **Checkpoint 1** — confirme produto, restrições relevantes e stack antes de seguir.
 
 ### C. Descoberta de domínio
 - Pergunte **país de operação** e **países dos usuários** (explique por que importa: leis, impostos,
@@ -81,8 +86,9 @@ Identifique as decisões **relevantes a este projeto** usando a tabela de **"Gat
 recebe pagamento → #6; espera crescer → #1/#2/#9). Não pule uma decisão só porque o usuário não a mencionou —
 se o sinal existe, proponha. Para cada decisão, conduza a lógica do **/sdk-decide**:
 1. Explique em linguagem simples o que está em jogo.
-2. Mostre os caminhos numa tabela (Facilidade · Desempenho · Custo · Escala/Profissional).
-3. Recomende ancorado no **modo** e no que o usuário disse.
+2. Mostre os caminhos numa tabela (Facilidade · Desempenho · Custo · Operação/escala).
+3. Recomende ancorado nos fatos relevantes já registrados (prazo, orçamento, carga, dados, operação e
+   recuperação), sem usar um rótulo global como atalho.
 4. Diga sempre: **"posso construir qualquer um dos caminhos — qual preferes?"**
 5. Registre cada escolha como ADR em `docs/decisions/<decisao>.md` e atualize o resumo no `project-context.md`.
 - Não pergunte tudo de uma vez: uma decisão por vez, na ordem de impacto.
@@ -109,7 +115,7 @@ se o sinal existe, proponha. Para cada decisão, conduza a lógica do **/sdk-dec
 ---
 
 ## Saída final
-- Resumo amigável do que foi definido (produto, modo, stack, decisões, MVP).
+- Resumo amigável do que foi definido (produto, restrições relevantes, stack, decisões, MVP).
 - Lista de **pendências de verificação** (`[VERIFICAR]`) ainda abertas.
 - Convite: "A primeira área **pronta para começar** (pela ordem de dependências) é **[X]**. Quer detalhá-la
   com `/sdk-spec`? (Ou rode `/sdk-roadmap` para rever a ordem.)"

@@ -28,6 +28,8 @@ ou reinterpretado. Esclarecimento que muda seu significado cria novo AC/task ou 
 4. **Entradas e saídas** — formato, obrigatoriedade, o que acontece quando falta um campo.
 5. **Fronteiras de escopo** — o que parece incluído mas talvez não seja (mande para "Fora de escopo").
 6. **Dependências/atores** — de onde vêm os dados, quem dispara a ação, que sistema externo entra.
+7. **Limites de fidelidade** — algo chamado de real será apenas sandbox/simulado? Está explícito o que não
+   será exercitado e como ninguém confundirá a simulação com operação real? Limite ambíguo bloqueia o plano.
 
 ## Como conduzir
 - Faça **no máximo 1–2 perguntas por vez**, começando pelas que mais mudam o plano.
@@ -35,6 +37,9 @@ ou reinterpretado. Esclarecimento que muda seu significado cria novo AC/task ou 
 - Pare quando não houver mais ambiguidade que afete o plano. Não invente perguntas para "encher".
 
 ## Saída
-- Atualize a spec em `docs/specs/<feature>/spec.md` (AC mais nítidos, edge cases, regras explícitas, escopo).
+- Atualize a spec em `docs/specs/<feature>/spec.md` (AC mais nítidos, edge cases, regras explícitas, escopo
+  e limites de fidelidade).
+- Se risco, limites de fidelidade, AC ou escopo mudarem e já houver plano, volte `**Analyze:**` para
+  `pendente` e aponte o plano/tasks afetado. Não deixe a análise antiga parecer válida.
 - Liste o que ficou esclarecido e o que (se algo) continua em aberto como `[VERIFICAR]`.
 - Sugira o próximo passo: `/sdk-plan` (ou `/sdk-analyze` se já houver plano/tasks).

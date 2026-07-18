@@ -2,7 +2,6 @@
 
 - **Spec de referência:** `docs/specs/sample/spec.md`
 - **Status:** aprovado
-- **Modo:** PROTOTYPE
 - **Analyze:** consistente — 2026-07-05
 - **Review:** —
 - **Evidence:** `docs/plans/sample/evidence.md`
@@ -12,14 +11,20 @@
 ## Abordagem técnica
 Validar marcadores e rastreio AC -> task.
 
-## Tasks
-| ID | Descrição | Arquivo(s) | AC | Verificação | Estado |
-|----|-----------|-----------|----|-------------|--------|
-| T1 | Registrar verificacao de implementacao | `scripts/sdk-check.*` | AC1 | `scripts/sdk-check` | verification-pending |
-| T2 | Registrar bloqueio externo | `docs/plans/sample/evidence.md` | AC2 | inspecao do recibo | blocked |
-| T3 | Confirmar verificacao em review | `scripts/sdk-check.*` | AC3 | `scripts/sdk-check` | done |
+## Alinhamento com os limites de fidelidade
+Nao ha simulacao intencional neste fixture.
 
-## Estratégia de teste
+## Perfis de prova
+| Perfil | Aplicabilidade | Motivo | ACs | Prova e critério objetivo de saída |
+|--------|----------------|--------|-----|------------------------------------|
+| visual | N/A | fixture sem interface | — | — |
+| logic | aplicável | valida regras do contrato | AC1, AC3 | ambos os checkers aceitam os estados validos |
+| journey | N/A | fixture sem jornada de usuario | — | — |
+| data-security | N/A | fixture sem dados, auth ou schema | — | — |
+| operational | aplicável | exercita bloqueio externo | AC2 | bloqueio e condicao ficam no recibo |
+| delivery | N/A | fixture nao altera build ou deploy | — | — |
+
+## Estratégia de verificação
 - Rodar `scripts/sdk-check`.
 
 ## Evidência

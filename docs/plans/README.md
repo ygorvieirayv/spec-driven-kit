@@ -3,7 +3,7 @@
 Uma pasta por feature:
 
 - `plan.md` — abordagem e decisões, gerado pelo `/sdk-plan`;
-- `tasks.md` — trabalho e estado, gerado pelo `/sdk-tasks` quando a rastreabilidade separada se aplica;
+- `tasks.md` — trabalho e estado, fonte canônica gerada pelo `/sdk-tasks` para toda feature formal;
 - `evidence.md` — recibos acumulados das verificações, criado pelo `/sdk-implement` na primeira observação real
   e confirmado pelo `/sdk-review`.
 

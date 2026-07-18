@@ -42,12 +42,17 @@ Antes de gastar tempo nesta feature, confirme que ela **pode** ser construída a
 Estime o risco da mudança pela **régua de cerimônia** da `constitution.md` (e pela definição única de
 lógica crítica que está lá):
 - **Trivial** (copy, ajuste visual, rename): diga que **nem precisa de spec** — implementar + review leve
-  resolve. Não crie artefato por hábito.
+  resolve. Não crie uma feature formal por hábito. Se surgir comportamento, dado ou integração, reclassifique
+  antes de implementar. **Encerre este comando aqui** e encaminhe para `/sdk-implement`; não execute o
+  roteiro nem a saída formal abaixo.
 - **Baixo** (comportamento isolado, sem dado sensível): ofereça a **spec curta** — só Contexto/objetivo,
-  AC e Fora de escopo (ver nota no template).
-- **Médio/Alto**: roteiro completo abaixo. Em **alto risco** (lógica crítica), recomende também
-  `/sdk-clarify` depois do rascunho.
+  Limites de fidelidade, AC e Fora de escopo (ver nota no template). Mesmo compacta, ela segue para plano
+  e tasks compactos: o contrato de evidence exige rastreio antes de implementar.
+- **Médio/Alto**: roteiro completo abaixo. Em **alto risco** (lógica crítica), qualquer ambiguidade ou
+  `[VERIFICAR]` relevante torna `/sdk-clarify` obrigatório antes do plano; se a própria spec já fechou tudo,
+  não crie uma etapa vazia.
 Na dúvida entre dois níveis, use o de cima — e diga isso ao usuário.
+Quando houver spec, registre no marker exatamente um valor: `baixo | medio | alto`.
 
 ## Greenfield ou brownfield? (decida cedo)
 Descubra se esta feature é **algo novo** (greenfield) ou **muda algo que já existe** (brownfield):
@@ -62,15 +67,19 @@ Descubra se esta feature é **algo novo** (greenfield) ou **muda algo que já ex
 
 1. **Situe a feature** no produto (qual epic de `docs/epics.md`). Confirme o nome/slug da feature.
 2. **Contexto e objetivo:** que problema resolve, para quem, qual o resultado esperado.
-3. **Histórias de uso:** "como <usuário>, quero <ação> para <benefício>".
-4. **Requisitos funcionais (FR):** o que o sistema faz — numerados.
-5. **Requisitos não-funcionais (NFR):** só o que **muda** em relação aos NFRs globais do
+3. **Limites de fidelidade:** descubra se alguma superfície será `real`, `sandbox`, `simulada` ou ficará
+   `fora de escopo`. Registre o que é e não é real e como o limite fica observável. Se não houver limite,
+   preserve `- **Limites intencionais:** nenhum`. Sandbox/simulação não reduzem o rigor e não podem ser
+   apresentados como operação real.
+4. **Histórias de uso:** "como <usuário>, quero <ação> para <benefício>".
+5. **Requisitos funcionais (FR):** o que o sistema faz — numerados.
+6. **Requisitos não-funcionais (NFR):** só o que **muda** em relação aos NFRs globais do
    `project-context.md`.
-6. **Critérios de aceitação (AC):** verificáveis e binários (Dado/Quando/Então). Cada AC precisa ser
-   testável.
-7. **Edge cases e modos de falha:** entrada inválida, vazio, limites, concorrência, dependência fora do ar.
-8. **Fora de escopo:** o que esta feature **não** faz.
-9. **Dependências e pressupostos:** features, serviços, dados, decisões de arquitetura (link p/
+7. **Critérios de aceitação (AC):** verificáveis e binários (Dado/Quando/Então). Cada AC precisa ser
+   testável. Quando alguém puder confundir uma simulação com comportamento real, a sinalização vira AC.
+8. **Edge cases e modos de falha:** entrada inválida, vazio, limites, concorrência, dependência fora do ar.
+9. **Fora de escopo:** o que esta feature **não** faz.
+10. **Dependências e pressupostos:** features, serviços, dados, decisões de arquitetura (link p/
    `docs/decisions/`).
 
 **Remova a ambiguidade** fazendo perguntas de esclarecimento — não pare enquanto houver `[VERIFICAR]` crítico
@@ -81,6 +90,10 @@ ou AC vago. Se surgir uma decisão de arquitetura nova, sugira `/sdk-decide`.
   (`docs/epics.md`, "Ordem de construção") para `em spec`.
 - Resuma os AC e as questões em aberto.
 - 🛑 **Peça aprovação** do usuário. Se ainda houver pontos vagos, sugira `/sdk-clarify` antes do plano; caso
-  contrário, sugira `/sdk-plan`. Não comece o plano sem o "ok".
+  contrário, sugira `/sdk-plan` — inclusive para baixo risco, em versão compacta. Não comece o plano sem o
+  "ok".
 - **Aprovado? Registre no arquivo** — atualize a linha `Status:` da spec para `aprovada`. Regra do kit:
   **conversa aprova, arquivo registra**; estado que não está gravado não existe para os outros comandos.
+- Se uma spec já tinha plano e esta rodada alterou risco, limites de fidelidade, AC ou escopo, volte
+  `**Analyze:**` para `pendente` e sinalize quais partes do plano/tasks precisam ser reconciliadas. Não
+  preserve uma análise anterior contra um contrato novo.

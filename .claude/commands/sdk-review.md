@@ -1,5 +1,5 @@
 ---
-description: Revisa o diff e reexecuta verificações em contexto fresco. Só esta etapa promove verification-pending para done; Crítico sempre e Alto em PRODUCTION bloqueiam.
+description: Revisa o diff e reexecuta provas por perfil em contexto fresco. Só esta etapa promove verification-pending para done; Crítico e Alto bloqueiam sempre.
 argument-hint: "[nome da feature, opcional]"
 ---
 
@@ -21,17 +21,24 @@ justificada: registre o motivo e reexecute a mesma prova independente exigida ab
 - A barra: `.specify/memory/engineering-standards.md` e a `constitution.md`.
 - O contrato: `.specify/memory/state-markers.md` e `.specify/templates/evidence-template.md`.
 
-Ao começar, atualize a linha da feature no ledger (`docs/epics.md`, "Ordem de construção") para `em review`.
+Se a mudança foi classificada como **trivial** e não possui lifecycle formal, use o pedido confirmado, o
+diff e a verificação objetiva como insumos; não invente task/evidence nem altere ledger. Se o diff revelar
+risco acima de trivial, bloqueie e peça formalização por `/sdk-spec`.
+
+Para **feature formal**, ao começar atualize sua linha no ledger (`docs/epics.md`, "Ordem de construção")
+para `em review` e siga o gate abaixo. Para mudança trivial, faça a revisão leve diretamente pelo diff e
+pela verificação objetiva; as regras de severidade e a barra inegociável continuam iguais.
 
 ## Gate de verificação independente
 
-Processe as tasks em **ordem topológica**. Para cada task em `verification-pending`:
+Em feature formal, processe as tasks em **ordem topológica**. Para cada task em `verification-pending`:
 
 1. confirme que todas as dependências internas já estão `done`; uma task só pode ficar `done` nessa
    condição;
 2. relacione a verificação citada, os recibos `implement` e os ACs;
-3. peça ao revisor fresco para reexecutar o **menor subconjunto seguro** que cubra task e ACs;
-4. receba recibo completo que liste todos os ACs declarados na task e anexe um novo bloco append-only:
+3. relacione também os perfis da task com a matriz de prova do plano e os limites de fidelidade da spec;
+4. peça ao revisor fresco para reexecutar o **menor subconjunto seguro** que cubra task, ACs e perfis;
+5. receba recibo completo que liste todos os ACs declarados na task e anexe um novo bloco append-only:
 
 ```md
 ### E4 - 2026-07-17T21:57:18Z - T1 - review
@@ -45,7 +52,7 @@ Processe as tasks em **ordem topológica**. Para cada task em `verification-pend
 - **Limitacoes:** nenhuma
 ```
 
-5. se a reexecução for satisfatória **e não houver achado que bloqueie a task**, aplique:
+6. se a reexecução for satisfatória **e não houver achado que bloqueie a task**, aplique:
    `pass`/`observed` completo **com ref `commit@SHA` ou `worktree@SHA`** → `done`; `fail` → `ready`;
    dependência externa `unavailable` →
    `blocked` com `- **Bloqueio:** T1 | motivo observado | condição objetiva para voltar a ready`;
@@ -72,7 +79,8 @@ sete labels ASCII do exemplo, sem placeholders. `Exit code`: `pass=0`; `fail=int
 - **Reclassificacao:** T2 | done | ready | 2026-07-17T21:57:18Z | T1 deixou de estar done; ver E4
 ```
 
-Não faça detecção mecânica de ciclos neste PR; essa guarda permanece prevista para a F11/PR IV.
+Não tente substituir o `/sdk-analyze` com detecção mecânica de ciclos; o `sdk-check` ainda não oferece essa
+guarda.
 
 ### Contrato estrito
 
@@ -84,9 +92,8 @@ retrospectiva.
 1. **Spec ↔ código:** cada AC foi atendido? Há comportamento fora do escopo declarado?
 2. **Plano ↔ código:** seguiu a abordagem e as decisões (ADRs)? Desvios justificados?
 3. **Barra de engenharia — percorra item a item** (não troque pela leitura corrida; o detalhe de cada item
-   está em `.specify/memory/engineering-standards.md`). Roda **igual nos dois modos** — o que muda com o
-   modo é só o quanto um achado fora da barra "Sempre" bloqueia ou vira dívida anotada (ver matriz de rigor
-   da `constitution.md`):
+   está em `.specify/memory/engineering-standards.md`). A barra é única; Crítico/Alto bloqueiam e `N/A`
+   sempre exige motivo:
    - [ ] Segredos fora do código/git/bundle/logs (inclui o bundle que vai pro navegador)
    - [ ] Toda entrada pública validada **no servidor** (não só na UI)
    - [ ] PII fora de logs, mensagens de erro e telemetria
@@ -97,6 +104,9 @@ retrospectiva.
    - [ ] Trabalho pesado (mídia, e-mail, IA) fora do caminho do request
    - [ ] Cache, se houver, tem plano de invalidação
    - [ ] Verificações cobrindo os AC; lógica crítica com teste automatizado (ver QA abaixo)
+   - [ ] Limite `sandbox`/`simulada` não é apresentado como efeito real; a sinalização exigida está observável
+   - [ ] Cada perfil aplicável do plano está coberto por task e prova compatível com a fidelidade
+   - [ ] `data-security` com migração/schema ou transformação destrutiva/em massa tem forward e rollback/restauração realmente executados
 
    O que não se aplica, marque **N/A com 1 linha do porquê** — nunca pule em silêncio.
 4. **Constituição:** mudança cirúrgica? Simples? Verificável? Sem regra de domínio inventada?
@@ -112,6 +122,8 @@ retrospectiva.
    e bem-sucedido? Todo `blocked` tem motivo/condição no mesmo bloco negativo? `verification-pending` depende
    apenas de `verification-pending`/`done` e `done` apenas de `done`? Entradas antigas permaneceram
    intactas? IDs e significados já citados por recibos permaneceram históricos e imutáveis?
+8. **Perfis ↔ prova:** monte o mapa `perfil → task/AC → E<n>`. Perfil aplicável sem task/recibo, task
+   citando perfil `N/A`, prova incompatível com fidelidade ou rollback apenas narrado bloqueiam a promoção.
 
 ## QA — risco e rastreabilidade de testes
 Além de achar bugs, faça uma leitura de QA (no espírito de um "test architect", mas simples):
@@ -130,24 +142,31 @@ Mantenha leve: o objetivo é direcionar atenção para o que é arriscado, não 
 
 ## Severidade
 - **Crítico** — segurança, perda de dados, vazamento de segredo/PII, AC essencial quebrado. **Bloqueia
-  sempre, nos dois modos.**
+  sempre.**
 - **Alto** — bug provável, desvio relevante da spec/plano, AC sem nenhuma verificação (ou AC crítico sem
-  teste automatizado). **Bloqueia em PRODUCTION** (matriz de rigor da constituição); em PROTOTYPE pode
-  virar dívida anotada, nunca ignorada.
+  teste automatizado), perfil aplicável sem prova ou fidelidade enganosa. **Bloqueia sempre.**
 - **Médio** — qualidade, manutenção, cobertura de verificação insuficiente.
 - **Baixo** — estilo, melhorias opcionais.
 
 ## Saída
 - Lista de achados **agrupada por severidade**, cada um com arquivo:linha e sugestão de correção.
-- Mapa task/AC → check reexecutado → recibo → estado.
-- Veredito: **aprovado** / **aprovado com ressalvas** / **bloqueado**. Crítico bloqueia sempre; **Alto
-  bloqueia em PRODUCTION** — só em PROTOTYPE um Alto pode descer para "aprovado com ressalvas", com a
-  dívida anotada. Task sem recibo bem-sucedido impede `aprovado`.
-- **Registre o veredito no plano** (**conversa aprova, arquivo registra**): atualize a linha `**Review:**`
+- **Mudança trivial:** informe a verificação rerodada e o veredito, sem criar recibo, task, plan marker ou
+  estado de ledger. Se o risco real não for trivial, o único veredito possível é **bloqueado**.
+- **Feature formal:** mapa perfil → task/AC → check reexecutado → recibo → estado.
+- Veredito: **aprovado** / **aprovado com ressalvas** / **bloqueado**. Crítico/Alto bloqueiam sempre;
+  `aprovado com ressalvas` aceita somente achados Médio/Baixo registrados. Em feature formal, task sem
+  recibo bem-sucedido impede qualquer aprovação e exige `bloqueado`.
+- **Feature formal — registre o veredito no plano** (**conversa aprova, arquivo registra**): atualize a linha `**Review:**`
   do cabeçalho de `docs/plans/<feature>/plan.md` com `<veredito> — <data>`. Só marque o ledger como
-  `concluída` se todas as tasks essenciais estiverem `done`, todos os ACs tiverem recibo e o veredito for
-  **aprovado**; senão, mantenha `em review`.
+  `concluída` se todas as tasks estiverem `done`, todos os ACs/perfis tiverem recibo e o veredito for
+  **aprovado** ou **aprovado com ressalvas**. Antes de concluir com ressalvas, grave cada débito Médio/Baixo
+  aceito como nova sub-feature `a fazer` na tabela "Ordem de construção" de `docs/epics.md`, com nome curto,
+  epic relevante, dependência na feature de origem e referência `review <feature> <data>` no próprio nome.
+  Sugestão não aceita não vira dívida. Achado Crítico/Alto mantém `em review` e exige **bloqueado**.
 - Não conserte em silêncio durante a revisão — reporte; a correção é um passo à parte.
+- **Convergência:** satisfeitos ACs, perfis e a barra, não reabra a rodada por melhoria nova Médio/Baixo;
+  se aceita como dívida, registre-a no ledger conforme acima. Duas tentativas consecutivas da mesma correção sem progresso acionam `blocked` e
+  impedem uma terceira tentativa automática.
 - Se o veredito exigir correção, indique explicitamente `/sdk-implement` como próximo passo e somente depois
   um novo `/sdk-review`.
 
