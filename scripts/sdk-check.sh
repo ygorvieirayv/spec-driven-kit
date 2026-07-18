@@ -814,6 +814,14 @@ for plandir in "$ROOT"/docs/plans/*/; do
     continue
   fi
 
+  evidence_input="$evidence"
+  evidence_tmp=""
+  if [ -e "$evidence" ]; then
+    evidence_tmp="$(mktemp)"
+    sed 's/\r$//' "$evidence" > "$evidence_tmp"
+    evidence_input="$evidence_tmp"
+  fi
+
   spec_ac_occurrences="$(grep -E '^- \*\*AC[0-9]+\*\*[[:space:]]+—[[:space:]]+.+' "$spec" | \
     grep -oE '\*\*AC[0-9]+\*\*' | tr -d '*' || true)"
   spec_acs="$(printf '%s\n' "$spec_ac_occurrences" | sed '/^$/d' | sort -u)"
@@ -856,7 +864,7 @@ for plandir in "$ROOT"/docs/plans/*/; do
   # Valida estrutura e conteúdo de cada entrada antes de relacioná-la aos estados.
   if [ -e "$evidence" ]; then
     evidence_rel="$(rel "$evidence")"
-    parse_evidence_blocks "$evidence" "$evidence_rel" "$task_ids" "$spec_acs"
+    parse_evidence_blocks "$evidence_input" "$evidence_rel" "$task_ids" "$spec_acs"
   fi
 
   # Estado é a última coluna da fonte autoritativa.
@@ -865,8 +873,8 @@ for plandir in "$ROOT"/docs/plans/*/; do
     declared_dependencies="$(task_declared_dependencies "$task_source" "$task_id")"
 
     if [ -e "$evidence" ]; then
-      reclass_lines="$(reclassification_marker_lines "$evidence" "$task_id")"
-      lifecycle_implement_record="$(latest_record "$evidence" "$task_id" implement)"
+      reclass_lines="$(reclassification_marker_lines "$evidence_input" "$task_id")"
+      lifecycle_implement_record="$(latest_record "$evidence_input" "$task_id" implement)"
       lifecycle_implement_line=0
       if [ -n "$lifecycle_implement_record" ]; then
         IFS='|' read -r lifecycle_implement_line lifecycle_implement_acs lifecycle_implement_result lifecycle_implement_ref <<< "$lifecycle_implement_record"
@@ -874,7 +882,7 @@ for plandir in "$ROOT"/docs/plans/*/; do
 
       while IFS= read -r reclass_line; do
         [ -n "$reclass_line" ] || continue
-        if ! reclassification_history_valid "$evidence" "$task_id" "$reclass_line" "$declared_acs"; then
+        if ! reclassification_history_valid "$evidence_input" "$task_id" "$reclass_line" "$declared_acs"; then
           erro "$(rel "$evidence"):$reclass_line: Reclassificacao de $task_id sem prova valida de done anterior no mesmo ciclo"
         fi
         if [ "$lifecycle_implement_line" -le "$reclass_line" ] && [ "$task_state" != "ready" ]; then
@@ -884,14 +892,14 @@ for plandir in "$ROOT"/docs/plans/*/; do
 
       while IFS='|' read -r candidate_implement_line candidate_implement_acs candidate_implement_result candidate_implement_ref; do
         [ -n "$candidate_implement_line" ] || continue
-        prior_done_review_line="$(latest_valid_review_before_line "$evidence" "$task_id" "$candidate_implement_line" "$declared_acs")"
+        prior_done_review_line="$(latest_valid_review_before_line "$evidence_input" "$task_id" "$candidate_implement_line" "$declared_acs")"
         if [ -n "$prior_done_review_line" ]; then
           valid_reclass_before_implement=0
           while IFS= read -r reclass_line; do
             [ -n "$reclass_line" ] || continue
             if [ "$reclass_line" -gt "$prior_done_review_line" ] && \
                [ "$reclass_line" -lt "$candidate_implement_line" ] && \
-               reclassification_history_valid "$evidence" "$task_id" "$reclass_line" "$declared_acs"; then
+               reclassification_history_valid "$evidence_input" "$task_id" "$reclass_line" "$declared_acs"; then
               valid_reclass_before_implement=1
             fi
           done <<< "$reclass_lines"
@@ -899,16 +907,16 @@ for plandir in "$ROOT"/docs/plans/*/; do
             erro "$task_source_rel: task $task_id recebeu implement na linha $candidate_implement_line após prova de done sem review not-run + Reclassificacao valida entre os dois"
           fi
         fi
-      done < <(task_implement_records "$evidence" "$task_id")
+      done < <(task_implement_records "$evidence_input" "$task_id")
 
       if [ "$task_state" != "done" ]; then
-        latest_done_review_line="$(latest_valid_review_before_line "$evidence" "$task_id" 2147483647 "$declared_acs")"
+        latest_done_review_line="$(latest_valid_review_before_line "$evidence_input" "$task_id" 2147483647 "$declared_acs")"
         if [ -n "$latest_done_review_line" ]; then
           valid_reclass_after_done=0
           while IFS= read -r reclass_line; do
             [ -n "$reclass_line" ] || continue
             if [ "$reclass_line" -gt "$latest_done_review_line" ] && \
-               reclassification_history_valid "$evidence" "$task_id" "$reclass_line" "$declared_acs"; then
+               reclassification_history_valid "$evidence_input" "$task_id" "$reclass_line" "$declared_acs"; then
               valid_reclass_after_done=1
             fi
           done <<< "$reclass_lines"
@@ -937,7 +945,7 @@ for plandir in "$ROOT"/docs/plans/*/; do
     fi
 
     if [ "$task_state" = "ready" ] && [ -e "$evidence" ]; then
-      ready_implement_record="$(latest_record "$evidence" "$task_id" implement)"
+      ready_implement_record="$(latest_record "$evidence_input" "$task_id" implement)"
       if [ -n "$ready_implement_record" ]; then
         IFS='|' read -r ready_implement_line ready_implement_acs ready_implement_result ready_implement_ref <<< "$ready_implement_record"
         if echo "$ready_implement_result" | grep -qE '^(pass|observed)$' && \
@@ -946,7 +954,7 @@ for plandir in "$ROOT"/docs/plans/*/; do
           while IFS= read -r gap_line; do
             [ -n "$gap_line" ] || continue
             erro "$(rel "$evidence"):$gap_line: task $task_id ready apos review done e review not-run exige Reclassificacao valida no bloco not-run mais recente"
-          done < <(ready_reclassification_gap "$evidence" "$task_id" "$ready_implement_line" "$declared_acs")
+          done < <(ready_reclassification_gap "$evidence_input" "$task_id" "$ready_implement_line" "$declared_acs")
         fi
       fi
     fi
@@ -958,7 +966,7 @@ for plandir in "$ROOT"/docs/plans/*/; do
           erro "$task_source_rel: task $task_id em blocked exige evidence.md"
           continue
         fi
-        task_record="$(latest_task_record "$evidence" "$task_id")"
+        task_record="$(latest_task_record "$evidence_input" "$task_id")"
         if [ -z "$task_record" ]; then
           erro "$task_source_rel: task $task_id em blocked exige Registro implement ou review"
         else
@@ -979,7 +987,7 @@ for plandir in "$ROOT"/docs/plans/*/; do
           erro "$task_source_rel: task $task_id em $task_state exige evidence.md"
           continue
         fi
-        implement_record="$(latest_record "$evidence" "$task_id" implement)"
+        implement_record="$(latest_record "$evidence_input" "$task_id" implement)"
         if [ -z "$implement_record" ]; then
           erro "$task_source_rel: task $task_id em $task_state exige Registro implement"
           continue
@@ -990,7 +998,7 @@ for plandir in "$ROOT"/docs/plans/*/; do
         fi
         check_record_ac_coverage "$task_source_rel" "$task_id" "$task_state" implement "$declared_acs" "$implement_acs"
 
-        review_record="$(latest_record "$evidence" "$task_id" review)"
+        review_record="$(latest_record "$evidence_input" "$task_id" review)"
         if [ "$task_state" = "verification-pending" ]; then
           while IFS='|' read -r pending_review_line pending_review_result; do
             [ -n "$pending_review_line" ] || continue
@@ -1000,7 +1008,7 @@ for plandir in "$ROOT"/docs/plans/*/; do
               fail) erro "$task_source_rel: task $task_id continua verification-pending após review fail na linha $pending_review_line; estado esperado: ready" ;;
               unavailable) erro "$task_source_rel: task $task_id continua verification-pending após review unavailable na linha $pending_review_line; estado esperado: blocked" ;;
             esac
-          done < <(review_records_after_line "$evidence" "$task_id" "$implement_line")
+          done < <(review_records_after_line "$evidence_input" "$task_id" "$implement_line")
         fi
 
         if [ "$task_state" = "done" ]; then
@@ -1021,7 +1029,7 @@ for plandir in "$ROOT"/docs/plans/*/; do
                 erro "$task_source_rel: task $task_id em done tem review $intervening_review_result na linha $intervening_review_line após o último implement; exige nova rodada de implement antes de concluir"
                 ;;
             esac
-          done < <(review_records_after_line "$evidence" "$task_id" "$implement_line")
+          done < <(review_records_after_line "$evidence_input" "$task_id" "$implement_line")
           check_record_ac_coverage "$task_source_rel" "$task_id" "$task_state" review "$declared_acs" "$review_acs"
         fi
         ;;
@@ -1048,6 +1056,7 @@ for plandir in "$ROOT"/docs/plans/*/; do
         aviso "docs/specs/$feature: $ac não tem task que o cubra"
     done
   fi
+  [ -z "$evidence_tmp" ] || rm -f "$evidence_tmp"
 done
 
 # ----------------------------------------------------- ledger: coluna Estado
