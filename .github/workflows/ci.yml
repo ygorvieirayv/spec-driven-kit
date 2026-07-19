@@ -759,10 +759,14 @@ jobs:
           pwsh -NoProfile -File "$reclassified_then_reimplemented/scripts/sdk-check.ps1"
 
           version="$(cat VERSION)"
+          revision="$(git rev-parse HEAD | cut -c1-12)"
+          dirty_suffix=""
+          [ -z "$(git status --porcelain --untracked-files=all)" ] || dirty_suffix=".dirty"
+          build="$version-dev+g$revision$dirty_suffix"
           dry_parent="$(mktemp -d)"
           dry="$dry_parent/sdk-dry-run-target"
           dry_output="$(bash install.sh --target "$dry" --dry-run --yes)"
-          echo "$dry_output" | grep -q "DRY-RUN would stamp .specify/spec-driven-kit.version: none -> $version"
+          echo "$dry_output" | grep -q "DRY-RUN would stamp .specify/spec-driven-kit.version: none -> $build"
           test ! -e "$dry"
 
           target="$(mktemp -d)"
@@ -800,29 +804,74 @@ jobs:
           test ! -e "$target/docs/plans/smoke-feature/tasks.md"
           bash "$target/scripts/sdk-check.sh"
           test -f "$target/.specify/spec-driven-kit.version"
-          test "$(cat "$target/.specify/spec-driven-kit.version")" = "$version"
+          test "$(cat "$target/.specify/spec-driven-kit.version")" = "$build"
 
           second_output="$(bash install.sh --target "$target" --yes)"
-          echo "$second_output" | grep -q "installed: $version -> $version"
+          echo "$second_output" | grep -qx "installed: $build"
+          echo "$second_output" | grep -qx "source build: $build"
           echo "$second_output" | grep -q "conflicts=0"
 
           conflict="$(mktemp -d)"
-          mkdir -p "$conflict/.claude/commands"
+          previous="0.0.9-dev+g000000000000"
+          mkdir -p "$conflict/.claude/commands" "$conflict/.specify"
           printf 'custom\n' > "$conflict/.claude/commands/sdk-next.md"
-          bash install.sh --target "$conflict" --yes
+          printf '%s\n' "$previous" > "$conflict/.specify/spec-driven-kit.version"
+          conflict_output="$(bash install.sh --target "$conflict" --yes)"
           grep -qx 'custom' "$conflict/.claude/commands/sdk-next.md"
           test -f "$conflict/.claude/commands/sdk-next.md.sdk-new"
+          test "$(cat "$conflict/.specify/spec-driven-kit.version")" = "$previous"
+          test -f "$conflict/.specify/spec-driven-kit.pending"
+          grep -qx "installed: $previous" "$conflict/.specify/spec-driven-kit.pending"
+          grep -qx "target: $build" "$conflict/.specify/spec-driven-kit.pending"
+          grep -qx -- '- .claude/commands/sdk-next.md' "$conflict/.specify/spec-driven-kit.pending"
+          echo "$conflict_output" | grep -q 'engine_conflicts=1 merge_conflicts=0 pending_engine=1'
+
+          cp .claude/commands/sdk-next.md "$conflict/.claude/commands/sdk-next.md"
+          reconciled_output="$(bash install.sh --target "$conflict" --yes)"
+          test "$(cat "$conflict/.specify/spec-driven-kit.version")" = "$build"
+          test ! -e "$conflict/.specify/spec-driven-kit.pending"
+          echo "$reconciled_output" | grep -q "stamped .specify/spec-driven-kit.version: $previous -> $build"
+
+          merge="$(mktemp -d)"
+          mkdir -p "$merge/.specify/memory"
+          printf '# project lessons\n' > "$merge/.specify/memory/lessons.md"
+          merge_output="$(bash install.sh --target "$merge" --yes)"
+          test "$(cat "$merge/.specify/spec-driven-kit.version")" = "$build"
+          test ! -e "$merge/.specify/spec-driven-kit.pending"
+          test -f "$merge/.specify/memory/lessons.md.sdk-new"
+          echo "$merge_output" | grep -q 'engine_conflicts=0 merge_conflicts=1 pending_engine=0'
 
           force="$(mktemp -d)"
-          mkdir -p "$force/.claude/commands" "$force/docs" "$force/.github/workflows"
+          mkdir -p "$force/.claude/commands" "$force/docs" "$force/.github/workflows" "$force/.specify"
           printf 'custom\n' > "$force/.claude/commands/sdk-next.md"
           printf 'product-ledger\n' > "$force/docs/epics.md"
           printf 'product-workflow\n' > "$force/.github/workflows/sdk-quality.yml"
+          printf '%s\n' "$previous" > "$force/.specify/spec-driven-kit.version"
+          printf 'status: pending-engine-reconciliation\n' > "$force/.specify/spec-driven-kit.pending"
           bash install.sh --target "$force" --yes --force
           test -n "$(find "$force/.claude/commands" -name 'sdk-next.md.sdk-bak.*' -print -quit)"
           ! grep -qx 'custom' "$force/.claude/commands/sdk-next.md"
           grep -qx 'product-ledger' "$force/docs/epics.md"
           grep -qx 'product-workflow' "$force/.github/workflows/sdk-quality.yml"
+          test "$(cat "$force/.specify/spec-driven-kit.version")" = "$build"
+          test ! -e "$force/.specify/spec-driven-kit.pending"
+
+          archive="$(mktemp -d)"
+          archive_target="$(mktemp -d)"
+          git archive HEAD | tar -xf - -C "$archive"
+          bash "$archive/install.sh" --target "$archive_target" --yes >/dev/null
+          test "$(cat "$archive_target/.specify/spec-driven-kit.version")" = "$version-dev+source.unknown"
+
+          check_failure="$(mktemp -d)"
+          cp -R tests/fixtures/broken/. "$check_failure"
+          mkdir -p "$check_failure/.specify"
+          printf '%s\n' "$previous" > "$check_failure/.specify/spec-driven-kit.version"
+          if bash install.sh --target "$check_failure" --yes >"$check_failure/install.log" 2>&1; then
+            echo "Installer advanced past a failing sdk-check"
+            exit 1
+          fi
+          test "$(cat "$check_failure/.specify/spec-driven-kit.version")" = "$previous"
+          grep -q 'sdk-check failed; version stamp was not advanced' "$check_failure/install.log"
 
       - name: Windows PowerShell checks
         if: runner.os == 'Windows'
@@ -851,9 +900,12 @@ jobs:
           }
 
           $version = (Get-Content -Raw -Path VERSION).Trim()
+          $revision = (& git rev-parse HEAD).Trim().Substring(0, 12).ToLowerInvariant()
+          $dirtySuffix = if (@(& git status --porcelain --untracked-files=all).Count -gt 0) { ".dirty" } else { "" }
+          $build = "$version-dev+g$revision$dirtySuffix"
           $dry = Join-Path $env:RUNNER_TEMP "sdk-dry-run-target"
           $dryOutput = powershell.exe -NoProfile -ExecutionPolicy Bypass -File install.ps1 -Target $dry -DryRun -Yes | Out-String
-          if ($dryOutput -notmatch "DRY-RUN would stamp \.specify/spec-driven-kit\.version: none -> $([regex]::Escape($version))") {
+          if ($dryOutput -notmatch "DRY-RUN would stamp \.specify/spec-driven-kit\.version: none -> $([regex]::Escape($build))") {
             throw "Dry-run did not report version stamp"
           }
           if (Test-Path $dry) {
@@ -900,31 +952,65 @@ jobs:
           $stamp = Join-Path $target ".specify\spec-driven-kit.version"
           if (-not (Test-Path $stamp)) { throw "Version stamp missing" }
           $stampValue = (Get-Content -Raw -Path $stamp).Trim()
-          if ($stampValue -ne $version) { throw "Version stamp mismatch: $stampValue" }
+          if ($stampValue -ne $build) { throw "Version stamp mismatch: $stampValue" }
 
           $secondOutput = powershell.exe -NoProfile -ExecutionPolicy Bypass -File install.ps1 -Target $target -Yes | Out-String
-          if ($secondOutput -notmatch "installed: $([regex]::Escape($version)) -> $([regex]::Escape($version))") {
+          if ($secondOutput -notmatch "(?m)^installed: $([regex]::Escape($build))\r?$" -or
+              $secondOutput -notmatch "(?m)^source build: $([regex]::Escape($build))\r?$") {
             throw "Second install did not report same-version update"
           }
           if ($secondOutput -notmatch "conflicts=0") { throw "Second install introduced conflicts" }
 
           $conflict = Join-Path $env:RUNNER_TEMP "sdk-conflict"
-          New-Item -ItemType Directory -Force -Path (Join-Path $conflict ".claude\commands") | Out-Null
+          $previous = "0.0.9-dev+g000000000000"
+          New-Item -ItemType Directory -Force -Path (Join-Path $conflict ".claude\commands"), (Join-Path $conflict ".specify") | Out-Null
           Set-Content -Encoding ASCII -Path (Join-Path $conflict ".claude\commands\sdk-next.md") -Value "custom"
-          powershell.exe -NoProfile -ExecutionPolicy Bypass -File install.ps1 -Target $conflict -Yes
+          Set-Content -Encoding ASCII -Path (Join-Path $conflict ".specify\spec-driven-kit.version") -Value $previous
+          $conflictOutput = powershell.exe -NoProfile -ExecutionPolicy Bypass -File install.ps1 -Target $conflict -Yes | Out-String
           $content = Get-Content -Raw -Path (Join-Path $conflict ".claude\commands\sdk-next.md")
           if ($content.Trim() -ne "custom") { throw "Conflict file was overwritten" }
           if (-not (Test-Path (Join-Path $conflict ".claude\commands\sdk-next.md.sdk-new"))) {
             throw "Conflict sidecar was not created"
           }
+          $conflictStamp = (Get-Content -Raw -Path (Join-Path $conflict ".specify\spec-driven-kit.version")).Trim()
+          if ($conflictStamp -ne $previous) { throw "ENGINE conflict changed the installed stamp" }
+          $pending = Join-Path $conflict ".specify\spec-driven-kit.pending"
+          if (-not (Test-Path $pending)) { throw "ENGINE conflict did not create pending marker" }
+          $pendingContent = Get-Content -Raw -Path $pending
+          if ($pendingContent -notmatch "target: $([regex]::Escape($build))" -or
+              $pendingContent -notmatch '(?m)^- \.claude/commands/sdk-next\.md$') {
+            throw "Pending marker does not identify target build and ENGINE path"
+          }
+          if ($conflictOutput -notmatch 'engine_conflicts=1 merge_conflicts=0 pending_engine=1') {
+            throw "ENGINE conflict summary was not differentiated"
+          }
+
+          Copy-Item -Force .claude\commands\sdk-next.md (Join-Path $conflict ".claude\commands\sdk-next.md")
+          $reconciledOutput = powershell.exe -NoProfile -ExecutionPolicy Bypass -File install.ps1 -Target $conflict -Yes | Out-String
+          $reconciledStamp = (Get-Content -Raw -Path (Join-Path $conflict ".specify\spec-driven-kit.version")).Trim()
+          if ($reconciledStamp -ne $build) { throw "Reconciled rerun did not apply target build" }
+          if (Test-Path $pending) { throw "Reconciled rerun did not clear pending marker" }
+
+          $merge = Join-Path $env:RUNNER_TEMP "sdk-merge-conflict"
+          New-Item -ItemType Directory -Force -Path (Join-Path $merge ".specify\memory") | Out-Null
+          Set-Content -Encoding ASCII -Path (Join-Path $merge ".specify\memory\lessons.md") -Value "# project lessons"
+          $mergeOutput = powershell.exe -NoProfile -ExecutionPolicy Bypass -File install.ps1 -Target $merge -Yes | Out-String
+          $mergeStamp = (Get-Content -Raw -Path (Join-Path $merge ".specify\spec-driven-kit.version")).Trim()
+          if ($mergeStamp -ne $build) { throw "MERGE conflict incorrectly blocked version stamp" }
+          if (Test-Path (Join-Path $merge ".specify\spec-driven-kit.pending")) { throw "MERGE conflict created ENGINE pending marker" }
+          if ($mergeOutput -notmatch 'engine_conflicts=0 merge_conflicts=1 pending_engine=0') {
+            throw "MERGE conflict summary was not differentiated"
+          }
 
           $force = Join-Path $env:RUNNER_TEMP "sdk-force"
           New-Item -ItemType Directory -Force -Path (Join-Path $force ".claude\commands") | Out-Null
           New-Item -ItemType Directory -Force -Path (Join-Path $force "docs") | Out-Null
-          New-Item -ItemType Directory -Force -Path (Join-Path $force ".github\workflows") | Out-Null
+          New-Item -ItemType Directory -Force -Path (Join-Path $force ".github\workflows"), (Join-Path $force ".specify") | Out-Null
           Set-Content -Encoding ASCII -Path (Join-Path $force ".claude\commands\sdk-next.md") -Value "custom"
           Set-Content -Encoding ASCII -Path (Join-Path $force "docs\epics.md") -Value "product-ledger"
           Set-Content -Encoding ASCII -Path (Join-Path $force ".github\workflows\sdk-quality.yml") -Value "product-workflow"
+          Set-Content -Encoding ASCII -Path (Join-Path $force ".specify\spec-driven-kit.version") -Value $previous
+          Set-Content -Encoding ASCII -Path (Join-Path $force ".specify\spec-driven-kit.pending") -Value "status: pending-engine-reconciliation"
           powershell.exe -NoProfile -ExecutionPolicy Bypass -File install.ps1 -Target $force -Yes -Force
           if (-not (Get-ChildItem -Path (Join-Path $force ".claude\commands") -Filter "sdk-next.md.sdk-bak.*")) {
             throw "Backup missing"
@@ -935,6 +1021,22 @@ jobs:
           if ($seedContent.Trim() -ne "product-ledger") { throw "SEED epics was overwritten" }
           $workflowContent = Get-Content -Raw -Path (Join-Path $force ".github\workflows\sdk-quality.yml")
           if ($workflowContent.Trim() -ne "product-workflow") { throw "Consumer workflow was overwritten" }
+          $forceStamp = (Get-Content -Raw -Path (Join-Path $force ".specify\spec-driven-kit.version")).Trim()
+          if ($forceStamp -ne $build) { throw "Forced reconciliation did not apply target build" }
+          if (Test-Path (Join-Path $force ".specify\spec-driven-kit.pending")) { throw "Forced reconciliation did not clear pending marker" }
+
+          $checkFailure = Join-Path $env:RUNNER_TEMP "sdk-check-failure"
+          New-Item -ItemType Directory -Force -Path $checkFailure | Out-Null
+          Copy-Item tests\fixtures\broken\* $checkFailure -Recurse
+          New-Item -ItemType Directory -Force -Path (Join-Path $checkFailure ".specify") | Out-Null
+          Set-Content -Encoding ASCII -Path (Join-Path $checkFailure ".specify\spec-driven-kit.version") -Value $previous
+          $checkFailureOutput = powershell.exe -NoProfile -ExecutionPolicy Bypass -File install.ps1 -Target $checkFailure -Yes 2>&1 | Out-String
+          if ($LASTEXITCODE -eq 0) { throw "Installer advanced past a failing sdk-check" }
+          $failedStamp = (Get-Content -Raw -Path (Join-Path $checkFailure ".specify\spec-driven-kit.version")).Trim()
+          if ($failedStamp -ne $previous) { throw "Failing sdk-check advanced the version stamp" }
+          if ($checkFailureOutput -notmatch 'sdk-check failed with exit code 1; version stamp was not advanced') {
+            throw "Failing sdk-check did not report stamp preservation"
+          }
 
       - name: Windows Git Bash checks
         if: runner.os == 'Windows'
@@ -1025,6 +1127,10 @@ jobs:
           fi
 
           version="$(cat VERSION)"
+          revision="$(git rev-parse HEAD | cut -c1-12)"
+          dirty_suffix=""
+          [ -z "$(git status --porcelain --untracked-files=all)" ] || dirty_suffix=".dirty"
+          build="$version-dev+g$revision$dirty_suffix"
           target="$(mktemp -d "$HOME/sdk-macos-install.XXXXXX")"
           bash install.sh --target "$target" --yes
           bash "$target/scripts/sdk-check.sh"
@@ -1051,7 +1157,8 @@ jobs:
           test -f "$target/.opencode/commands/sdk-cycle.md"
 
           second_output="$(bash install.sh --target "$target" --yes)"
-          echo "$second_output" | grep -q "installed: $version -> $version"
+          echo "$second_output" | grep -qx "installed: $build"
+          echo "$second_output" | grep -qx "source build: $build"
           echo "$second_output" | grep -q "conflicts=0"
 
           bash tests/install-path-safety.sh

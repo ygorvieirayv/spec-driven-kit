@@ -6,6 +6,7 @@ ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 MANIFEST="$ROOT/scripts/kit-manifest.txt"
 VERSION_FILE="$ROOT/VERSION"
 STAMP_REL=".specify/spec-driven-kit.version"
+PENDING_REL=".specify/spec-driven-kit.pending"
 
 TARGET="."
 DRY_RUN=0
@@ -15,8 +16,12 @@ YES=0
 COPIED=0
 SKIPPED=0
 CONFLICTS=0
+ENGINE_CONFLICTS=0
+MERGE_CONFLICTS=0
+PENDING_ENGINE_CONFLICTS=0
 BACKUPS=0
 SIDECARS=0
+PENDING_ENGINE_PATHS=()
 CREATE_TARGET=0
 INSTALL_TIMESTAMP="$(date +%Y%m%d%H%M%S)"
 
@@ -56,6 +61,27 @@ if ! echo "$KIT_VERSION" | grep -qE '^[0-9]+\.[0-9]+\.[0-9]+$'; then
   echo "Invalid VERSION: $KIT_VERSION" >&2
   exit 1
 fi
+
+resolve_kit_build() {
+  local revision dirty_suffix=""
+  KIT_BUILD="$KIT_VERSION-dev+source.unknown"
+  command -v git >/dev/null 2>&1 || return
+  revision="$(git -C "$ROOT" rev-parse --verify HEAD 2>/dev/null || true)"
+  if ! echo "$revision" | grep -qE '^[0-9a-fA-F]{40,64}$'; then
+    return
+  fi
+  revision="$(printf '%s' "$revision" | tr '[:upper:]' '[:lower:]' | cut -c1-12)"
+  if ! git -C "$ROOT" status --porcelain --untracked-files=all >/dev/null 2>&1; then
+    KIT_BUILD="$KIT_VERSION-dev+g$revision.state-unknown"
+    return
+  fi
+  if [ -n "$(git -C "$ROOT" status --porcelain --untracked-files=all 2>/dev/null)" ]; then
+    dirty_suffix=".dirty"
+  fi
+  KIT_BUILD="$KIT_VERSION-dev+g$revision$dirty_suffix"
+}
+
+resolve_kit_build
 
 abs_existing_dir() {
   local dir="$1"
@@ -207,7 +233,7 @@ read_installed_version() {
     return
   fi
   value="$(tr -d '\r\n' < "$stamp")"
-  if echo "$value" | grep -qE '^[0-9]+\.[0-9]+\.[0-9]+$'; then
+  if echo "$value" | grep -qE '^[0-9]+\.[0-9]+\.[0-9]+(-dev\+(g[0-9a-f]{12}(\.dirty|\.state-unknown)?|source\.unknown))?$'; then
     printf '%s\n' "$value"
   else
     printf 'none\n'
@@ -218,12 +244,59 @@ stamp_version() {
   local stamp="$TARGET_ABS/$STAMP_REL"
   assert_safe_relative_path "$STAMP_REL" 0
   if [ "$DRY_RUN" -eq 1 ]; then
-    echo "DRY-RUN would stamp $STAMP_REL: $INSTALLED_VERSION -> $KIT_VERSION"
+    echo "DRY-RUN would stamp $STAMP_REL: $INSTALLED_VERSION -> $KIT_BUILD"
   else
     mkdir -p "$(dirname "$stamp")"
-    printf '%s\n' "$KIT_VERSION" > "$stamp"
-    echo "stamped $STAMP_REL: $INSTALLED_VERSION -> $KIT_VERSION"
+    printf '%s\n' "$KIT_BUILD" > "$stamp"
+    echo "stamped $STAMP_REL: $INSTALLED_VERSION -> $KIT_BUILD"
   fi
+}
+
+record_pending_install() {
+  local pending="$TARGET_ABS/$PENDING_REL" path
+  assert_safe_relative_path "$PENDING_REL" 0
+  if [ "$DRY_RUN" -eq 1 ]; then
+    echo "DRY-RUN would preserve $STAMP_REL at: $INSTALLED_VERSION"
+    echo "DRY-RUN would record pending kit update in $PENDING_REL for: $KIT_BUILD"
+    return
+  fi
+
+  mkdir -p "$(dirname "$pending")"
+  {
+    printf 'status: pending-engine-reconciliation\n'
+    printf 'installed: %s\n' "$INSTALLED_VERSION"
+    printf 'target: %s\n' "$KIT_BUILD"
+    printf 'engine-conflicts: %s\n' "$PENDING_ENGINE_CONFLICTS"
+    printf 'files:\n'
+    for path in "${PENDING_ENGINE_PATHS[@]}"; do
+      printf -- '- %s\n' "$path"
+    done
+  } > "$pending"
+  echo "version stamp preserved at: $INSTALLED_VERSION"
+  echo "pending kit update recorded in $PENDING_REL for: $KIT_BUILD"
+}
+
+clear_pending_install() {
+  local pending="$TARGET_ABS/$PENDING_REL"
+  assert_safe_relative_path "$PENDING_REL" 0
+  if ! path_entry_exists "$pending"; then
+    return
+  fi
+  if [ "$DRY_RUN" -eq 1 ]; then
+    echo "DRY-RUN would clear resolved pending marker: $PENDING_REL"
+  else
+    rm -f "$pending"
+    echo "cleared resolved pending marker: $PENDING_REL"
+  fi
+}
+
+finalize_install_state() {
+  if [ "$PENDING_ENGINE_CONFLICTS" -gt 0 ]; then
+    record_pending_install
+    return
+  fi
+  stamp_version
+  clear_pending_install
 }
 
 unique_path() {
@@ -294,6 +367,7 @@ preflight_install() {
   local category path extra src dst allow_linked_leaf
 
   assert_safe_relative_path "$STAMP_REL" 0
+  assert_safe_relative_path "$PENDING_REL" 0
 
   while read -r category path extra; do
     category="${category%$'\r'}"
@@ -352,10 +426,11 @@ if [ "$CREATE_TARGET" -eq 1 ] && [ "$DRY_RUN" -eq 0 ]; then
   echo "Created target directory: $TARGET_ABS"
 fi
 
-echo "Spec Driven Kit v$KIT_VERSION"
+echo "Spec Driven Kit $KIT_BUILD (base $KIT_VERSION)"
 echo "Source: $ROOT"
 echo "Target: $TARGET_ABS"
-echo "installed: $INSTALLED_VERSION -> $KIT_VERSION"
+echo "installed: $INSTALLED_VERSION"
+echo "source build: $KIT_BUILD"
 [ "$DRY_RUN" -eq 1 ] && echo "Mode: dry-run (no writes)"
 
 while read -r category path extra; do
@@ -406,10 +481,13 @@ while read -r category path extra; do
   case "$category" in
     ENGINE)
       CONFLICTS=$((CONFLICTS + 1))
+      ENGINE_CONFLICTS=$((ENGINE_CONFLICTS + 1))
       if [ "$FORCE" -eq 1 ]; then
         echo "force update ENGINE $path"
         backup_and_overwrite "$src" "$dst" "$path"
       else
+        PENDING_ENGINE_CONFLICTS=$((PENDING_ENGINE_CONFLICTS + 1))
+        PENDING_ENGINE_PATHS+=("$path")
         echo "conflict ENGINE $path -> writing .sdk-new sidecar"
         copy_sidecar "$src" "$dst" "$path" 0
       fi
@@ -424,26 +502,45 @@ while read -r category path extra; do
     MERGE)
       echo "existing MERGE $path -> writing .sdk-new for manual merge"
       CONFLICTS=$((CONFLICTS + 1))
+      MERGE_CONFLICTS=$((MERGE_CONFLICTS + 1))
       copy_sidecar "$src" "$dst" "$path" "$allow_linked_leaf"
       ;;
   esac
 done < "$MANIFEST"
 
 echo "----------------------------------------"
-echo "install: copied=$COPIED skipped=$SKIPPED conflicts=$CONFLICTS sidecars=$SIDECARS backups=$BACKUPS"
-stamp_version
+echo "install: copied=$COPIED skipped=$SKIPPED conflicts=$CONFLICTS engine_conflicts=$ENGINE_CONFLICTS merge_conflicts=$MERGE_CONFLICTS pending_engine=$PENDING_ENGINE_CONFLICTS sidecars=$SIDECARS backups=$BACKUPS"
 
 if [ "$DRY_RUN" -eq 1 ]; then
+  finalize_install_state
   echo "Dry-run complete. No files were written."
   echo "After a real install, run: scripts/sdk-check.sh"
   exit 0
 fi
 
-if [ -f "$TARGET_ABS/scripts/sdk-check.sh" ]; then
-  echo "Running sdk-check..."
-  bash "$TARGET_ABS/scripts/sdk-check.sh"
-else
-  echo "sdk-check not found. Run scripts/sdk-check.sh after install."
+if [ "$PENDING_ENGINE_CONFLICTS" -gt 0 ]; then
+  record_pending_install
 fi
 
-echo "Next: open Claude Code in the target project and run /sdk-bootstrap."
+if [ -f "$TARGET_ABS/scripts/sdk-check.sh" ]; then
+  echo "Running sdk-check..."
+  if ! bash "$TARGET_ABS/scripts/sdk-check.sh"; then
+    echo "sdk-check failed; version stamp was not advanced." >&2
+    exit 1
+  fi
+else
+  echo "sdk-check not found; version stamp was not advanced." >&2
+  exit 1
+fi
+
+if [ "$PENDING_ENGINE_CONFLICTS" -eq 0 ]; then
+  finalize_install_state
+  if [ "$INSTALLED_VERSION" = "none" ]; then
+    echo "Next: open Claude Code in the target project and run /sdk-bootstrap."
+  else
+    echo "Kit update complete."
+  fi
+else
+  echo "Kit update remains pending; version stamp was not advanced."
+  echo "Next: reconcile the files listed in $PENDING_REL and run the installer again."
+fi

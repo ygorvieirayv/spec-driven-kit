@@ -48,6 +48,7 @@ SKIP VERSION
 SEED docs/decisions/README.md
 SEED docs/epics.md
 SKIP docs/example/README.md
+SKIP docs/maintainers/evolution-history.md
 SEED docs/plans/README.md
 SEED docs/specs/README.md
 SKIP install.ps1

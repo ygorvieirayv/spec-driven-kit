@@ -45,9 +45,16 @@ token. Se o script não existir (instalação parcial), diga isso e faça as mes
   feature; ausência/caminho divergente é erro. `verification-pending` exige `Registro implement` válido;
   `done`, `Registro review` `pass`/`observed`; `blocked`, `Bloqueio` no mesmo bloco negativo. Evidence vazio
   antes da primeira observação é drift. Não fabrique evidência retrospectiva.
-- **Restos de atualização do kit:** existem arquivos `*.sdk-new` ou `*.sdk-bak.*` esquecidos? → AVISO:
-  compare o original com o sidecar, incorpore conscientemente o que deve permanecer e só então apague o
-  sidecar. Nunca escolha automaticamente entre dado do projeto e atualização de motor.
+- **Atualização pendente do kit:** existe `.specify/spec-driven-kit.pending`? → ALTO: o selo de versão
+  instalado foi preservado porque um ou mais arquivos do motor divergiram. Leia no marcador o build-alvo e
+  os caminhos afetados e compare cada original com seu `*.sdk-new`. Regra específica do produto deve ir para
+  `project-context.md`/ADR, não permanecer embutida no motor. Para aplicar o build oficial, o arquivo ativo
+  precisa corresponder à versão nova; se o usuário mantiver uma customização no motor, o estado continua
+  pendente por definição. Depois da reconciliação, rode o instalador novamente; ele só aplica o novo selo e
+  remove o marcador quando não restar conflito no motor.
+  Arquivos `*.sdk-new` ou `*.sdk-bak.*` sem marcador ainda geram AVISO e devem ser reconciliados. Nunca
+  escolha automaticamente entre dado do projeto e atualização do motor. Um sidecar de `lessons.md`, que
+  acumula dados do projeto e exige merge manual, não bloqueia o selo do motor.
 - **Contrato de CI do consumidor:** se `scripts/sdk-ci.sh` existir, rode `.\scripts\sdk-ci.ps1 -Validate` no
   Windows ou `bash scripts/sdk-ci.sh --validate` nos demais sistemas. Ausência, divergência com o
   `project-context.md`, duplicidade ou placeholder nos seis gates é drift Alto. Confirme que
