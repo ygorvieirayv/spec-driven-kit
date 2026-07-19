@@ -32,5 +32,9 @@ Thumbs.db
 .vscode/
 *.swp
 
+# Saídas de ferramentas de análise (ex.: graphify — grafo de conhecimento gerado;
+# graph.json carrega strings extraídas do código: manter fora do repo e do scan de segredos)
+graphify-out/
+
 # Adaptadores gerados (a fonte canônica continua em .claude/commands/)
 .opencode/commands/sdk-*.md
