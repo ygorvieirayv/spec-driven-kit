@@ -978,7 +978,7 @@ jobs:
           if (-not (Test-Path $pending)) { throw "ENGINE conflict did not create pending marker" }
           $pendingContent = Get-Content -Raw -Path $pending
           if ($pendingContent -notmatch "target: $([regex]::Escape($build))" -or
-              $pendingContent -notmatch '(?m)^- \.claude/commands/sdk-next\.md$') {
+              $pendingContent -notmatch '(?m)^- \.claude/commands/sdk-next\.md\r?$') {
             throw "Pending marker does not identify target build and ENGINE path"
           }
           if ($conflictOutput -notmatch 'engine_conflicts=1 merge_conflicts=0 pending_engine=1') {
