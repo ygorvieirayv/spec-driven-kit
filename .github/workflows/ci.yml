@@ -1030,8 +1030,15 @@ jobs:
           Copy-Item tests\fixtures\broken\* $checkFailure -Recurse
           New-Item -ItemType Directory -Force -Path (Join-Path $checkFailure ".specify") | Out-Null
           Set-Content -Encoding ASCII -Path (Join-Path $checkFailure ".specify\spec-driven-kit.version") -Value $previous
-          $checkFailureOutput = powershell.exe -NoProfile -ExecutionPolicy Bypass -File install.ps1 -Target $checkFailure -Yes 2>&1 | Out-String
-          if ($LASTEXITCODE -eq 0) { throw "Installer advanced past a failing sdk-check" }
+          $savedErrorActionPreference = $ErrorActionPreference
+          $ErrorActionPreference = 'Continue'
+          try {
+            $checkFailureOutput = powershell.exe -NoProfile -ExecutionPolicy Bypass -File install.ps1 -Target $checkFailure -Yes 2>&1 | Out-String
+            $checkFailureExit = $LASTEXITCODE
+          } finally {
+            $ErrorActionPreference = $savedErrorActionPreference
+          }
+          if ($checkFailureExit -eq 0) { throw "Installer advanced past a failing sdk-check" }
           $failedStamp = (Get-Content -Raw -Path (Join-Path $checkFailure ".specify\spec-driven-kit.version")).Trim()
           if ($failedStamp -ne $previous) { throw "Failing sdk-check advanced the version stamp" }
           if ($checkFailureOutput -notmatch 'sdk-check failed with exit code 1; version stamp was not advanced') {
