@@ -4,6 +4,9 @@ on:
   push:
     branches: [main]
   pull_request:
+  schedule:
+    - cron: "17 3 * * 1"
+  workflow_dispatch:
 
 jobs:
   validate:
@@ -12,7 +15,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-latest, windows-latest, macos-latest]
+        os: [ubuntu-latest, windows-2022, macos-latest]
 
     steps:
       - name: Checkout
@@ -142,8 +145,8 @@ jobs:
           bash scripts/kit-rules.sh
           bash tests/kit-rules-negative.sh
 
-      - name: Cross-platform Bash and PowerShell checks
-        if: runner.os == 'Linux' || runner.os == 'Windows'
+      - name: Full contract matrix
+        if: runner.os == 'Linux' || (runner.os == 'Windows' && (github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'))
         shell: bash
         run: |
           set -euo pipefail
@@ -877,10 +880,22 @@ jobs:
         if: runner.os == 'Windows'
         shell: powershell
         run: |
+          function Assert-NativeSuccess([string] $Label) {
+            if ($LASTEXITCODE -ne 0) {
+              throw "$Label failed with exit code $LASTEXITCODE"
+            }
+          }
+
+          pwsh -NoProfile -File scripts\sdk-check.ps1
+          Assert-NativeSuccess "PowerShell 7 sdk-check"
           powershell.exe -NoProfile -ExecutionPolicy Bypass -File scripts\sdk-check.ps1
+          Assert-NativeSuccess "Windows PowerShell sdk-check"
           powershell.exe -NoProfile -ExecutionPolicy Bypass -File tests\sdk-ci-wrapper.ps1
+          Assert-NativeSuccess "Windows PowerShell sdk-ci wrapper"
           powershell.exe -NoProfile -ExecutionPolicy Bypass -File tests\export-opencode-wrapper.ps1
+          Assert-NativeSuccess "Windows PowerShell OpenCode wrapper"
           powershell.exe -NoProfile -ExecutionPolicy Bypass -File tests\install-path-safety.ps1
+          Assert-NativeSuccess "Windows PowerShell install path safety"
 
           $valid = Join-Path $env:RUNNER_TEMP "sdk-valid"
           New-Item -ItemType Directory -Force -Path $valid | Out-Null
@@ -888,6 +903,7 @@ jobs:
           New-Item -ItemType Directory -Force -Path (Join-Path $valid "scripts") | Out-Null
           Copy-Item scripts\sdk-check.ps1 (Join-Path $valid "scripts\sdk-check.ps1")
           powershell.exe -NoProfile -ExecutionPolicy Bypass -File (Join-Path $valid "scripts\sdk-check.ps1")
+          Assert-NativeSuccess "Valid fixture"
 
           $broken = Join-Path $env:RUNNER_TEMP "sdk-broken"
           New-Item -ItemType Directory -Force -Path $broken | Out-Null
@@ -898,6 +914,7 @@ jobs:
           if ($LASTEXITCODE -eq 0) {
             throw "Broken fixture unexpectedly passed"
           }
+          $global:LASTEXITCODE = 0
 
           $version = (Get-Content -Raw -Path VERSION).Trim()
           $revision = (& git rev-parse HEAD).Trim().Substring(0, 12).ToLowerInvariant()
@@ -905,6 +922,7 @@ jobs:
           $build = "$version-dev+g$revision$dirtySuffix"
           $dry = Join-Path $env:RUNNER_TEMP "sdk-dry-run-target"
           $dryOutput = powershell.exe -NoProfile -ExecutionPolicy Bypass -File install.ps1 -Target $dry -DryRun -Yes | Out-String
+          Assert-NativeSuccess "PowerShell installer dry-run"
           if ($dryOutput -notmatch "DRY-RUN would stamp \.specify/spec-driven-kit\.version: none -> $([regex]::Escape($build))") {
             throw "Dry-run did not report version stamp"
           }
@@ -914,7 +932,9 @@ jobs:
 
           $target = Join-Path $env:RUNNER_TEMP "sdk-install-target"
           powershell.exe -NoProfile -ExecutionPolicy Bypass -File install.ps1 -Target $target -Yes
+          Assert-NativeSuccess "PowerShell clean install"
           powershell.exe -NoProfile -ExecutionPolicy Bypass -File (Join-Path $target "scripts\sdk-check.ps1")
+          Assert-NativeSuccess "Installed PowerShell sdk-check"
           foreach ($manifestLine in Get-Content scripts\kit-manifest.txt) {
             $trimmed = $manifestLine.Trim()
             if (-not $trimmed -or $trimmed.StartsWith('#')) { continue }
@@ -955,6 +975,7 @@ jobs:
           if ($stampValue -ne $build) { throw "Version stamp mismatch: $stampValue" }
 
           $secondOutput = powershell.exe -NoProfile -ExecutionPolicy Bypass -File install.ps1 -Target $target -Yes | Out-String
+          Assert-NativeSuccess "PowerShell idempotent install"
           if ($secondOutput -notmatch "(?m)^installed: $([regex]::Escape($build))\r?$" -or
               $secondOutput -notmatch "(?m)^source build: $([regex]::Escape($build))\r?$") {
             throw "Second install did not report same-version update"
@@ -967,6 +988,7 @@ jobs:
           Set-Content -Encoding ASCII -Path (Join-Path $conflict ".claude\commands\sdk-next.md") -Value "custom"
           Set-Content -Encoding ASCII -Path (Join-Path $conflict ".specify\spec-driven-kit.version") -Value $previous
           $conflictOutput = powershell.exe -NoProfile -ExecutionPolicy Bypass -File install.ps1 -Target $conflict -Yes | Out-String
+          Assert-NativeSuccess "PowerShell conflict install"
           $content = Get-Content -Raw -Path (Join-Path $conflict ".claude\commands\sdk-next.md")
           if ($content.Trim() -ne "custom") { throw "Conflict file was overwritten" }
           if (-not (Test-Path (Join-Path $conflict ".claude\commands\sdk-next.md.sdk-new"))) {
@@ -987,6 +1009,7 @@ jobs:
 
           Copy-Item -Force .claude\commands\sdk-next.md (Join-Path $conflict ".claude\commands\sdk-next.md")
           $reconciledOutput = powershell.exe -NoProfile -ExecutionPolicy Bypass -File install.ps1 -Target $conflict -Yes | Out-String
+          Assert-NativeSuccess "PowerShell reconciled install"
           $reconciledStamp = (Get-Content -Raw -Path (Join-Path $conflict ".specify\spec-driven-kit.version")).Trim()
           if ($reconciledStamp -ne $build) { throw "Reconciled rerun did not apply target build" }
           if (Test-Path $pending) { throw "Reconciled rerun did not clear pending marker" }
@@ -995,6 +1018,7 @@ jobs:
           New-Item -ItemType Directory -Force -Path (Join-Path $merge ".specify\memory") | Out-Null
           Set-Content -Encoding ASCII -Path (Join-Path $merge ".specify\memory\lessons.md") -Value "# project lessons"
           $mergeOutput = powershell.exe -NoProfile -ExecutionPolicy Bypass -File install.ps1 -Target $merge -Yes | Out-String
+          Assert-NativeSuccess "PowerShell MERGE conflict install"
           $mergeStamp = (Get-Content -Raw -Path (Join-Path $merge ".specify\spec-driven-kit.version")).Trim()
           if ($mergeStamp -ne $build) { throw "MERGE conflict incorrectly blocked version stamp" }
           if (Test-Path (Join-Path $merge ".specify\spec-driven-kit.pending")) { throw "MERGE conflict created ENGINE pending marker" }
@@ -1012,6 +1036,7 @@ jobs:
           Set-Content -Encoding ASCII -Path (Join-Path $force ".specify\spec-driven-kit.version") -Value $previous
           Set-Content -Encoding ASCII -Path (Join-Path $force ".specify\spec-driven-kit.pending") -Value "status: pending-engine-reconciliation"
           powershell.exe -NoProfile -ExecutionPolicy Bypass -File install.ps1 -Target $force -Yes -Force
+          Assert-NativeSuccess "PowerShell forced install"
           if (-not (Get-ChildItem -Path (Join-Path $force ".claude\commands") -Filter "sdk-next.md.sdk-bak.*")) {
             throw "Backup missing"
           }
@@ -1038,6 +1063,7 @@ jobs:
           } finally {
             $ErrorActionPreference = $savedErrorActionPreference
           }
+          $global:LASTEXITCODE = 0
           if ($checkFailureExit -eq 0) { throw "Installer advanced past a failing sdk-check" }
           $failedStamp = (Get-Content -Raw -Path (Join-Path $checkFailure ".specify\spec-driven-kit.version")).Trim()
           if ($failedStamp -ne $previous) { throw "Failing sdk-check advanced the version stamp" }
@@ -1051,15 +1077,11 @@ jobs:
         run: |
           set -euo pipefail
           bash -n scripts/sdk-check.sh
-          bash -n scripts/kit-rules.sh
+          bash -n scripts/export-opencode.sh
           bash -n scripts/sdk-ci.sh
-          bash -n scripts/sdk-secrets.sh
           bash -n install.sh
-          bash scripts/kit-rules.sh
           bash scripts/sdk-check.sh
-          bash tests/kit-rules-negative.sh
-          bash tests/sdk-ci-consumer.sh
-          bash tests/sdk-check-graph.sh
+          bash tests/install-path-safety.sh
 
           target="$(mktemp -d)"
           bash install.sh --target "$target" --yes

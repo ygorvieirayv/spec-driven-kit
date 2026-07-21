@@ -42,6 +42,11 @@ desenvolvimento; não implicam tag ou GitHub Release.
 
 ### Fixed
 
+- O CI de pull request mantém PowerShell 5.1, PowerShell 7 e Git Bash no Windows, mas executa a matriz
+  pesada de contratos uma única vez no Ubuntu; a repetição completa no Windows fica disponível semanalmente
+  e por execução manual em `windows-2022`.
+- O cenário Windows que valida uma falha intencional do instalador agora encerra o harness com sucesso depois
+  de confirmar o código de saída, sem propagar o `$LASTEXITCODE` esperado para o job.
 - A documentação instalada ficou autocontida: `/sdk-cycle` não remete mais ao checker interno que fica fora
   do bundle, e `state-markers.md` explica diretamente a escolha do formato sem apontar para o roadmap do kit.
 - O instalador identifica builds de desenvolvimento pelo commit de origem, sinaliza worktree modificada e
