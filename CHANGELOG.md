@@ -4,6 +4,8 @@ Todas as mudanças relevantes do Spec Driven Kit serão registradas neste arquiv
 
 O formato segue a ideia do [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/) e o versionamento
 segue SemVer enquanto o kit amadurece. Versões `0.x` ainda podem mudar contratos internos do kit.
+Enquanto não houver uma publicação oficial, identificadores versionados representam baselines e builds de
+desenvolvimento; não implicam tag ou GitHub Release.
 
 ## [Unreleased]
 
@@ -40,6 +42,20 @@ segue SemVer enquanto o kit amadurece. Versões `0.x` ainda podem mudar contrato
 
 ### Fixed
 
+- O CI de pull request mantém PowerShell 5.1, PowerShell 7 e Git Bash no Windows, mas executa a matriz
+  pesada de contratos uma única vez no Ubuntu; a repetição completa no Windows fica disponível semanalmente
+  e por execução manual em `windows-2022`.
+- O cenário Windows que valida uma falha intencional do instalador agora encerra o harness com sucesso depois
+  de confirmar o código de saída, sem propagar o `$LASTEXITCODE` esperado para o job.
+- A documentação instalada ficou autocontida: `/sdk-cycle` não remete mais ao checker interno que fica fora
+  do bundle, e `state-markers.md` explica diretamente a escolha do formato sem apontar para o roadmap do kit.
+- O instalador identifica builds de desenvolvimento pelo commit de origem, sinaliza worktree modificada e
+  preserva o selo anterior quando há arquivo do motor pendente em `.sdk-new`; a atualização pretendida fica
+  registrada separadamente até a reconciliação e um novo install bem-sucedido.
+- O selo do kit só avança depois da validação do conteúdo instalado, sem declarar como aplicada uma
+  atualização que falhou no `sdk-check`.
+- A orientação de desinstalação deixou de sugerir a remoção indiscriminada de `docs/` e `scripts/`, que podem
+  conter artefatos e automações do produto do usuário.
 - `sdk-review`: achados **Crítico** e **Alto** bloqueiam sempre; dívida anotada não pode lavar um bloqueador.
 - `sdk-review`: rastreabilidade de QA alinhada ao vocabulário dos demais comandos — mapa **AC → verificação**
   (teste automatizado ou checagem manual legítima), com exceção explícita: AC de lógica crítica exige teste
@@ -65,6 +81,9 @@ segue SemVer enquanto o kit amadurece. Versões `0.x` ainda podem mudar contrato
 
 ### Changed
 
+- README, INSTALL e ROADMAP foram reorganizados para explicar adoção e uso sem exigir o contexto histórico
+  de quem desenvolveu o kit; decisões, alternativas rejeitadas e trilhas concluídas agora ficam em
+  `docs/maintainers/`, fora do bundle instalado.
 - `sdk-review`: revisão em contexto fresco (subagente `sdk-reviewer`) passou de recomendação a **padrão**;
   revisar inline é exceção justificada e registrada.
 - Fronteira **motor × produto** explícita: diff de feature que toca arquivos do kit é drift Crítico
@@ -109,7 +128,7 @@ segue SemVer enquanto o kit amadurece. Versões `0.x` ainda podem mudar contrato
 - Avaliar starter packs como sementes de conversa, não como projetos prontos.
 - Publicar distribuição npm quando o versionamento estiver amadurecido.
 
-## [0.1.0] - 2026-07-05
+## [0.1.0] — baseline de desenvolvimento não publicada — 2026-07-05
 
 ### Added
 

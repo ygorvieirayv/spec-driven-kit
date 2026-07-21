@@ -90,7 +90,7 @@ printf 'custom-engine\n' > "$portable_target/.claude/commands/sdk-next.md"
 bash "$ROOT/install.sh" --target "$portable_target" --dry-run --yes >/dev/null
 bash "$ROOT/install.sh" --target "$portable_target" --dry-run --yes --force >/dev/null
 grep -qx 'custom-engine' "$portable_target/.claude/commands/sdk-next.md"
-if find "$portable_target" \( -name '*.sdk-new*' -o -name '*.sdk-bak.*' \) -print | grep -q .; then
+if find "$portable_target" \( -name '*.sdk-new*' -o -name '*.sdk-bak.*' -o -name 'spec-driven-kit.pending' \) -print | grep -q .; then
   echo "conflicting dry-run created sidecar or backup staging" >&2
   exit 1
 fi
@@ -158,6 +158,24 @@ if ln -s "$probe_target" "$probe_link" 2>/dev/null && [ -L "$probe_link" ]; then
   }
   [ ! -e "$stamp_target/.claude" ] || {
     echo "stamp-link failure wrote before completing preflight" >&2
+    exit 1
+  }
+
+  pending_target="$TMP_ROOT/pending-target"
+  pending_outside="$TMP_ROOT/pending-outside"
+  mkdir -p "$pending_target/.specify" "$pending_outside"
+  printf 'pending-safe' > "$pending_outside/sentinel"
+  ln -s "$pending_outside/missing-pending" \
+    "$pending_target/.specify/spec-driven-kit.pending"
+  expect_unsafe_failure dangling-pending-link \
+    bash "$ROOT/install.sh" --target "$pending_target" --yes
+  assert_only_sentinel "$pending_outside" pending-safe
+  [ ! -e "$pending_outside/missing-pending" ] || {
+    echo "dangling pending link was followed" >&2
+    exit 1
+  }
+  [ ! -e "$pending_target/.claude" ] || {
+    echo "pending-link failure wrote before completing preflight" >&2
     exit 1
   }
 

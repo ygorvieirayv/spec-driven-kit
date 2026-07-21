@@ -44,10 +44,32 @@ if ($KitVersion -notmatch '^[0-9]+\.[0-9]+\.[0-9]+$') {
   throw "Invalid VERSION: $KitVersion"
 }
 $StampRel = ".specify/spec-driven-kit.version"
+$PendingRel = ".specify/spec-driven-kit.pending"
+
+$KitBuild = "$KitVersion-dev+source.unknown"
+if ($null -ne (Get-Command git -ErrorAction SilentlyContinue)) {
+  $revisionOutput = @(& git -C $Root rev-parse --verify HEAD 2>$null)
+  $revisionExit = $LASTEXITCODE
+  $revision = ($revisionOutput -join '').Trim().ToLowerInvariant()
+  if ($revisionExit -eq 0 -and $revision -match '^[0-9a-f]{40,64}$') {
+    $shortRevision = $revision.Substring(0, 12)
+    $statusOutput = @(& git -C $Root status --porcelain --untracked-files=all 2>$null)
+    if ($LASTEXITCODE -ne 0) {
+      $KitBuild = "$KitVersion-dev+g$shortRevision.state-unknown"
+    } else {
+      $dirtySuffix = if ($statusOutput.Count -gt 0) { ".dirty" } else { "" }
+      $KitBuild = "$KitVersion-dev+g$shortRevision$dirtySuffix"
+    }
+  }
+}
 
 $script:Copied = 0
 $script:Skipped = 0
 $script:Conflicts = 0
+$script:EngineConflicts = 0
+$script:MergeConflicts = 0
+$script:PendingEngineConflicts = 0
+$script:PendingEnginePaths = @()
 $script:Backups = 0
 $script:Sidecars = 0
 $CreateTarget = $false
@@ -201,7 +223,7 @@ function Backup-And-Overwrite($src, $dst, $relative) {
 function Read-InstalledVersion($path) {
   if (-not (Test-Path $path)) { return "none" }
   $value = (Get-Content -Raw -LiteralPath $path).Trim()
-  if ($value -match '^[0-9]+\.[0-9]+\.[0-9]+$') { return $value }
+  if ($value -match '^[0-9]+\.[0-9]+\.[0-9]+(-dev\+(g[0-9a-f]{12}(\.dirty|\.state-unknown)?|source\.unknown))?$') { return $value }
   return "none"
 }
 
@@ -209,12 +231,58 @@ function Stamp-Version {
   $stampPath = Join-Path $TargetAbs ($StampRel -replace '/', '\')
   Assert-SafeRelativePath $StampRel $false
   if ($DryRun) {
-    Write-Host "DRY-RUN would stamp ${StampRel}: $InstalledVersion -> $KitVersion"
+    Write-Host "DRY-RUN would stamp ${StampRel}: $InstalledVersion -> $KitBuild"
   } else {
     Ensure-Parent $stampPath
-    [System.IO.File]::WriteAllText($stampPath, $KitVersion + [Environment]::NewLine, [System.Text.Encoding]::ASCII)
-    Write-Host "stamped ${StampRel}: $InstalledVersion -> $KitVersion"
+    [System.IO.File]::WriteAllText($stampPath, $KitBuild + [Environment]::NewLine, [System.Text.Encoding]::ASCII)
+    Write-Host "stamped ${StampRel}: $InstalledVersion -> $KitBuild"
   }
+}
+
+function Record-PendingInstall {
+  $pendingPath = Join-Path $TargetAbs ($PendingRel -replace '/', '\')
+  Assert-SafeRelativePath $PendingRel $false
+  if ($DryRun) {
+    Write-Host "DRY-RUN would preserve ${StampRel} at: $InstalledVersion"
+    Write-Host "DRY-RUN would record pending kit update in ${PendingRel} for: $KitBuild"
+    return
+  }
+
+  Ensure-Parent $pendingPath
+  $lines = @(
+    "status: pending-engine-reconciliation"
+    "installed: $InstalledVersion"
+    "target: $KitBuild"
+    "engine-conflicts: $($script:PendingEngineConflicts)"
+    "files:"
+  )
+  foreach ($path in $script:PendingEnginePaths) {
+    $lines += "- $path"
+  }
+  [System.IO.File]::WriteAllLines($pendingPath, $lines, [System.Text.Encoding]::ASCII)
+  Write-Host "version stamp preserved at: $InstalledVersion"
+  Write-Host "pending kit update recorded in ${PendingRel} for: $KitBuild"
+}
+
+function Clear-PendingInstall {
+  $pendingPath = Join-Path $TargetAbs ($PendingRel -replace '/', '\')
+  Assert-SafeRelativePath $PendingRel $false
+  if ($null -eq (Get-PathEntry $pendingPath)) { return }
+  if ($DryRun) {
+    Write-Host "DRY-RUN would clear resolved pending marker: $PendingRel"
+  } else {
+    Remove-Item -LiteralPath $pendingPath -Force
+    Write-Host "cleared resolved pending marker: $PendingRel"
+  }
+}
+
+function Finalize-InstallState {
+  if ($script:PendingEngineConflicts -gt 0) {
+    Record-PendingInstall
+    return
+  }
+  Stamp-Version
+  Clear-PendingInstall
 }
 
 $targetItem = Get-PathEntry $Target
@@ -260,6 +328,7 @@ if ($targetFull.Equals($rootFull, [System.StringComparison]::OrdinalIgnoreCase) 
 
 $ManifestEntries = @()
 Assert-SafeRelativePath $StampRel $false
+Assert-SafeRelativePath $PendingRel $false
 
 foreach ($line in Get-Content -LiteralPath $Manifest) {
   $trim = $line.Trim()
@@ -326,10 +395,11 @@ if ($CreateTarget -and -not $DryRun) {
   Write-Host "Created target directory: $TargetAbs"
 }
 
-Write-Host "Spec Driven Kit v$KitVersion"
+Write-Host "Spec Driven Kit $KitBuild (base $KitVersion)"
 Write-Host "Source: $Root"
 Write-Host "Target: $TargetAbs"
-Write-Host "installed: $InstalledVersion -> $KitVersion"
+Write-Host "installed: $InstalledVersion"
+Write-Host "source build: $KitBuild"
 if ($DryRun) { Write-Host "Mode: dry-run (no writes)" }
 
 foreach ($entry in $ManifestEntries) {
@@ -356,10 +426,13 @@ foreach ($entry in $ManifestEntries) {
 
   if ($category -eq "ENGINE") {
     $script:Conflicts++
+    $script:EngineConflicts++
     if ($Force) {
       Write-Host "force update ENGINE $path"
       Backup-And-Overwrite $src $dst $path
     } else {
+      $script:PendingEngineConflicts++
+      $script:PendingEnginePaths += $path
       Write-Host "conflict ENGINE $path -> writing .sdk-new sidecar"
       Copy-Sidecar $src $dst $path $false
     }
@@ -372,26 +445,46 @@ foreach ($entry in $ManifestEntries) {
   } elseif ($category -eq "MERGE") {
     Write-Host "existing MERGE $path -> writing .sdk-new for manual merge"
     $script:Conflicts++
+    $script:MergeConflicts++
     Copy-Sidecar $src $dst $path $entry.AllowLinkedLeaf
   }
 }
 
 Write-Host "----------------------------------------"
-Write-Host "install: copied=$($script:Copied) skipped=$($script:Skipped) conflicts=$($script:Conflicts) sidecars=$($script:Sidecars) backups=$($script:Backups)"
-Stamp-Version
+Write-Host "install: copied=$($script:Copied) skipped=$($script:Skipped) conflicts=$($script:Conflicts) engine_conflicts=$($script:EngineConflicts) merge_conflicts=$($script:MergeConflicts) pending_engine=$($script:PendingEngineConflicts) sidecars=$($script:Sidecars) backups=$($script:Backups)"
 
 if ($DryRun) {
+  Finalize-InstallState
   Write-Host "Dry-run complete. No files were written."
   Write-Host "After a real install, run: scripts/sdk-check.ps1"
   exit 0
 }
 
+if ($script:PendingEngineConflicts -gt 0) {
+  Record-PendingInstall
+}
+
 $check = Join-Path $TargetAbs "scripts\sdk-check.ps1"
 if (Test-Path $check) {
   Write-Host "Running sdk-check..."
-  & $check
+  $powerShellExecutable = [System.Diagnostics.Process]::GetCurrentProcess().MainModule.FileName
+  & $powerShellExecutable -NoProfile -ExecutionPolicy Bypass -File $check
+  $checkExit = $LASTEXITCODE
+  if ($checkExit -ne 0) {
+    throw "sdk-check failed with exit code $checkExit; version stamp was not advanced."
+  }
 } else {
-  Write-Host "sdk-check not found. Run scripts/sdk-check.ps1 after install."
+  throw "sdk-check not found; version stamp was not advanced."
 }
 
-Write-Host "Next: open Claude Code in the target project and run /sdk-bootstrap."
+if ($script:PendingEngineConflicts -eq 0) {
+  Finalize-InstallState
+  if ($InstalledVersion -eq "none") {
+    Write-Host "Next: open Claude Code in the target project and run /sdk-bootstrap."
+  } else {
+    Write-Host "Kit update complete."
+  }
+} else {
+  Write-Host "Kit update remains pending; version stamp was not advanced."
+  Write-Host "Next: reconcile the files listed in $PendingRel and run the installer again."
+}

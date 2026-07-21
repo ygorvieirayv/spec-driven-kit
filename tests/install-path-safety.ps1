@@ -85,6 +85,19 @@ try {
     throw "Stamp-junction failure wrote before completing preflight"
   }
 
+  $pendingTarget = Join-Path $TempRoot "pending-target"
+  $pendingOutside = Join-Path $TempRoot "pending-outside"
+  New-Item -ItemType Directory -Force -Path (Join-Path $pendingTarget ".specify"), $pendingOutside | Out-Null
+  [System.IO.File]::WriteAllText((Join-Path $pendingOutside "sentinel"), "pending-safe")
+  New-Item -ItemType Junction -Path (Join-Path $pendingTarget ".specify\spec-driven-kit.pending") -Target $pendingOutside | Out-Null
+  Invoke-ExpectUnsafe "pending-junction" {
+    & (Join-Path $Root "install.ps1") -Target $pendingTarget -Yes | Out-Null
+  }
+  Assert-OnlySentinel $pendingOutside "pending-safe"
+  if (Test-Path (Join-Path $pendingTarget ".claude")) {
+    throw "Pending-junction failure wrote before completing preflight"
+  }
+
   $sidecarParent = Join-Path $TempRoot "sidecar-parent"
   $sidecarTarget = Join-Path $sidecarParent "project"
   $sidecarOutside = Join-Path $TempRoot "sidecar-outside"
@@ -95,7 +108,7 @@ try {
   & (Join-Path $Root "install.ps1") -Target $sidecarTarget -DryRun -Yes *> $null
   & (Join-Path $Root "install.ps1") -Target $sidecarTarget -DryRun -Yes -Force *> $null
   $dryArtifacts = @(Get-ChildItem -LiteralPath $sidecarTarget -Recurse -Force | Where-Object {
-    $_.Name -like '*.sdk-new*' -or $_.Name -like '*.sdk-bak.*'
+    $_.Name -like '*.sdk-new*' -or $_.Name -like '*.sdk-bak.*' -or $_.Name -eq 'spec-driven-kit.pending'
   })
   if ($dryArtifacts.Count -ne 0) { throw "Conflicting dry-run created sidecar or backup staging" }
   $engine = (Get-Content -Raw -LiteralPath (Join-Path $sidecarTarget ".claude\commands\sdk-next.md")).Trim()

@@ -45,7 +45,7 @@ ideia vaga
    ▼  /sdk-spec        ── spec de uma feature (QUÊ e PORQUÊ) [trava: dependências prontas?]
    ▼  /sdk-clarify     ── (se vago) tira a ambiguidade da spec
    ▼  /sdk-plan        ── plano técnico (COMO) + perfis de prova
-   ▼  /sdk-tasks       ── tasks rastreáveis na fonte canônica tasks.md
+   ▼  /sdk-tasks       ── tasks rastreáveis na lista única tasks.md
    ▼  /sdk-analyze     ── confere consistência spec ↔ plano ↔ tasks ↔ AC (antes de codar)
    ▼  /sdk-implement   ── implementação + recibos persistidos em evidence.md
    ▼  /sdk-review      ── revisão fresca + reexecução da verificação antes de done
@@ -82,14 +82,14 @@ algo não bate?             /sdk-doctor — diagnostica drift (read-only) e reco
 | `/sdk-roadmap` | ★ Descobre a **ordem certa** de construir as features (por dependências) e o que está "pronto para começar". |
 | `/sdk-spec` | Cria a spec de uma feature por conversa (QUÊ/PORQUÊ). Trava se as dependências não estiverem prontas. |
 | `/sdk-plan` | Cria o plano técnico (COMO), consultando padrões e lições, e seleciona os perfis de prova aplicáveis. |
-| `/sdk-tasks` | Quebra/atualiza a lista rastreável em `tasks.md`, fonte canônica das tasks de toda feature formal. |
+| `/sdk-tasks` | Quebra/atualiza a lista rastreável em `tasks.md`, a única lista de tasks de cada feature formal. |
 | `/sdk-analyze` | Confere a **consistência** spec ↔ plano ↔ tasks ↔ AC (read-only), antes de codar. |
 | `/sdk-implement` | Implementa seguindo o plano, aplica TDD na lógica crítica, registra cada verificação em `evidence.md` e deixa a task `verification-pending`. |
 | `/sdk-review` | Revisa em contexto fresco e reroda o subconjunto de verificação citado; somente um novo recibo satisfatório confirma `done`. |
 
-O contexto fresco é o **padrão** do review. Revisão inline é apenas fallback justificado para ambiente sem
-subagente e precisa executar exatamente o mesmo rerun. Se um review falhar, a correção volta primeiro ao
-`/sdk-implement`; só depois se roda `/sdk-review` novamente.
+O `/sdk-review` usa um contexto fresco sempre que a ferramenta oferece subagentes. Em ambientes sem esse
+recurso, a revisão pode ocorrer na sessão atual, mas precisa executar exatamente as mesmas verificações. Se
+um review falhar, a correção volta primeiro ao `/sdk-implement`; só depois se roda `/sdk-review` novamente.
 
 **Apoio (use quando precisar):**
 
@@ -149,20 +149,22 @@ e uma branch dedicada. Plano e tasks só nascem nos comandos próprios, depois d
 
 ## Versionamento
 
-A versão do kit fica em [`VERSION`](./VERSION), e mudanças relevantes ficam em
-[`CHANGELOG.md`](./CHANGELOG.md). O instalador não copia `VERSION` para a raiz do seu projeto, porque essa
-raiz pode ter a versão do seu próprio produto. Em vez disso, ele grava o selo do kit em
-`.specify/spec-driven-kit.version`; é seguro commitar esse arquivo para saber qual versão do kit está
-instalada no projeto.
+A versão-base do kit fica em [`VERSION`](./VERSION), e mudanças relevantes ficam em
+[`CHANGELOG.md`](./CHANGELOG.md). Builds ainda não publicados incluem o commit de origem, por exemplo
+`0.1.0-dev+gabc123def456`, para não se confundirem com uma release. O instalador grava a identificação
+realmente aplicada em `.specify/spec-driven-kit.version`; é seguro commitar esse arquivo. Se algum arquivo do
+motor ficar pendente em `.sdk-new`, o selo anterior é preservado e `.specify/spec-driven-kit.pending` informa
+qual build e quais caminhos ainda precisam ser reconciliados. O selo representa uma cópia exata do motor;
+uma customização mantida nesses arquivos continua pendente por definição, sem fingir que o build oficial foi
+aplicado integralmente.
 
 ---
 
-## Rigor unificado, fidelidade e perfis de prova
+## Rigor, fidelidade e perfis de prova
 
-O kit tem **uma única barra de integridade**. Segurança, autorização, proteção de dados, honestidade da
-evidência e revisão independente não ficam mais fracas porque o pedido é um protótipo, uma demonstração ou
-um experimento. O que escala é o trabalho necessário para provar cada **feature**, conforme seu risco e sua
-superfície — não um modo global do projeto.
+Segurança, autorização, proteção de dados, honestidade da evidência e revisão independente continuam
+obrigatórias em protótipos, demonstrações, experimentos e produtos finais. O trabalho necessário para provar
+cada **feature** varia conforme seu risco e sua superfície.
 
 Cada spec registra seus **limites de fidelidade**: o que será real, o que será simulado ou executado em
 sandbox e o que ficará fora de escopo. Um checkout demonstrativo, por exemplo, pode usar um gateway simulado;
@@ -191,10 +193,10 @@ runner, setup, diretórios e comandos. `scripts/sdk-ci.sh` exige exatamente seis
 ausente, divergente do `project-context.md`, placeholder e atalhos como `--if-present`/`|| true` falham antes
 de qualquer execução. No Windows, `sdk-ci.ps1` localiza o Git Bash e usa o mesmo contrato.
 
-O job `Secret scan` usa o CLI MIT do Gitleaks fixado por versão e SHA-256, sem licença da Action, e examina
-histórico completo + árvore atual com redaction. Os checks remotos estáveis são `Quality gates` e
-`Secret scan`. Para impedir bypass pela remoção do workflow, torne ambos obrigatórios em branch
-protection/ruleset; sem essa configuração externa, a garantia honesta é "fail-closed quando executado".
+O job `Secret scan` usa o Gitleaks e examina o histórico completo e a árvore atual sem expor os segredos
+encontrados. Depois que o workflow estiver verde, marque os checks `Quality gates` e `Secret scan` como
+obrigatórios no branch protection/ruleset do repositório. Essa configuração impede que uma alteração seja
+mesclada sem executar os dois checks.
 
 ---
 
@@ -271,51 +273,41 @@ ln -s lessons-shared/lessons.md .specify/memory/lessons.md
 Assim cada postmortem novo (em qualquer projeto) contribui de volta, e a biblioteca cresce como um acervo
 único, reutilizável e independente de projeto.
 
-## Estrutura do repositório
+## O que entra no seu projeto
 
 ```
-spec-driven-kit/
-├── README.md                          # este arquivo
-├── INSTALL.md                         # como instalar o kit num projeto
-├── COMO-USAR.md                       # guia rápido de bolso (uso no dia a dia)
-├── CLAUDE.md                          # regras de base sempre carregadas (curto, p/ economia de token)
-├── VERSION                            # versão atual do kit
-├── CHANGELOG.md                       # histórico de mudanças do kit
-├── install.sh / install.ps1           # instalador seguro (manifest-aware)
-│
-├── .github/workflows/ci.yml           # validação Linux + Windows + macOS do kit e do instalador
-│
-├── .specify/                          # memória, contratos e templates do kit
-│   ├── memory/                        # bases lidas SOB DEMANDA pelos comandos
-│   │   ├── constitution.md            # princípios universais e neutros (8)
-│   │   ├── engineering-standards.md   # barra técnica (infra, perf, segurança, testes…)
-│   │   ├── decision-guide.md          # ★ catálogo de trade-offs (alimenta /sdk-decide)
-│   │   ├── lessons.md                 # ★ biblioteca de lições generalizadas (erros → prevenção)
-│   │   ├── state-markers.md           # ★ contrato dos marcadores de estado (valida o /sdk-check e /sdk-doctor)
-│   │   └── project-context.md         # GERADO na descoberta (país, leis, decisões)
-│   └── templates/                     # moldes de context / spec / plan / tasks / evidence / CI consumidor
-│       └── agents-md-template.md      # ★ adaptador p/ ferramentas sem slash commands (ex.: Codex CLI)
+seu-projeto/
+├── CLAUDE.md                          # regras de base lidas pelo Claude Code
+├── COMO-USAR.md                       # guia rápido para o dia a dia
+├── AGENTS.md                          # opcional: adaptador para Codex e outras ferramentas
 │
 ├── .claude/
-│   ├── commands/                      # os slash commands sdk-*
-│   └── agents/                        # subagentes (researcher, reviewer, lesson-curator)
+│   ├── commands/                      # comandos /sdk-*
+│   └── agents/                        # pesquisa, review e curadoria de lições
+│
+├── .specify/                          # memória, contratos e templates do kit
+│   ├── memory/                        # contexto, padrões, decisões e lições
+│   ├── templates/                     # moldes de spec, plano, tasks e evidência
+│   ├── spec-driven-kit.version        # build do kit realmente aplicado
+│   └── spec-driven-kit.pending        # existe somente enquanto houver conflito pendente
 │
 ├── docs/
-│   ├── specs/                         # specs aprovadas (uma pasta por feature)
-│   ├── plans/                         # planos, tasks e evidência acumulada
-│   ├── decisions/                     # ADRs (decisões de arquitetura)
-│   ├── example/                       # walkthrough opcional e ilustrativo (não muda o kit)
-│   └── epics.md                       # escopo do MVP + ledger de estado (coluna Estado)
+│   ├── specs/                         # especificações por feature
+│   ├── plans/                         # planos, tasks e evidências
+│   ├── decisions/                     # decisões de arquitetura do produto
+│   └── epics.md                       # escopo e estado das features
 │
 ├── scripts/
-│   ├── kit-manifest.txt               # classificação ENGINE/SEED/MERGE/SKIP para o instalador
-│   ├── kit-rules.*                    # contrato/check interno do próprio kit (SKIP no bundle)
-│   ├── sdk-ci.* + sdk-secrets.sh      # gates portáveis do produto + Gitleaks fixado para CI Ubuntu
-│   ├── export-opencode.*              # gera comandos nativos OpenCode sem fonte duplicada
-│   └── new-feature + sdk-check        # scaffolding + validação de estado, bash + PowerShell
+│   ├── sdk-check.*                    # valida o estado dos artefatos
+│   ├── sdk-ci.* + sdk-secrets.sh      # checks do produto
+│   ├── export-opencode.*              # gera comandos nativos do OpenCode
+│   └── new-feature.*                  # inicia uma feature opcionalmente
 │
-└── tests/                             # fixtures, mutações, gates e secret scan sintético real
+└── .github/workflows/sdk-quality.yml  # criado pelo bootstrap após sua aprovação
 ```
+
+Arquivos de manutenção do próprio Spec Driven Kit — testes internos, CI do kit, instaladores e histórico de
+desenvolvimento — permanecem neste repositório e não são copiados para o seu produto.
 
 ---
 

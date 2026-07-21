@@ -11,7 +11,7 @@ atravessa nenhuma decisão humana.
 
 ## Contrato fixo
 
-As linhas abaixo são verificadas por `scripts/kit-rules.sh` e não podem ser ampliadas por conveniência:
+As linhas abaixo definem a fronteira executável deste comando e não podem ser ampliadas por conveniência:
 
 ```text
 SDK-CYCLE-ALLOWED=sdk-tasks,sdk-analyze

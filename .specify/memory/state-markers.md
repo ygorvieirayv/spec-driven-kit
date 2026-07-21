@@ -4,9 +4,9 @@
 > cada marcador e quem o escreve. É o contrato que `scripts/sdk-check` valida por regex e que `/sdk-next` e
 > `/sdk-doctor` leem. Se um comando e este arquivo divergirem, **este arquivo vence** — corrija o comando.
 >
-> **Por que linhas markdown, e não TOML/YAML/JSONL:** decisão registrada no `ROADMAP.md` ("Decisão de
-> formatos"). Resumo: o consumidor é LLM + grep + regex — linha markdown é tolerante a erro de geração,
-> legível por humano, renderiza no GitHub e não cria segunda fonte de estado.
+> **Por que linhas markdown, e não TOML/YAML/JSONL:** o estado precisa ser legível por humano e também
+> consumido por LLM + grep + regex. Linhas markdown toleram melhor pequenas variações de geração,
+> renderizam no GitHub e evitam uma segunda fonte de estado.
 
 ## Regra de ouro
 

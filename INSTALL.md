@@ -8,7 +8,7 @@ dependências.
 
 ---
 
-## Instalação suportada — instalador manifest-aware
+## Instalação recomendada
 
 Use esta opção para adicionar ou atualizar o kit em um projeto sem copiar pastas manualmente. O instalador
 roda a partir de um clone do Spec Driven Kit e copia só o que pertence ao projeto de destino.
@@ -35,48 +35,49 @@ cd spec-driven-kit
 .\install.ps1 -Target C:\caminho\do\seu-projeto -Yes
 ```
 
-O instalador segue o manifesto `scripts/kit-manifest.txt`:
+O instalador distingue o motor do kit dos dados do seu produto:
 
-- **ENGINE** (motor do kit): comandos, agentes, templates, `CLAUDE.md`, `COMO-USAR.md` e scripts, incluindo
-  `sdk-ci.sh`/`.ps1` e `sdk-secrets.sh`. Se o
-  arquivo não existe, copia. Se existe e diverge, **não sobrescreve por padrão**: grava `<arquivo>.sdk-new`
-  para você comparar. Com `--force`/`-Force`, atualiza somente arquivos ENGINE depois de criar backup
-  `<arquivo>.sdk-bak.<data>`.
-- **SEED** (arquivos do produto): `project-context.md`, `docs/epics.md`, READMEs de `docs/` e `.gitignore`.
-  Copia só quando ausentes. Se já existem, nunca sobrescreve.
-- **MERGE**: `lessons.md`. Se já existe, grava `.sdk-new` para merge manual, porque o arquivo acumula
-  lições do seu projeto.
-- **SKIP**: documentação e infra do repositório do kit (`README.md`, `ROADMAP.md`, `docs/example/`,
-  `.github/`, `tests/`, `install.*`, `VERSION`, `CHANGELOG.md`). Nunca são copiados para a raiz do produto.
+- comandos, agentes, templates e scripts do kit são copiados quando ausentes; se uma versão diferente já
+  existe, o instalador preserva a atual e grava `<arquivo>.sdk-new` para comparação;
+- arquivos que passam a conter decisões e artefatos do seu produto, como `project-context.md`,
+  `docs/epics.md` e `.gitignore`, são criados somente quando não existem;
+- `lessons.md` acumula conhecimento do projeto e, por isso, também usa `.sdk-new` para merge manual;
+- documentação, testes e CI usados apenas para desenvolver o próprio kit não são copiados para o produto.
+
+Use `--force`/`-Force` somente quando quiser substituir arquivos do motor. Antes de cada substituição, o
+instalador cria um backup `<arquivo>.sdk-bak.<data>`; arquivos do seu produto continuam preservados.
 
 Antes da primeira escrita, o instalador valida o destino e cada componente de caminho que utilizará.
 Symlink, junction ou reparse point capaz de redirecionar arquivo, sidecar, selo ou backup para fora do
-projeto interrompe a instalação sem mutação parcial.
+projeto interrompe a instalação antes de escrever qualquer arquivo.
 
 Ao final de uma instalação real, o instalador roda `sdk-check` no destino e mostra o próximo passo:
 abrir o Claude Code no projeto e rodar **`/sdk-bootstrap`**. A distribuição via `npm create`/`npx` é um
 caminho futuro; hoje o instalador local é o caminho suportado.
 
-O instalador também registra a versão do kit instalada em `.specify/spec-driven-kit.version`. Esse arquivo é
-um selo do kit, não a versão do seu produto, e é seguro commitar. O `VERSION` da raiz do repositório do kit
-fica fora do seu projeto para evitar colisão com versionamento próprio da aplicação.
+O instalador registra o build realmente aplicado em `.specify/spec-driven-kit.version`. Esse selo pertence ao
+kit, não ao seu produto, e é seguro commitar. Um build de desenvolvimento inclui o commit de origem, como
+`0.1.0-dev+gabc123def456`; uma origem modificada localmente também recebe `.dirty`.
+
+Se algum arquivo do motor for preservado como `.sdk-new`, o selo anterior não avança. O arquivo
+`.specify/spec-driven-kit.pending` registra o build pretendido e os caminhos pendentes até você reconciliá-los
+e rodar o instalador novamente.
 
 ---
 
 ## Projetos novos e existentes
 
-Use o mesmo instalador acima nos dois casos. Em pasta nova, ele cria somente os arquivos declarados no
-manifesto; em repositório existente, preserva código e dados do produto, gerando sidecar quando encontra
-conflito de motor. Clonar este repositório como se fosse o produto ou copiar `docs/`/`scripts/`
-recursivamente não é caminho suportado: isso levaria CI, fixtures e documentação interna marcados como
-`SKIP` para dentro da aplicação.
+Use o mesmo instalador nos dois casos. Em pasta nova, ele cria a estrutura necessária. Em repositório
+existente, preserva código e dados do produto e gera um sidecar `.sdk-new` quando encontra conflito no
+motor. Não clone este repositório como se fosse o produto nem copie suas pastas recursivamente; rode o
+instalador apontando para a pasta da aplicação.
 
 Depois da instalação, abra a ferramenta de IA no projeto e rode `/sdk-bootstrap`. Em brownfield, o comando
 lê o stack e o comportamento existentes antes de propor qualquer mudança.
 
 Depois que você aprovar stack, runner/setup e a matriz dos seis gates no Checkpoint 1, o bootstrap cria
 `.github/workflows/sdk-quality.yml` e um contrato explícito em `.specify/ci/gates/`. Esses arquivos são
-dados do produto, ficam fora do manifesto e não são sobrescritos nem mesmo por uma atualização com
+dados do produto e não são sobrescritos nem mesmo por uma atualização com
 `--force`/`-Force`.
 
 ---
@@ -91,7 +92,7 @@ onde procurar. Para isso existe um **adaptador**: um `AGENTS.md` que ensina a fe
 flag de texto (`--sdk-bootstrap`, `--sdk-spec`, ...) como "leia o comando correspondente e siga-o".
 
 ```bash
-# a partir da raiz do seu projeto (depois de usar o instalador manifest-aware)
+# a partir da raiz do seu projeto (depois de usar o instalador)
 cp .specify/templates/agents-md-template.md ./AGENTS.md
 ```
 
@@ -108,8 +109,7 @@ digita `--sdk-plan` (ou o equivalente que sua ferramenta aceitar como texto livr
 
 ### OpenCode com comandos nativos
 
-Depois da instalação, gere `.opencode/commands/sdk-*.md` a partir da fonte canônica em
-`.claude/commands/`:
+Depois da instalação, gere `.opencode/commands/sdk-*.md` a partir dos comandos em `.claude/commands/`:
 
 ```bash
 bash scripts/export-opencode.sh
@@ -145,7 +145,8 @@ ls .claude/agents       # sdk-domain-researcher.md, sdk-reviewer.md, sdk-lesson-
 ls .specify/memory      # constitution.md, engineering-standards.md, decision-guide.md, lessons.md,
                         # state-markers.md, project-context.md
 ls scripts              # new-feature.*, export-opencode.*, sdk-check.*, sdk-ci.* e sdk-secrets.sh
-cat .specify/spec-driven-kit.version  # versão do Spec Driven Kit instalada neste projeto
+cat .specify/spec-driven-kit.version  # build do Spec Driven Kit aplicado neste projeto
+test ! -f .specify/spec-driven-kit.pending || cat .specify/spec-driven-kit.pending  # atualização pendente
 ```
 
 No Claude Code, digite `/` e veja se os comandos `sdk-*` aparecem. Pronto: rode **`/sdk-bootstrap`**.
@@ -158,9 +159,9 @@ Para puxar melhorias do kit sem perder seus artefatos:
 
 - **Com instalador:** atualize o clone do kit (`git pull`) e rode novamente `bash install.sh --target
   /caminho/do/projeto --yes` ou `.\install.ps1 -Target C:\caminho\do\projeto -Yes`. Sem `--force`, conflitos
-  do motor viram `.sdk-new`. Com `--force`, só arquivos ENGINE são atualizados, sempre com backup
+  do motor viram `.sdk-new`. Com `--force`, somente arquivos do motor são atualizados, sempre com backup
   `.sdk-bak.<data>`. Antes de atualizar, consulte o [`CHANGELOG.md`](./CHANGELOG.md); durante a instalação,
-  o instalador mostra a transição de versão, por exemplo `installed: 0.1.0 -> 0.2.0`.
+  o instalador mostra a identificação anterior e a nova identificação do kit.
 - **Seguro de sobrescrever** (são o "motor" do kit): `.claude/commands/`, `.claude/agents/`,
   `.specify/templates/`, `.specify/memory/decision-guide.md`, `.specify/memory/engineering-standards.md`,
   `.specify/memory/state-markers.md`, `scripts/sdk-check.*`, `scripts/sdk-ci.*`, `scripts/sdk-secrets.sh`,
@@ -172,22 +173,25 @@ Para puxar melhorias do kit sem perder seus artefatos:
   `.github/workflows/sdk-quality.yml`, `docs/specs/`, `docs/plans/`, `docs/decisions/`, `docs/epics.md`, e o
   `AGENTS.md` na raiz **se você usa o adaptador** (ele foi preenchido
   com dados do seu projeto — só o molde em `.specify/templates/agents-md-template.md` é seguro de atualizar).
-- **Evidence é estrito:** plan/tasks exige marker `- **Evidence:**` para a própria feature. O arquivo só
-  nasce na primeira observação real, mas `verification-pending`, `done` e `blocked` não são aceitos sem os
-  recibos correspondentes. Nunca invente recibos para satisfazer o checker.
 - **`.specify/memory/lessons.md`** — caso à parte: as **sementes** vêm do kit, mas o arquivo **acumula** as
   suas lições. Faça **merge**, não sobrescreva. (Se usar a biblioteca como submodule, ela é versionada à
   parte e não há conflito.)
 - **Depois de atualizar, reconcilie os sidecars.** Um `arquivo.sdk-new` é a versão nova do motor quando a
-  sua divergia: compare (`diff arquivo arquivo.sdk-new`), incorpore o que fizer sentido e **apague o
-  sidecar**. Para `lessons.md.sdk-new`, faça o merge das lições novas do kit para dentro do seu arquivo.
-  Backups `*.sdk-bak.*` (criados pelo `--force`) podem ser apagados quando você confirmar que está tudo bem.
-  Sidecar esquecido não é inofensivo — o `/sdk-doctor` avisa se encontrar.
+  sua divergia. Compare os dois arquivos (`diff arquivo arquivo.sdk-new`) antes de decidir. Para concluir a
+  atualização, o arquivo ativo do motor precisa ficar igual à versão nova: mova regras específicas do seu
+  produto para `project-context.md`/ADRs ou, depois da revisão, rode novamente com `--force`/`-Force`.
+  Se você decidir manter uma customização dentro do motor, a atualização continuará pendente por definição
+  e o instalador não afirmará que o build oficial foi aplicado. `lessons.md.sdk-new` é a exceção: faça merge
+  das lições no arquivo ativo, pois ele acumula dados do projeto e não bloqueia o selo. Backups
+  `*.sdk-bak.*` podem ser apagados depois da conferência. O `/sdk-doctor` avisa sobre sidecars esquecidos.
+  Quando `.specify/spec-driven-kit.pending` existir, rode o instalador novamente após a reconciliação; um
+  motor integralmente atualizado avança o selo e remove o registro pendente.
 
 ---
 
 ## Desinstalar
 
-Remova `.specify/`, `.claude/commands/sdk-*.md`, `.claude/agents/sdk-*.md`, os arquivos gerados
-`.opencode/commands/sdk-*.md`, `CLAUDE.md`, `COMO-USAR.md` e (se quiser) `docs/` e `scripts/`. Seu código de
-aplicação não é tocado pelo kit.
+Remova `.claude/commands/sdk-*.md`, `.claude/agents/sdk-*.md`, `.opencode/commands/sdk-*.md`, `CLAUDE.md` e
+`COMO-USAR.md`. Em `.specify/`, `docs/` e `scripts/`, apague somente os arquivos do kit que você realmente
+quer descartar: essas pastas podem conter contexto, specs, decisões, evidências e scripts do seu próprio
+produto. Não remova as pastas inteiras sem revisar seu conteúdo.
